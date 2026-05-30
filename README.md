@@ -1,3 +1,7 @@
+<img width="1221" height="668" alt="image" src="https://github.com/user-attachments/assets/3a4e0c63-a169-44f9-a402-f11c778cd424" />
+<br/>
+
+
 # AICRM-Assistant
 
 AI 기반 콜센터 상담원 Copilot + CRM 자동화 + RAG/GraphRAG 상담 지식 시스템 프로젝트입니다.
