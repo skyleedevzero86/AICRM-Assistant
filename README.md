@@ -58,6 +58,9 @@ AI 기반 콜센터 상담원 Copilot + CRM 자동화 + RAG/GraphRAG 상담 지�
 
 ## 서비스 구성
 
+<br/><br/>
+<img width="1035" height="686" alt="image" src="https://github.com/user-attachments/assets/ab22ac1d-6128-4c52-b1be-20ba16ce6e3c" />
+<br/><br/>
 ### 1. Frontend
 
 - 경로: `frontend`
