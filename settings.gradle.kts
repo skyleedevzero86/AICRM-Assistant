@@ -15,6 +15,7 @@ dependencyResolutionManagement {
 rootProject.name = "aicrm-assistant"
 
 include(
+    "backend:app",
     "backend:core-api-service",
-    "backend:chat-ai-service"
+    "backend:chat-ai-service",
 )
