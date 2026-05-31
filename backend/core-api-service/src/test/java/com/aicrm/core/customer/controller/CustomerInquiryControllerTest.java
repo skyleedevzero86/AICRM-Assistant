@@ -1,4 +1,4 @@
-package com.aicrm.core.ticket.controller;
+package com.aicrm.core.customer.controller;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
@@ -6,14 +6,12 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.aicrm.core.customer.application.CreateCustomerInquiryService;
+import com.aicrm.core.customer.dto.CreateCustomerInquiryResponse;
 import com.aicrm.core.global.exception.BusinessException;
 import com.aicrm.core.global.exception.ErrorCode;
 import com.aicrm.core.global.exception.GlobalExceptionHandler;
-import com.aicrm.core.ticket.application.CreateCustomerInquiryService;
-import com.aicrm.core.ticket.domain.ChannelType;
 import com.aicrm.core.ticket.domain.TicketStatus;
-import com.aicrm.core.ticket.dto.CreateInquiryResponse;
-import java.time.Instant;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -36,35 +34,29 @@ class CustomerInquiryControllerTest {
 
     @Test
     void createReturnsCreatedResponse() throws Exception {
-        Instant createdAt = Instant.parse("2026-05-31T06:00:00Z");
-        when(createCustomerInquiryService.create(any())).thenReturn(new CreateInquiryResponse(
-                10L,
-                20L,
-                30L,
-                3L,
-                "DELIVERY_DELAY",
-                "배송 지연",
-                TicketStatus.WAITING,
-                ChannelType.WEB_INQUIRY,
-                "Delivery delayed",
-                createdAt
+        when(createCustomerInquiryService.create(any())).thenReturn(new CreateCustomerInquiryResponse(
+                1L,
+                "TICKET-20260530-0001",
+                TicketStatus.WAITING
         ));
 
-        mockMvc.perform(post("/api/tickets/inquiries")
+        mockMvc.perform(post("/api/customer/inquiries")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                                 {
-                                  "customerId": 1,
+                                  "customerName": "김고객",
+                                  "phone": "010-1234-5678",
+                                  "email": "customer@test.com",
                                   "categoryId": 3,
-                                  "subject": "Delivery delayed",
-                                  "content": "My package has not arrived.",
-                                  "channel": "WEB_INQUIRY"
+                                  "title": "배송이 늦어요",
+                                  "content": "지난주 주문했는데 아직 도착하지 않았습니다."
                                 }
                                 """))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.success").value(true))
-                .andExpect(jsonPath("$.data.ticketId").value(10))
-                .andExpect(jsonPath("$.data.categoryCode").value("DELIVERY_DELAY"));
+                .andExpect(jsonPath("$.data.ticketId").value(1))
+                .andExpect(jsonPath("$.data.ticketNo").value("TICKET-20260530-0001"))
+                .andExpect(jsonPath("$.data.status").value("WAITING"));
     }
 
     @Test
@@ -75,15 +67,16 @@ class CustomerInquiryControllerTest {
                         "Consultation category must be a depth-3 leaf category: 1"
                 ));
 
-        mockMvc.perform(post("/api/tickets/inquiries")
+        mockMvc.perform(post("/api/customer/inquiries")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                                 {
-                                  "customerId": 1,
+                                  "customerName": "김고객",
+                                  "phone": "010-1234-5678",
+                                  "email": "customer@test.com",
                                   "categoryId": 1,
-                                  "subject": "Invalid category",
-                                  "content": "This should fail.",
-                                  "channel": "WEB_INQUIRY"
+                                  "title": "Invalid category",
+                                  "content": "This should fail."
                                 }
                                 """))
                 .andExpect(status().isBadRequest())

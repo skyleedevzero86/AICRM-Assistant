@@ -37,6 +37,16 @@ public class Customer {
     protected Customer() {
     }
 
+    public static Customer create(String name, String phone, String email) {
+        Customer customer = new Customer();
+        customer.name = name;
+        customer.phone = phone;
+        customer.email = email;
+        customer.createdAt = Instant.now();
+        customer.updatedAt = Instant.now();
+        return customer;
+    }
+
     public Long getId() {
         return id;
     }

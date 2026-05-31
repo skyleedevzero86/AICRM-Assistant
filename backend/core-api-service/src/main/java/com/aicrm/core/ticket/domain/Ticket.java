@@ -28,6 +28,9 @@ public class Ticket {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(name = "ticket_no", nullable = false, unique = true, length = 30)
+    private String ticketNo;
+
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "customer_id", nullable = false)
     private Customer customer;
@@ -74,9 +77,11 @@ public class Ticket {
             Customer customer,
             ConsultationCategory category,
             ChannelType channel,
-            String subject
+            String subject,
+            String ticketNo
     ) {
         Ticket ticket = new Ticket();
+        ticket.ticketNo = ticketNo;
         ticket.customer = customer;
         ticket.category = category;
         ticket.channel = channel;
@@ -118,6 +123,10 @@ public class Ticket {
 
     public Long getId() {
         return id;
+    }
+
+    public String getTicketNo() {
+        return ticketNo;
     }
 
     public Customer getCustomer() {
