@@ -1,9 +1,9 @@
-package com.aicrm.core.ticket.controller;
+package com.aicrm.core.customer.controller;
 
+import com.aicrm.core.customer.application.CreateCustomerInquiryService;
+import com.aicrm.core.customer.dto.CreateCustomerInquiryRequest;
+import com.aicrm.core.customer.dto.CreateCustomerInquiryResponse;
 import com.aicrm.core.global.response.ApiResponse;
-import com.aicrm.core.ticket.application.CreateCustomerInquiryService;
-import com.aicrm.core.ticket.dto.CreateInquiryRequest;
-import com.aicrm.core.ticket.dto.CreateInquiryResponse;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/api/tickets/inquiries")
+@RequestMapping("/api/customer/inquiries")
 public class CustomerInquiryController {
 
     private final CreateCustomerInquiryService createCustomerInquiryService;
@@ -24,7 +24,7 @@ public class CustomerInquiryController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public ApiResponse<CreateInquiryResponse> create(@Valid @RequestBody CreateInquiryRequest request) {
+    public ApiResponse<CreateCustomerInquiryResponse> create(@Valid @RequestBody CreateCustomerInquiryRequest request) {
         return ApiResponse.ok(createCustomerInquiryService.create(request));
     }
 }

@@ -65,21 +65,22 @@ class ConsultationCategoryApiIntegrationTest {
         JsonNode deliveryDelayNode = findNodeByCode(rootNodes, "DELIVERY_DELAY");
         long leafCategoryId = deliveryDelayNode.path("id").asLong();
 
-        mockMvc.perform(post("/api/tickets/inquiries")
+        mockMvc.perform(post("/api/customer/inquiries")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                                 {
-                                  "customerId": 1,
+                                  "customerName": "김고객",
+                                  "phone": "010-9999-0001",
+                                  "email": "newcustomer@test.com",
                                   "categoryId": %d,
-                                  "subject": "Delivery delayed",
-                                  "content": "My package has not arrived.",
-                                  "channel": "WEB_INQUIRY"
+                                  "title": "배송이 늦어요",
+                                  "content": "지난주 주문했는데 아직 도착하지 않았습니다."
                                 }
                                 """.formatted(leafCategoryId)))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.success").value(true))
-                .andExpect(jsonPath("$.data.categoryId").value((int) leafCategoryId))
-                .andExpect(jsonPath("$.data.categoryCode").value("DELIVERY_DELAY"))
+                .andExpect(jsonPath("$.data.ticketId").exists())
+                .andExpect(jsonPath("$.data.ticketNo").value(org.hamcrest.Matchers.matchesPattern("TICKET-\\d{8}-\\d{4}")))
                 .andExpect(jsonPath("$.data.status").value("WAITING"));
     }
 
@@ -93,15 +94,16 @@ class ConsultationCategoryApiIntegrationTest {
         JsonNode deliveryNode = findNodeByCode(rootNodes, "DELIVERY");
         long rootCategoryId = deliveryNode.path("id").asLong();
 
-        mockMvc.perform(post("/api/tickets/inquiries")
+        mockMvc.perform(post("/api/customer/inquiries")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                                 {
-                                  "customerId": 1,
+                                  "customerName": "김고객",
+                                  "phone": "010-9999-0002",
+                                  "email": "customer@test.com",
                                   "categoryId": %d,
-                                  "subject": "Invalid category",
-                                  "content": "This should fail.",
-                                  "channel": "WEB_INQUIRY"
+                                  "title": "Invalid category",
+                                  "content": "This should fail."
                                 }
                                 """.formatted(rootCategoryId)))
                 .andExpect(status().isBadRequest())
