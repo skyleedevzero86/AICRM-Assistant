@@ -16,18 +16,19 @@ class TicketTest {
         Customer customer = customer(1L);
         ConsultationCategory category = category(10L);
 
-        Ticket ticket = Ticket.createWaiting(customer, category, ChannelType.WEB_INQUIRY, "Login issue");
+        Ticket ticket = Ticket.createWaiting(customer, category, ChannelType.WEB_INQUIRY, "Login issue", "TICKET-20260531-0001");
 
         assertThat(ticket.getStatus()).isEqualTo(TicketStatus.WAITING);
         assertThat(ticket.getCustomer()).isEqualTo(customer);
         assertThat(ticket.getCategory()).isEqualTo(category);
         assertThat(ticket.getChannel()).isEqualTo(ChannelType.WEB_INQUIRY);
         assertThat(ticket.getSubject()).isEqualTo("Login issue");
+        assertThat(ticket.getTicketNo()).isEqualTo("TICKET-20260531-0001");
     }
 
     @Test
     void acceptChangesStatusToInProgress() {
-        Ticket ticket = Ticket.createWaiting(customer(1L), category(10L), ChannelType.WEB_INQUIRY, "Issue");
+        Ticket ticket = Ticket.createWaiting(customer(1L), category(10L), ChannelType.WEB_INQUIRY, "Issue", "TICKET-20260531-0002");
 
         ticket.accept(100L);
 
@@ -37,7 +38,7 @@ class TicketTest {
 
     @Test
     void acceptRejectsClosedTicket() {
-        Ticket ticket = Ticket.createWaiting(customer(1L), category(10L), ChannelType.WEB_INQUIRY, "Issue");
+        Ticket ticket = Ticket.createWaiting(customer(1L), category(10L), ChannelType.WEB_INQUIRY, "Issue", "TICKET-20260531-0003");
         ticket.accept(100L);
         ticket.close(100L, "resolved");
 

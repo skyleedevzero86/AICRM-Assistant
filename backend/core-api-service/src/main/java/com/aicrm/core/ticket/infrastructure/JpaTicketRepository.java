@@ -4,6 +4,7 @@ import com.aicrm.core.global.exception.BusinessException;
 import com.aicrm.core.global.exception.ErrorCode;
 import com.aicrm.core.ticket.domain.Ticket;
 import com.aicrm.core.ticket.domain.TicketRepository;
+import java.time.Instant;
 import org.springframework.stereotype.Repository;
 
 @Repository
@@ -27,5 +28,10 @@ public class JpaTicketRepository implements TicketRepository {
                         ErrorCode.TICKET_NOT_FOUND,
                         "Ticket not found: " + ticketId
                 ));
+    }
+
+    @Override
+    public long countByCreatedAtBetween(Instant start, Instant end) {
+        return springDataJpaRepository.countByCreatedAtGreaterThanEqualAndCreatedAtLessThan(start, end);
     }
 }
