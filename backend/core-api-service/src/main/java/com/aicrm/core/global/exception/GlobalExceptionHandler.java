@@ -1,6 +1,6 @@
 package com.aicrm.core.global.exception;
 
-import com.aicrm.core.global.dto.ApiResponse;
+import com.aicrm.core.global.response.ApiResponse;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;

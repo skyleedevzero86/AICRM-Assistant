@@ -1,4 +1,4 @@
-package com.aicrm.core.auth.config;
+package com.aicrm.core.global.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
