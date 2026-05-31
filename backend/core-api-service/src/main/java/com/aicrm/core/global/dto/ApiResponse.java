@@ -12,11 +12,11 @@ public record ApiResponse<T>(
     ) {
     }
 
-    public static <T> ApiResponse<T> success(T data) {
+    public static <T> ApiResponse<T> ok(T data) {
         return new ApiResponse<>(true, data, null);
     }
 
-    public static <T> ApiResponse<T> success() {
+    public static <T> ApiResponse<T> ok() {
         return new ApiResponse<>(true, null, null);
     }
 
