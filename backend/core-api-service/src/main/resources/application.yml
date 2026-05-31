@@ -8,6 +8,10 @@ spring:
     active: local
   config:
     import: optional:classpath:application-local.yml
+  autoconfigure:
+    exclude:
+      - org.springframework.ai.autoconfigure.openai.OpenAiAutoConfiguration
+      - org.springframework.ai.autoconfigure.chat.client.ChatClientAutoConfiguration
   jpa:
     hibernate:
       ddl-auto: validate
