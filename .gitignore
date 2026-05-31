@@ -23,6 +23,8 @@ __pycache__/
 !.env.example
 .python-version
 
+**/src/main/resources/application-*.yml
+
 *.log
 logs/
 

@@ -1,7 +1,6 @@
 <img width="1221" height="668" alt="image" src="https://github.com/user-attachments/assets/3a4e0c63-a169-44f9-a402-f11c778cd424" />
 <br/>
 
-
 # AICRM-Assistant
 
 AI 기반 콜센터 상담원 Copilot + CRM 자동화 + RAG/GraphRAG 상담 지식 시스템 프로젝트입니다.
@@ -61,6 +60,7 @@ AI 기반 콜센터 상담원 Copilot + CRM 자동화 + RAG/GraphRAG 상담 지�
 <br/><br/>
 <img width="1035" height="686" alt="image" src="https://github.com/user-attachments/assets/ab22ac1d-6128-4c52-b1be-20ba16ce6e3c" />
 <br/><br/>
+
 ### 1. Frontend
 
 - 경로: `frontend`
@@ -132,12 +132,39 @@ docker compose up -d
 
 ### 2. Backend 실행
 
+인프라(PostgreSQL, Redis)를 먼저 실행합니다.
+
 ```bash
-./gradlew :backend:core-api-service:bootRun
-./gradlew :backend:chat-ai-service:bootRun
+docker compose up -d postgres redis
 ```
 
-`chat-ai-service`는 `OPENAI_API_KEY`, `OPENAI_CHAT_MODEL` 환경 변수를 사용합니다.
+| Service    | Host Port | Credentials                                   |
+| ---------- | --------- | --------------------------------------------- |
+| PostgreSQL | 5433      | db: `aicrm`, user: `aicrm`, password: `aicrm` |
+| Redis      | 9379      | password: `123456`                            |
+
+로컬 설정 파일 생성:
+
+```bash
+cp backend/core-api-service/src/main/resources/application-local.yml.example backend/core-api-service/src/main/resources/application-local.yml
+cp backend/chat-ai-service/src/main/resources/application-local.yml.example backend/chat-ai-service/src/main/resources/application-local.yml
+```
+
+`application-local.yml` 파일에 DB·Redis·OpenAI API 키를 입력합니다. 해당 파일은 git에 커밋되지 않습니다.
+
+백엔드 실행:
+
+```bash
+./gradlew :backend:app:bootRun
+```
+
+Health check:
+
+```bash
+curl http://localhost:8080/actuator/health
+```
+
+chat-ai-service는 OPENAI_API_KEY, OPENAI_CHAT_MODEL 환경 변수를 사용합니다.
 
 ### 3. Frontend 실행
 

@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import reactor.core.publisher.Flux;
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 @RestController
 @RequestMapping("/api/copilot")
@@ -26,8 +26,9 @@ public class CopilotController {
     }
 
     @PostMapping(path = "/drafts/stream", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
-    public Flux<String> streamDraft(@Valid @RequestBody DraftRequest request) {
-        return chatClient.prompt()
+    public SseEmitter streamDraft(@Valid @RequestBody DraftRequest request) {
+        SseEmitter emitter = new SseEmitter(0L);
+        chatClient.prompt()
                 .user("""
                         Customer context:
                         %s
@@ -39,7 +40,19 @@ public class CopilotController {
                         %s
                         """.formatted(request.customerContext(), request.conversation(), request.instruction()))
                 .stream()
-                .content();
+                .content()
+                .subscribe(
+                        chunk -> {
+                            try {
+                                emitter.send(chunk);
+                            } catch (Exception ex) {
+                                emitter.completeWithError(ex);
+                            }
+                        },
+                        emitter::completeWithError,
+                        emitter::complete
+                );
+        return emitter;
     }
 
     public record DraftRequest(

@@ -13,6 +13,12 @@ subprojects {
     apply(plugin = "java")
     apply(plugin = "io.spring.dependency-management")
 
+    dependencyManagement {
+        imports {
+            mavenBom("org.springframework.boot:spring-boot-dependencies:3.3.5")
+        }
+    }
+
     java {
         toolchain {
             languageVersion.set(JavaLanguageVersion.of(21))
