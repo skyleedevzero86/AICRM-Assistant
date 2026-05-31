@@ -1,4 +1,4 @@
-package com.aicrm.core.global.dto;
+package com.aicrm.core.global.response;
 
 public record ApiResponse<T>(
         boolean success,

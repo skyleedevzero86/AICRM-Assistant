@@ -6,10 +6,7 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 
 @AutoConfiguration
-@ComponentScan(basePackages = {
-        "com.aicrm.core.global",
-        "com.aicrm.core.auth"
-})
+@ComponentScan(basePackages = "com.aicrm.core")
 @EntityScan(basePackages = "com.aicrm.core")
 @EnableJpaRepositories(basePackages = "com.aicrm.core")
 public class CoreApiAutoConfiguration {
