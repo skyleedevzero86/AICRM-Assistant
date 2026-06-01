@@ -34,3 +34,4 @@ Thumbs.db
 gradle/
 gradlew.bat
 mobile/.expo-build-check/
+mobile/.expo/
