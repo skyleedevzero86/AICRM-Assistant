@@ -1,22 +1,29 @@
-import { StyleSheet, Text, View } from "react-native";
-import type { CustomerTicketSummary } from "@/api/types";
-import { formatDateTime, formatTicketStatus } from "@/utils/format";
+import { Pressable, StyleSheet, Text, View } from "react-native";
+import type { StoredTicket } from "@/storage/ticketStorage";
+import { TicketStatusBadge } from "@/components/TicketStatusBadge";
+import { formatDateTime } from "@/utils/format";
 
-export function TicketCard({ ticket }: { ticket: CustomerTicketSummary }) {
+export function TicketCard({
+  ticket,
+  onPress
+}: {
+  ticket: StoredTicket;
+  onPress?: () => void;
+}) {
   return (
-    <View style={styles.card}>
+    <Pressable onPress={onPress} style={({ pressed }) => [styles.card, pressed && styles.pressed]}>
       <View style={styles.row}>
         <View style={styles.titleBlock}>
           <Text style={styles.ticketNo}>{ticket.ticketNo}</Text>
           <Text numberOfLines={1} style={styles.title}>
-            {ticket.subject}
+            {ticket.title}
           </Text>
         </View>
-        <Text style={styles.badge}>{formatTicketStatus(ticket.status)}</Text>
+        <TicketStatusBadge status={ticket.status} />
       </View>
-      <Text style={styles.category}>{ticket.categoryName}</Text>
+      {ticket.categoryName ? <Text style={styles.category}>{ticket.categoryName}</Text> : null}
       <Text style={styles.date}>{formatDateTime(ticket.createdAt)}</Text>
-    </View>
+    </Pressable>
   );
 }
 
@@ -28,6 +35,9 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     gap: 10,
     padding: 16
+  },
+  pressed: {
+    opacity: 0.92
   },
   row: {
     alignItems: "flex-start",
@@ -48,16 +58,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "800",
     marginTop: 4
-  },
-  badge: {
-    backgroundColor: "#ecfdf5",
-    borderRadius: 999,
-    color: "#0f766e",
-    fontSize: 12,
-    fontWeight: "800",
-    overflow: "hidden",
-    paddingHorizontal: 10,
-    paddingVertical: 5
   },
   category: {
     color: "#52525b",

@@ -1,5 +1,13 @@
 export type TicketStatus = "WAITING" | "ASSIGNED" | "IN_PROGRESS" | "RESOLVED" | "CLOSED" | "ESCALATED";
 
+export type ConsultationCategoryTreeNode = {
+  id: number;
+  code: string;
+  name: string;
+  depth: number;
+  children: ConsultationCategoryTreeNode[];
+};
+
 export type SenderType = "CUSTOMER" | "AGENT" | "AI" | "SYSTEM";
 
 export type MessageType = "TEXT" | "INTERNAL_MEMO" | "AI_DRAFT";

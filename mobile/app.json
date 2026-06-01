@@ -2,7 +2,8 @@
   "expo": {
     "name": "AICRM 고객센터",
     "slug": "aicrm-assistant-mobile",
-    "version": "0.1.0",
+    "version": "0.1.1",
+    "scheme": "aicrm",
     "orientation": "portrait",
     "userInterfaceStyle": "light",
     "assetBundlePatterns": ["**/*"],
@@ -14,8 +15,12 @@
         "backgroundColor": "#0f766e"
       }
     },
+    "plugins": ["expo-router"],
     "extra": {
-      "apiBaseUrl": "http://localhost:8080"
+      "apiBaseUrl": "http://localhost:8080",
+      "router": {
+        "origin": false
+      }
     }
   }
 }
