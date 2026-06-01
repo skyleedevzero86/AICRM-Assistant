@@ -1,12 +1,12 @@
-package com.aicrm.core;
+package com.aicrm.app;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
-public class CoreApiApplication {
+public class BackendApplication {
 
     public static void main(String[] args) {
-        SpringApplication.run(CoreApiApplication.class, args);
+        SpringApplication.run(BackendApplication.class, args);
     }
 }

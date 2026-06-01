@@ -23,8 +23,13 @@ __pycache__/
 !.env.example
 .python-version
 
+**/src/main/resources/application-*.yml
+
 *.log
 logs/
 
 .DS_Store
 Thumbs.db
+
+gradle/
+gradlew.bat

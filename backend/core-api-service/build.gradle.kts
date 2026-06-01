@@ -1,16 +1,20 @@
 plugins {
-    id("org.springframework.boot")
+    `java-library`
 }
 
 dependencies {
-    implementation("org.springframework.boot:spring-boot-starter-actuator")
-    implementation("org.springframework.boot:spring-boot-starter-data-jpa")
-    implementation("org.springframework.boot:spring-boot-starter-oauth2-resource-server")
-    implementation("org.springframework.boot:spring-boot-starter-security")
-    implementation("org.springframework.boot:spring-boot-starter-validation")
-    implementation("org.springframework.boot:spring-boot-starter-web")
-    implementation("org.flywaydb:flyway-core")
-    implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.6.0")
+    api(project(":backend:chat-ai-service"))
+
+    api("org.springframework.boot:spring-boot-starter-actuator")
+    api("org.springframework.boot:spring-boot-starter-data-jpa")
+    api("org.springframework.boot:spring-boot-starter-data-redis")
+    api("org.springframework.boot:spring-boot-starter-oauth2-resource-server")
+    api("org.springframework.boot:spring-boot-starter-security")
+    api("org.springframework.boot:spring-boot-starter-validation")
+    api("org.springframework.boot:spring-boot-starter-web")
+    api("org.flywaydb:flyway-core")
+    runtimeOnly("org.flywaydb:flyway-database-postgresql")
+    api("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.6.0")
 
     runtimeOnly("org.postgresql:postgresql")
 
