@@ -1,12 +1,18 @@
-import { useEffect, useState } from "react";
-import { ActivityIndicator, StyleSheet, Text, TouchableOpacity, View } from "react-native";
-import { fetchCustomerTickets } from "@/api/customer";
-import type { CustomerTicketSummary } from "@/api/types";
+import { useCallback, useState } from "react";
+import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { useFocusEffect, useRouter } from "expo-router";
 import { Screen } from "@/components/Screen";
+import { EmptyState } from "@/components/EmptyState";
+import { ErrorMessage } from "@/components/ErrorMessage";
+import { LoadingView } from "@/components/LoadingView";
 import { TicketCard } from "@/components/TicketCard";
+import { loadAndRefreshTickets } from "@/storage/ticketStorage";
+import type { StoredTicket } from "@/storage/ticketStorage";
+import { refreshStoredTickets } from "@/utils/ticket-sync";
 
 export function TicketsScreen() {
-  const [tickets, setTickets] = useState<CustomerTicketSummary[]>([]);
+  const router = useRouter();
+  const [tickets, setTickets] = useState<StoredTicket[]>([]);
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
@@ -14,7 +20,8 @@ export function TicketsScreen() {
     setLoading(true);
     setErrorMessage(null);
     try {
-      setTickets(await fetchCustomerTickets());
+      const refreshed = await loadAndRefreshTickets(refreshStoredTickets);
+      setTickets(refreshed);
     } catch (error) {
       setErrorMessage(error instanceof Error ? error.message : "문의 목록을 불러오지 못했습니다.");
     } finally {
@@ -22,31 +29,40 @@ export function TicketsScreen() {
     }
   }
 
-  useEffect(() => {
-    void loadTickets();
-  }, []);
+  useFocusEffect(
+    useCallback(() => {
+      void loadTickets();
+    }, [])
+  );
 
   return (
     <Screen>
       <View style={styles.headerRow}>
         <View>
           <Text style={styles.title}>내 문의</Text>
-          <Text style={styles.description}>문의 상태와 상담 이력을 확인하세요.</Text>
+          <Text style={styles.description}>이 기기에서 접수한 문의 내역입니다.</Text>
         </View>
-        <TouchableOpacity onPress={loadTickets} style={styles.refreshButton}>
+        <TouchableOpacity disabled={loading} onPress={loadTickets} style={styles.refreshButton}>
           <Text style={styles.refreshText}>새로고침</Text>
         </TouchableOpacity>
       </View>
 
-      {loading ? <ActivityIndicator color="#0f766e" /> : null}
-      {errorMessage ? <Text style={styles.error}>{errorMessage}</Text> : null}
-      {tickets.map((ticket) => (
-        <TicketCard key={ticket.ticketId} ticket={ticket} />
-      ))}
-      {!loading && tickets.length === 0 ? (
-        <View style={styles.emptyCard}>
-          <Text style={styles.emptyText}>표시할 문의가 없습니다.</Text>
-        </View>
+      {loading ? <LoadingView /> : null}
+      {errorMessage ? <ErrorMessage message={errorMessage} /> : null}
+      {!loading
+        ? tickets.map((ticket) => (
+            <TicketCard
+              key={ticket.ticketId}
+              onPress={() => router.push(`/tickets/${ticket.ticketId}`)}
+              ticket={ticket}
+            />
+          ))
+        : null}
+      {!loading && !errorMessage && tickets.length === 0 ? (
+        <EmptyState
+          description="문의 탭에서 접수하면 이 목록에 표시됩니다."
+          title="표시할 문의가 없습니다"
+        />
       ) : null}
     </Screen>
   );
@@ -82,23 +98,5 @@ const styles = StyleSheet.create({
     color: "#27272a",
     fontSize: 13,
     fontWeight: "800"
-  },
-  error: {
-    backgroundColor: "#fef2f2",
-    borderRadius: 8,
-    color: "#b91c1c",
-    padding: 12
-  },
-  emptyCard: {
-    backgroundColor: "#ffffff",
-    borderColor: "#d4d4d8",
-    borderRadius: 10,
-    borderStyle: "dashed",
-    borderWidth: 1,
-    padding: 18
-  },
-  emptyText: {
-    color: "#52525b",
-    fontSize: 14
   }
 });
