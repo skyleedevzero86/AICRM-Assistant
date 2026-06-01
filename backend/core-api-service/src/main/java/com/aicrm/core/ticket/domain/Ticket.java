@@ -95,6 +95,18 @@ public class Ticket {
         return ticket;
     }
 
+    public void updateWaitingInquiry(ConsultationCategory category, String subject) {
+        if (!status.canUpdate()) {
+            throw new BusinessException(ErrorCode.TICKET_CANNOT_UPDATE);
+        }
+        if (subject == null || subject.isBlank()) {
+            throw new BusinessException(ErrorCode.INVALID_REQUEST, "제목이 필요합니다");
+        }
+        this.category = category;
+        this.subject = subject.trim();
+        this.updatedAt = Instant.now();
+    }
+
     public void accept(Long agentId) {
         if (this.agentId != null) {
             throw new BusinessException(ErrorCode.TICKET_ALREADY_ASSIGNED);

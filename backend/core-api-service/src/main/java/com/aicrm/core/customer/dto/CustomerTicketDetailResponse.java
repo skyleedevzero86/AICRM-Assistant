@@ -8,6 +8,7 @@ public record CustomerTicketDetailResponse(
         String ticketNo,
         TicketStatus status,
         String subject,
+        Long categoryId,
         String categoryName,
         Instant createdAt,
         String customerName,

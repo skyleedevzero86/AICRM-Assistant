@@ -15,14 +15,15 @@
     "android": {
       "adaptiveIcon": {
         "backgroundColor": "#0f766e"
-      }
+      },
+      "usesCleartextTraffic": true
     },
     "plugins": [
       "expo-router",
       "expo-font"
     ],
     "extra": {
-      "apiBaseUrl": "http://localhost:8080",
+      "apiBaseUrl": "",
       "router": {
         "origin": false
       }

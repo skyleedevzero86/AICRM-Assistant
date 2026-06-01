@@ -6,9 +6,8 @@ import { EmptyState } from "@/components/EmptyState";
 import { ErrorMessage } from "@/components/ErrorMessage";
 import { LoadingView } from "@/components/LoadingView";
 import { TicketCard } from "@/components/TicketCard";
-import { loadAndRefreshTickets } from "@/storage/ticketStorage";
 import type { StoredTicket } from "@/storage/ticketStorage";
-import { refreshStoredTickets } from "@/utils/ticket-sync";
+import { loadTicketsWithFallback } from "@/utils/ticket-sync";
 
 export function TicketsScreen() {
   const router = useRouter();
@@ -20,7 +19,7 @@ export function TicketsScreen() {
     setLoading(true);
     setErrorMessage(null);
     try {
-      const refreshed = await loadAndRefreshTickets(refreshStoredTickets);
+      const refreshed = await loadTicketsWithFallback();
       setTickets(refreshed);
     } catch (error) {
       setErrorMessage(error instanceof Error ? error.message : "문의 목록을 불러오지 못했습니다.");

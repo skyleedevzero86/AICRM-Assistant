@@ -1,4 +1,4 @@
-import Constants from "expo-constants";
+import { getCandidateApiBaseUrls, resolveApiBaseUrl } from "@/config/api-base-url";
 
 type ApiResponse<T> = {
   success: boolean;
@@ -6,9 +6,11 @@ type ApiResponse<T> = {
   error: { code: string; message: string } | null;
 };
 
-const configuredBaseUrl = Constants.expoConfig?.extra?.apiBaseUrl as string | undefined;
+let cachedBaseUrl: string | null = null;
 
-export const API_BASE_URL = configuredBaseUrl ?? "http://localhost:8080";
+export function getApiBaseUrl(): string {
+  return cachedBaseUrl ?? resolveApiBaseUrl();
+}
 
 export class ApiError extends Error {
   constructor(
@@ -20,20 +22,66 @@ export class ApiError extends Error {
   }
 }
 
-export async function apiRequest<T>(path: string, options: RequestInit = {}): Promise<T> {
-  const response = await fetch(`${API_BASE_URL}${path}`, {
-    ...options,
-    headers: {
-      "Content-Type": "application/json",
-      ...options.headers
-    }
-  });
+function isConnectionError(error: unknown): boolean {
+  return error instanceof ApiError && error.message.includes("서버에 연결할 수 없습니다");
+}
 
-  const payload = (await response.json()) as ApiResponse<T>;
+async function apiRequestAt<T>(baseUrl: string, path: string, options: RequestInit = {}): Promise<T> {
+  let response: Response;
+
+  try {
+    response = await fetch(`${baseUrl}${path}`, {
+      ...options,
+      headers: {
+        "Content-Type": "application/json",
+        ...options.headers
+      }
+    });
+  } catch {
+    throw new ApiError(`서버에 연결할 수 없습니다. (${baseUrl})`);
+  }
+
+  const raw = await response.text();
+  let payload: ApiResponse<T>;
+
+  try {
+    payload = JSON.parse(raw) as ApiResponse<T>;
+  } catch {
+    throw new ApiError(`서버 응답을 해석할 수 없습니다. (${baseUrl})`);
+  }
 
   if (!response.ok || !payload.success) {
     throw new ApiError(payload.error?.message ?? "요청 처리 중 오류가 발생했습니다.", payload.error?.code);
   }
 
   return payload.data;
+}
+
+export async function apiRequest<T>(path: string, options: RequestInit = {}): Promise<T> {
+  const bases = cachedBaseUrl
+    ? [cachedBaseUrl, ...getCandidateApiBaseUrls().filter((url) => url !== cachedBaseUrl)]
+    : getCandidateApiBaseUrls();
+
+  let lastError: ApiError | null = null;
+
+  for (const baseUrl of bases) {
+    try {
+      const data = await apiRequestAt<T>(baseUrl, path, options);
+      cachedBaseUrl = baseUrl;
+      return data;
+    } catch (error) {
+      if (error instanceof ApiError && isConnectionError(error)) {
+        lastError = error;
+        continue;
+      }
+      throw error;
+    }
+  }
+
+  const tried = bases.join(", ");
+  throw new ApiError(
+    lastError?.message
+      ? `${lastError.message} 시도한 주소: ${tried}`
+      : `서버에 연결할 수 없습니다. 시도한 주소: ${tried}`
+  );
 }

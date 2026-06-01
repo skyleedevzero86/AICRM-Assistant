@@ -4,9 +4,8 @@ import { useFocusEffect, useRouter } from "expo-router";
 import { Screen } from "@/components/Screen";
 import { EmptyState } from "@/components/EmptyState";
 import { TicketCard } from "@/components/TicketCard";
-import { loadAndRefreshTickets } from "@/storage/ticketStorage";
 import type { StoredTicket } from "@/storage/ticketStorage";
-import { refreshStoredTickets } from "@/utils/ticket-sync";
+import { loadTicketsWithFallback } from "@/utils/ticket-sync";
 
 export function HomeScreen() {
   const router = useRouter();
@@ -15,7 +14,7 @@ export function HomeScreen() {
   useFocusEffect(
     useCallback(() => {
       let active = true;
-      loadAndRefreshTickets(refreshStoredTickets).then((next) => {
+      loadTicketsWithFallback().then((next) => {
         if (active) setTickets(next.slice(0, 3));
       });
       return () => {
