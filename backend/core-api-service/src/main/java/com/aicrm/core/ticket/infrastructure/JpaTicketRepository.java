@@ -42,6 +42,11 @@ public class JpaTicketRepository implements TicketRepository {
     }
 
     @Override
+    public List<Ticket> findAllOrderByCreatedAtDesc() {
+        return springDataJpaRepository.findAllByOrderByCreatedAtDesc();
+    }
+
+    @Override
     public List<Ticket> findAllByStatusOrderByCreatedAtAsc(TicketStatus status) {
         return springDataJpaRepository.findAllByStatusOrderByCreatedAtAsc(status);
     }

@@ -11,6 +11,8 @@ public interface TicketRepository {
 
     Ticket getByIdForUpdate(Long ticketId);
 
+    List<Ticket> findAllOrderByCreatedAtDesc();
+
     List<Ticket> findAllByStatusOrderByCreatedAtAsc(TicketStatus status);
 
     long countByCreatedAtBetween(Instant start, Instant end);
