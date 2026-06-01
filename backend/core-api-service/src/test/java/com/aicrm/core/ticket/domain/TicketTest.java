@@ -56,6 +56,60 @@ class TicketTest {
     }
 
     @Test
+    void closeStoresResolutionAndClosedAt() {
+        // given
+        Ticket ticket = Ticket.createWaiting(customer(1L), category(10L), ChannelType.WEB_INQUIRY, "문의 제목", "TICKET-20260601-0001");
+        ticket.accept(100L);
+        String resolution = "배송 지연 사유를 안내하고 예상 도착일을 전달했습니다.";
+
+        // when
+        ticket.close(100L, resolution);
+
+        // then
+        assertThat(ticket.getStatus()).isEqualTo(TicketStatus.CLOSED);
+        assertThat(ticket.getResolution()).isEqualTo(resolution);
+        assertThat(ticket.getClosedAt()).isNotNull();
+    }
+
+    @Test
+    void closeRejectsOtherAgent() {
+        // given
+        Ticket ticket = Ticket.createWaiting(customer(1L), category(10L), ChannelType.WEB_INQUIRY, "문의 제목", "TICKET-20260601-0002");
+        ticket.accept(100L);
+
+        // when & then
+        assertThatThrownBy(() -> ticket.close(200L, "처리 완료"))
+                .isInstanceOf(BusinessException.class)
+                .extracting("errorCode")
+                .isEqualTo(ErrorCode.NOT_ASSIGNED_AGENT);
+    }
+
+    @Test
+    void closeRejectsWaitingTicket() {
+        // given
+        Ticket ticket = Ticket.createWaiting(customer(1L), category(10L), ChannelType.WEB_INQUIRY, "문의 제목", "TICKET-20260601-0003");
+
+        // when & then
+        assertThatThrownBy(() -> ticket.close(100L, "처리 완료"))
+                .isInstanceOf(BusinessException.class)
+                .extracting("errorCode")
+                .isEqualTo(ErrorCode.TICKET_CANNOT_CLOSE);
+    }
+
+    @Test
+    void closeRejectsBlankResolution() {
+        // given
+        Ticket ticket = Ticket.createWaiting(customer(1L), category(10L), ChannelType.WEB_INQUIRY, "문의 제목", "TICKET-20260601-0004");
+        ticket.accept(100L);
+
+        // when & then
+        assertThatThrownBy(() -> ticket.close(100L, "  "))
+                .isInstanceOf(BusinessException.class)
+                .extracting("errorCode")
+                .isEqualTo(ErrorCode.RESOLUTION_REQUIRED);
+    }
+
+    @Test
     void acceptRejectsClosedTicket() {
         // given
         Ticket ticket = Ticket.createWaiting(customer(1L), category(10L), ChannelType.WEB_INQUIRY, "문의 제목", "TICKET-20260531-0003");

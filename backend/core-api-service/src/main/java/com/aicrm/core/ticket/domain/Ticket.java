@@ -70,6 +70,9 @@ public class Ticket {
     @Column(name = "closed_at")
     private Instant closedAt;
 
+    @Column(columnDefinition = "TEXT")
+    private String resolution;
+
     protected Ticket() {
     }
 
@@ -107,10 +110,6 @@ public class Ticket {
     }
 
     public void close(Long agentId, String resolution) {
-        if (!Objects.equals(this.agentId, agentId)) {
-            throw new BusinessException(ErrorCode.NOT_ASSIGNED_AGENT);
-        }
-
         if (!status.canClose()) {
             throw new BusinessException(ErrorCode.TICKET_CANNOT_CLOSE);
         }
@@ -119,9 +118,16 @@ public class Ticket {
             throw new BusinessException(ErrorCode.RESOLUTION_REQUIRED);
         }
 
+        if (!Objects.equals(this.agentId, agentId)) {
+            throw new BusinessException(ErrorCode.NOT_ASSIGNED_AGENT);
+        }
+
+        Instant now = Instant.now();
+        this.resolution = resolution.trim();
         this.status = TicketStatus.CLOSED;
-        this.closedAt = Instant.now();
-        this.updatedAt = Instant.now();
+        this.resolvedAt = now;
+        this.closedAt = now;
+        this.updatedAt = now;
     }
 
     public Long getId() {
@@ -158,5 +164,13 @@ public class Ticket {
 
     public Long getAgentId() {
         return agentId;
+    }
+
+    public Instant getClosedAt() {
+        return closedAt;
+    }
+
+    public String getResolution() {
+        return resolution;
     }
 }

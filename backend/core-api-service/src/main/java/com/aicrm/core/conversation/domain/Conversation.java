@@ -40,6 +40,9 @@ public class Conversation {
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt = Instant.now();
 
+    @Column(name = "ended_at")
+    private Instant endedAt;
+
     protected Conversation() {
     }
 
@@ -53,6 +56,13 @@ public class Conversation {
 
     public void assignAgent(Long agentId) {
         this.agentId = agentId;
+    }
+
+    public void end() {
+        if (this.endedAt != null) {
+            return;
+        }
+        this.endedAt = Instant.now();
     }
 
     public Long getId() {
@@ -69,5 +79,9 @@ public class Conversation {
 
     public ChannelType getChannel() {
         return channel;
+    }
+
+    public Instant getEndedAt() {
+        return endedAt;
     }
 }
