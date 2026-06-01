@@ -174,7 +174,23 @@ npm install
 npm run dev
 ```
 
-### 4. AI Worker 실행
+### 4. Mobile App
+
+고객용 모바일 앱은 `mobile` 디렉터리에 있으며 Expo 기반 React Native 앱입니다.
+
+```bash
+cd mobile
+npm install
+npm run start
+```
+
+Expo Go 앱으로 QR 코드를 스캔하여 실행할 수 있습니다.
+
+API 주소는 `mobile/app.json`의 `expo.extra.apiBaseUrl`에서 변경할 수 있습니다. 실기기(Expo Go)에서는 `localhost` 대신 PC의 LAN IP(예: `http://192.168.0.10:8080`)를 사용해야 하며, 백엔드가 먼저 실행되어 있어야 합니다.
+
+자세한 내용은 [mobile/README.md](mobile/README.md)를 참고하세요.
+
+### 5. AI Worker 실행
 
 ```bash
 cd ai-worker
