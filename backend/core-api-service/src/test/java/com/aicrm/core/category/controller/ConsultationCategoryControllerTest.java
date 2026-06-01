@@ -27,6 +27,7 @@ class ConsultationCategoryControllerTest {
 
     @Test
     void getTreeReturnsNestedCategoryStructure() throws Exception {
+        // given
         when(getConsultationCategoryTreeService.getActiveTree()).thenReturn(List.of(
                 new ConsultationCategoryTreeResponse(
                         1L,
@@ -53,6 +54,7 @@ class ConsultationCategoryControllerTest {
                 )
         ));
 
+        // when & then
         mockMvc.perform(get("/api/categories/consultation/tree"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))

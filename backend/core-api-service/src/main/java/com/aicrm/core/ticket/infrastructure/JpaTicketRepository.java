@@ -4,7 +4,9 @@ import com.aicrm.core.global.exception.BusinessException;
 import com.aicrm.core.global.exception.ErrorCode;
 import com.aicrm.core.ticket.domain.Ticket;
 import com.aicrm.core.ticket.domain.TicketRepository;
+import com.aicrm.core.ticket.domain.TicketStatus;
 import java.time.Instant;
+import java.util.List;
 import org.springframework.stereotype.Repository;
 
 @Repository
@@ -26,8 +28,22 @@ public class JpaTicketRepository implements TicketRepository {
         return springDataJpaRepository.findById(ticketId)
                 .orElseThrow(() -> new BusinessException(
                         ErrorCode.TICKET_NOT_FOUND,
-                        "Ticket not found: " + ticketId
+                        "티켓을 찾을 수 없습니다: " + ticketId
                 ));
+    }
+
+    @Override
+    public Ticket getByIdForUpdate(Long ticketId) {
+        return springDataJpaRepository.findByIdForUpdate(ticketId)
+                .orElseThrow(() -> new BusinessException(
+                        ErrorCode.TICKET_NOT_FOUND,
+                        "티켓을 찾을 수 없습니다: " + ticketId
+                ));
+    }
+
+    @Override
+    public List<Ticket> findAllByStatusOrderByCreatedAtAsc(TicketStatus status) {
+        return springDataJpaRepository.findAllByStatusOrderByCreatedAtAsc(status);
     }
 
     @Override

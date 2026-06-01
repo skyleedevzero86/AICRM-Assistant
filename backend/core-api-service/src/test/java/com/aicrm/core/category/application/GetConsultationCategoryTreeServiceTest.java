@@ -42,6 +42,7 @@ class GetConsultationCategoryTreeServiceTest {
 
     @Test
     void getActiveTreeBuildsLargeMediumSmallHierarchy() {
+        // given
         when(consultationCategoryRepository.findAllActiveOrdered())
                 .thenReturn(List.of(
                         orderPaymentRoot,
@@ -52,8 +53,10 @@ class GetConsultationCategoryTreeServiceTest {
                         deliveryDelay
                 ));
 
+        // when
         List<ConsultationCategoryTreeResponse> tree = getConsultationCategoryTreeService.getActiveTree();
 
+        // then
         assertThat(tree).hasSize(2);
         assertThat(tree.get(0).code()).isEqualTo("ORDER_PAYMENT");
         assertThat(tree.get(0).children().get(0).children().get(0).code()).isEqualTo("PAYMENT_FAIL");

@@ -11,17 +11,22 @@ class ConsultationCategoryTest {
 
     @Test
     void ensureLeafCategoryAcceptsDepthThree() {
+        // given
         ConsultationCategory category = category((short) 3);
 
+        // when
         category.ensureLeafCategory();
 
+        // then
         assertThat(category.isLeaf()).isTrue();
     }
 
     @Test
     void ensureLeafCategoryRejectsDepthOne() {
+        // given
         ConsultationCategory category = category((short) 1);
 
+        // when & then
         assertThatThrownBy(category::ensureLeafCategory)
                 .isInstanceOf(BusinessException.class)
                 .extracting("errorCode")
@@ -30,8 +35,10 @@ class ConsultationCategoryTest {
 
     @Test
     void ensureLeafCategoryRejectsDepthTwo() {
+        // given
         ConsultationCategory category = category((short) 2);
 
+        // when & then
         assertThatThrownBy(category::ensureLeafCategory)
                 .isInstanceOf(BusinessException.class)
                 .extracting("errorCode")

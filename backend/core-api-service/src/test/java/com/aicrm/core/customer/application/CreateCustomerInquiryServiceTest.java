@@ -74,6 +74,7 @@ class CreateCustomerInquiryServiceTest {
 
     @Test
     void createUsesExistingCustomerWhenPhoneMatches() {
+        // given
         when(customerRepository.findByPhone("010-1234-5678")).thenReturn(Optional.of(existingCustomer));
         when(consultationCategoryRepository.getEnabledLeafCategory(3L)).thenReturn(category);
         when(ticketNoGenerator.generateNext()).thenReturn("TICKET-20260530-0001");
@@ -87,8 +88,10 @@ class CreateCustomerInquiryServiceTest {
         });
         when(messageRepository.save(any(Message.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
+        // when
         CreateCustomerInquiryResponse response = createCustomerInquiryService.create(request);
 
+        // then
         assertThat(response.ticketId()).isEqualTo(10L);
         assertThat(response.ticketNo()).isEqualTo("TICKET-20260530-0001");
         assertThat(response.status()).isEqualTo(TicketStatus.WAITING);
@@ -101,6 +104,7 @@ class CreateCustomerInquiryServiceTest {
 
     @Test
     void createCreatesNewCustomerWhenPhoneNotFound() {
+        // given
         when(customerRepository.findByPhone("010-1234-5678")).thenReturn(Optional.empty());
         when(customerRepository.save(any(Customer.class))).thenAnswer(invocation -> {
             Customer customer = invocation.getArgument(0);
@@ -118,8 +122,10 @@ class CreateCustomerInquiryServiceTest {
         });
         when(messageRepository.save(any(Message.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
+        // when
         CreateCustomerInquiryResponse response = createCustomerInquiryService.create(request);
 
+        // then
         assertThat(response.ticketId()).isEqualTo(11L);
         assertThat(response.ticketNo()).isEqualTo("TICKET-20260530-0002");
         verify(customerRepository).save(any(Customer.class));
