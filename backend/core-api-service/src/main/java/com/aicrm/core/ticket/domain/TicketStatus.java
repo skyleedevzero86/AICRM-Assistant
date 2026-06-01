@@ -15,4 +15,8 @@ public enum TicketStatus {
     public boolean canClose() {
         return this == IN_PROGRESS || this == RESOLVED;
     }
+
+    public boolean canAddMessage() {
+        return this != CLOSED;
+    }
 }

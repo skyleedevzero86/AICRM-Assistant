@@ -15,6 +15,9 @@ public enum ErrorCode {
     TICKET_CANNOT_CLOSE("TICKET_CANNOT_CLOSE", HttpStatus.BAD_REQUEST, "종료할 수 없는 티켓입니다"),
     NOT_ASSIGNED_AGENT("NOT_ASSIGNED_AGENT", HttpStatus.FORBIDDEN, "이 티켓에 배정된 상담원이 아닙니다"),
     RESOLUTION_REQUIRED("RESOLUTION_REQUIRED", HttpStatus.BAD_REQUEST, "처리 결과가 필요합니다"),
+    MESSAGE_CONTENT_REQUIRED("MESSAGE_CONTENT_REQUIRED", HttpStatus.BAD_REQUEST, "메시지 내용이 필요합니다"),
+    TICKET_CANNOT_ADD_MESSAGE("TICKET_CANNOT_ADD_MESSAGE", HttpStatus.BAD_REQUEST, "종료된 티켓에는 메시지를 등록할 수 없습니다"),
+    INVALID_MESSAGE_TYPE("INVALID_MESSAGE_TYPE", HttpStatus.BAD_REQUEST, "지원하지 않는 메시지 유형입니다"),
     INTERNAL_ERROR("INTERNAL_ERROR", HttpStatus.INTERNAL_SERVER_ERROR, "내부 서버 오류가 발생했습니다");
 
     private final String code;

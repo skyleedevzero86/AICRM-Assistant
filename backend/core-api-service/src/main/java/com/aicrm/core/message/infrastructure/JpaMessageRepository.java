@@ -3,6 +3,7 @@ package com.aicrm.core.message.infrastructure;
 import com.aicrm.core.message.domain.Message;
 import com.aicrm.core.message.domain.MessageRepository;
 import com.aicrm.core.message.domain.SenderType;
+import java.util.List;
 import java.util.Optional;
 import org.springframework.stereotype.Repository;
 
@@ -26,5 +27,10 @@ public class JpaMessageRepository implements MessageRepository {
                 conversationId,
                 SenderType.CUSTOMER
         );
+    }
+
+    @Override
+    public List<Message> findAllByConversationIdOrderByCreatedAtAsc(Long conversationId) {
+        return springDataJpaRepository.findAllByConversation_IdOrderByCreatedAtAsc(conversationId);
     }
 }
