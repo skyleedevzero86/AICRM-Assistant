@@ -33,7 +33,12 @@ export default function Home() {
               <h1 className="text-2xl font-semibold">상담원 Copilot</h1>
               <p className="text-sm text-zinc-500">티켓, 상담 메시지, RAG 답변 초안을 한 화면에서 처리합니다.</p>
             </div>
-            <button className="rounded-md bg-zinc-900 px-4 py-2 text-sm font-medium text-white">새 티켓</button>
+            <a
+              className="rounded-md bg-zinc-900 px-4 py-2 text-sm font-medium text-white"
+              href="/agent/tickets"
+            >
+              대기 티켓
+            </a>
           </div>
 
           <div className="grid grid-cols-3 gap-3">
