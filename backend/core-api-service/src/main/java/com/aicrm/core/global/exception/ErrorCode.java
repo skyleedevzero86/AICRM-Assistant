@@ -10,6 +10,7 @@ public enum ErrorCode {
     INVALID_CATEGORY_DEPTH("INVALID_CATEGORY_DEPTH", HttpStatus.BAD_REQUEST, "상담 카테고리는 3단계 리프 카테고리여야 합니다"),
     TICKET_NOT_FOUND("TICKET_NOT_FOUND", HttpStatus.NOT_FOUND, "티켓을 찾을 수 없습니다"),
     AGENT_ID_REQUIRED("AGENT_ID_REQUIRED", HttpStatus.BAD_REQUEST, "상담원 ID가 필요합니다"),
+    TICKET_CANNOT_UPDATE("TICKET_CANNOT_UPDATE", HttpStatus.BAD_REQUEST, "수정할 수 없는 티켓입니다"),
     TICKET_CANNOT_ACCEPT("TICKET_CANNOT_ACCEPT", HttpStatus.BAD_REQUEST, "수락할 수 없는 티켓입니다"),
     TICKET_ALREADY_ASSIGNED("TICKET_ALREADY_ASSIGNED", HttpStatus.CONFLICT, "이미 배정된 티켓입니다"),
     TICKET_CANNOT_CLOSE("TICKET_CANNOT_CLOSE", HttpStatus.BAD_REQUEST, "종료할 수 없는 티켓입니다"),

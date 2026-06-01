@@ -1,25 +1,30 @@
 import { fetchCustomerTickets } from "@/api/customer";
+import type { CustomerTicketSummary } from "@/api/types";
 import type { StoredTicket } from "@/storage/ticketStorage";
+import { loadStoredTickets, replaceStoredTickets } from "@/storage/ticketStorage";
 
-export async function refreshStoredTickets(stored: StoredTicket[]): Promise<StoredTicket[]> {
-  if (stored.length === 0) return [];
+export function toStoredTicket(ticket: CustomerTicketSummary): StoredTicket {
+  return {
+    ticketId: ticket.ticketId,
+    ticketNo: ticket.ticketNo,
+    title: ticket.subject,
+    status: ticket.status,
+    createdAt: ticket.createdAt,
+    categoryName: ticket.categoryName
+  };
+}
 
+export async function syncTicketsFromApi(): Promise<StoredTicket[]> {
+  const remote = await fetchCustomerTickets();
+  const tickets = remote.map(toStoredTicket);
+  await replaceStoredTickets(tickets);
+  return tickets;
+}
+
+export async function loadTicketsWithFallback(): Promise<StoredTicket[]> {
   try {
-    const remote = await fetchCustomerTickets();
-    const remoteById = new Map(remote.map((ticket) => [ticket.ticketId, ticket]));
-
-    return stored.map((item) => {
-      const latest = remoteById.get(item.ticketId);
-      if (!latest) return item;
-      return {
-        ...item,
-        status: latest.status,
-        title: latest.subject,
-        categoryName: latest.categoryName,
-        createdAt: latest.createdAt
-      };
-    });
+    return await syncTicketsFromApi();
   } catch {
-    return stored;
+    return loadStoredTickets();
   }
 }

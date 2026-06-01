@@ -130,4 +130,9 @@ public class Message {
     public Instant getCreatedAt() {
         return createdAt;
     }
+
+    public void updateContent(String nextContent) {
+        ensureContent(nextContent);
+        this.content = nextContent.trim();
+    }
 }

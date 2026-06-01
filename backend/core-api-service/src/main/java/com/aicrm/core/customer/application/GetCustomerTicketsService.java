@@ -47,6 +47,7 @@ public class GetCustomerTicketsService {
                 ticket.getTicketNo(),
                 ticket.getStatus(),
                 ticket.getSubject(),
+                ticket.getCategory().getId(),
                 ticket.getCategory().getName(),
                 ticket.getCreatedAt(),
                 ticket.getCustomer().getName(),

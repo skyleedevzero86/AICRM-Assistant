@@ -41,17 +41,23 @@ npm run start
 
 ## API 주소 설정
 
-`app.json`의 `expo.extra.apiBaseUrl` 값을 변경합니다.
+앱은 Expo LAN IP → Android 에뮬레이터(`10.0.2.2`) 순으로 API 주소를 자동 시도합니다.
 
-```json
-"extra": {
-  "apiBaseUrl": "http://192.168.0.10:8080"
-}
+자동 연결이 안 되면 `mobile/.env` 파일을 만들고 PC의 LAN IP를 지정합니다.
+
+```bash
+cp .env.example .env
 ```
 
-Expo Go로 실기기에서 테스트할 때는 `localhost` 대신 **PC의 LAN IP**를 사용해야 합니다. PC와 휴대폰이 같은 Wi-Fi에 있어야 합니다.
+```env
+EXPO_PUBLIC_API_BASE_URL=http://192.168.0.10:8080
+```
 
-변경 후 개발 서버를 다시 시작하세요.
+Expo Go 실기기 테스트 시 `localhost`는 사용할 수 없습니다. PC와 휴대폰이 같은 Wi-Fi에 있어야 하며, 백엔드는 `0.0.0.0:8080`으로 실행됩니다.
+
+`npx expo start --tunnel` 사용 시 API는 LAN IP를 직접 지정해야 합니다.
+
+변경 후 `npm run start`를 다시 실행하세요.
 
 ## 주요 화면
 

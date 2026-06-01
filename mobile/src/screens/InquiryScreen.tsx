@@ -8,9 +8,7 @@ import { CategoryPicker } from "@/components/CategoryPicker";
 import { ErrorMessage } from "@/components/ErrorMessage";
 import { Screen } from "@/components/Screen";
 import { TicketStatusBadge } from "@/components/TicketStatusBadge";
-import { saveStoredTicket } from "@/storage/ticketStorage";
-import { findCategoryNode } from "@/utils/category-utils";
-import { fetchConsultationCategoryTree } from "@/api/categories";
+import { syncTicketsFromApi } from "@/utils/ticket-sync";
 
 export function InquiryScreen() {
   const router = useRouter();
@@ -66,18 +64,7 @@ export function InquiryScreen() {
         categoryId
       });
 
-      const tree = await fetchConsultationCategoryTree();
-      const categoryNode = findCategoryNode(tree, categoryId);
-      const categoryName = categoryNode?.name;
-
-      await saveStoredTicket({
-        ticketId: result.ticketId,
-        ticketNo: result.ticketNo,
-        title: title.trim(),
-        status: result.status,
-        createdAt: new Date().toISOString(),
-        categoryName
-      });
+      await syncTicketsFromApi();
 
       setSuccess(result);
       setTitle("");

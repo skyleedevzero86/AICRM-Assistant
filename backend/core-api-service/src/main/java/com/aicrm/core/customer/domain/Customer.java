@@ -6,6 +6,8 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import com.aicrm.core.global.exception.BusinessException;
+import com.aicrm.core.global.exception.ErrorCode;
 import java.time.Instant;
 
 @Entity
@@ -61,5 +63,17 @@ public class Customer {
 
     public String getEmail() {
         return email;
+    }
+
+    public void updateProfile(String name, String email) {
+        if (name == null || name.isBlank()) {
+            throw new BusinessException(ErrorCode.INVALID_REQUEST, "이름이 필요합니다");
+        }
+        if (email == null || email.isBlank()) {
+            throw new BusinessException(ErrorCode.INVALID_REQUEST, "이메일이 필요합니다");
+        }
+        this.name = name.trim();
+        this.email = email.trim();
+        this.updatedAt = Instant.now();
     }
 }
