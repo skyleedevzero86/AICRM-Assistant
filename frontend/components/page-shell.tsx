@@ -12,7 +12,13 @@ export function PageShell({ title, description, children }: PageShellProps) {
     <main className="min-h-screen p-6">
       <div className="mx-auto max-w-4xl">
         <header className="mb-6">
-          <nav className="mb-4 flex flex-wrap gap-3 text-sm text-zinc-600">
+          <nav className="mb-4 flex flex-wrap items-center gap-3 text-sm text-zinc-600">
+            <Link className="hover:text-zinc-900" href={"/" as Route}>
+              홈
+            </Link>
+            <span className="text-zinc-300" aria-hidden>
+              |
+            </span>
             <Link className="hover:text-zinc-900" href={"/customer/inquiry" as Route}>
               고객 문의
             </Link>

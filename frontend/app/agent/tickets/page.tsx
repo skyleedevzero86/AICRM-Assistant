@@ -47,6 +47,12 @@ export default function AgentTicketsPage() {
       title="상담원 대기 티켓"
       description="접수된 문의 티켓을 확인하고 수락할 수 있습니다."
     >
+      <div className="mb-4">
+        <Link className="text-sm text-teal-700 hover:underline" href={"/" as Route}>
+          ← 홈으로
+        </Link>
+      </div>
+
       <div className="space-y-4">
         {actionError ? <AlertBanner message={actionError} variant="error" /> : null}
         {listError ? <AlertBanner message={listError} variant="error" /> : null}
