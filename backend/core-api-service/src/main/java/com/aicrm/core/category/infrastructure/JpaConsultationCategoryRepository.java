@@ -21,7 +21,7 @@ public class JpaConsultationCategoryRepository implements ConsultationCategoryRe
         ConsultationCategory category = springDataJpaRepository.findByIdAndActiveTrue(categoryId)
                 .orElseThrow(() -> new BusinessException(
                         ErrorCode.CATEGORY_NOT_FOUND,
-                        "Consultation category not found: " + categoryId
+                        "상담 카테고리를 찾을 수 없습니다: " + categoryId
                 ));
 
         category.ensureLeafCategory();
@@ -29,7 +29,7 @@ public class JpaConsultationCategoryRepository implements ConsultationCategoryRe
         if (existsActiveChild(categoryId)) {
             throw new BusinessException(
                     ErrorCode.INVALID_CATEGORY_DEPTH,
-                    "Consultation category must be a depth-3 leaf category: " + categoryId
+                    "상담 카테고리는 3단계 리프 카테고리여야 합니다: " + categoryId
             );
         }
 

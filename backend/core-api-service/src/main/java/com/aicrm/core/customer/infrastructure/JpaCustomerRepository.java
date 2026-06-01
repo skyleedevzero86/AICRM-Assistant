@@ -21,7 +21,7 @@ public class JpaCustomerRepository implements CustomerRepository {
         return springDataJpaRepository.findById(customerId)
                 .orElseThrow(() -> new BusinessException(
                         ErrorCode.NOT_FOUND,
-                        "Customer not found: " + customerId
+                        "고객을 찾을 수 없습니다: " + customerId
                 ));
     }
 

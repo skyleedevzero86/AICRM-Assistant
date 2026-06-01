@@ -93,6 +93,9 @@ public class Ticket {
     }
 
     public void accept(Long agentId) {
+        if (this.agentId != null) {
+            throw new BusinessException(ErrorCode.TICKET_ALREADY_ASSIGNED);
+        }
         if (!status.canAccept()) {
             throw new BusinessException(ErrorCode.TICKET_CANNOT_ACCEPT);
         }

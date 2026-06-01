@@ -31,12 +31,14 @@ class ConsultationCategoryApiIntegrationTest {
 
     @Test
     void getConsultationCategoryTreeReturnsSevenRootCategories() throws Exception {
+        // when
         MvcResult result = mockMvc.perform(get("/api/categories/consultation/tree"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.data.length()").value(7))
                 .andReturn();
 
+        // then
         JsonNode rootNodes = objectMapper.readTree(result.getResponse().getContentAsString(StandardCharsets.UTF_8)).path("data");
         JsonNode deliveryNode = findNodeByCode(rootNodes, "DELIVERY");
 
@@ -57,6 +59,7 @@ class ConsultationCategoryApiIntegrationTest {
 
     @Test
     void createInquiryAcceptsDepthThreeCategory() throws Exception {
+        // given
         MvcResult treeResult = mockMvc.perform(get("/api/categories/consultation/tree"))
                 .andExpect(status().isOk())
                 .andReturn();
@@ -65,6 +68,7 @@ class ConsultationCategoryApiIntegrationTest {
         JsonNode deliveryDelayNode = findNodeByCode(rootNodes, "DELIVERY_DELAY");
         long leafCategoryId = deliveryDelayNode.path("id").asLong();
 
+        // when & then
         mockMvc.perform(post("/api/customer/inquiries")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
@@ -86,6 +90,7 @@ class ConsultationCategoryApiIntegrationTest {
 
     @Test
     void createInquiryRejectsDepthOneCategory() throws Exception {
+        // given
         MvcResult treeResult = mockMvc.perform(get("/api/categories/consultation/tree"))
                 .andExpect(status().isOk())
                 .andReturn();
@@ -94,6 +99,7 @@ class ConsultationCategoryApiIntegrationTest {
         JsonNode deliveryNode = findNodeByCode(rootNodes, "DELIVERY");
         long rootCategoryId = deliveryNode.path("id").asLong();
 
+        // when & then
         mockMvc.perform(post("/api/customer/inquiries")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
@@ -102,8 +108,8 @@ class ConsultationCategoryApiIntegrationTest {
                                   "phone": "010-9999-0002",
                                   "email": "customer@test.com",
                                   "categoryId": %d,
-                                  "title": "Invalid category",
-                                  "content": "This should fail."
+                                  "title": "잘못된 카테고리",
+                                  "content": "요청이 실패해야 합니다."
                                 }
                                 """.formatted(rootCategoryId)))
                 .andExpect(status().isBadRequest())

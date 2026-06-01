@@ -24,25 +24,31 @@ class TicketNoGeneratorTest {
 
     @Test
     void generateNextReturnsFormattedTicketNo() {
+        // given
         LocalDate today = LocalDate.now(ZoneOffset.UTC);
         Instant start = today.atStartOfDay().toInstant(ZoneOffset.UTC);
         Instant end = today.plusDays(1).atStartOfDay().toInstant(ZoneOffset.UTC);
         when(ticketRepository.countByCreatedAtBetween(start, end)).thenReturn(0L);
 
+        // when
         String ticketNo = ticketNoGenerator.generateNext();
 
+        // then
         assertThat(ticketNo).isEqualTo("TICKET-" + today.format(java.time.format.DateTimeFormatter.ofPattern("yyyyMMdd")) + "-0001");
     }
 
     @Test
     void generateNextIncrementsSequenceForSameDay() {
+        // given
         LocalDate today = LocalDate.now(ZoneOffset.UTC);
         Instant start = today.atStartOfDay().toInstant(ZoneOffset.UTC);
         Instant end = today.plusDays(1).atStartOfDay().toInstant(ZoneOffset.UTC);
         when(ticketRepository.countByCreatedAtBetween(start, end)).thenReturn(5L);
 
+        // when
         String ticketNo = ticketNoGenerator.generateNext();
 
+        // then
         assertThat(ticketNo).isEqualTo("TICKET-" + today.format(java.time.format.DateTimeFormatter.ofPattern("yyyyMMdd")) + "-0006");
     }
 }

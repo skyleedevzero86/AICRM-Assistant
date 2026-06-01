@@ -13,39 +13,60 @@ class TicketTest {
 
     @Test
     void createWaitingInitializesWaitingTicket() {
+        // given
         Customer customer = customer(1L);
         ConsultationCategory category = category(10L);
 
-        Ticket ticket = Ticket.createWaiting(customer, category, ChannelType.WEB_INQUIRY, "Login issue", "TICKET-20260531-0001");
+        // when
+        Ticket ticket = Ticket.createWaiting(customer, category, ChannelType.WEB_INQUIRY, "로그인 문의", "TICKET-20260531-0001");
 
+        // then
         assertThat(ticket.getStatus()).isEqualTo(TicketStatus.WAITING);
         assertThat(ticket.getCustomer()).isEqualTo(customer);
         assertThat(ticket.getCategory()).isEqualTo(category);
         assertThat(ticket.getChannel()).isEqualTo(ChannelType.WEB_INQUIRY);
-        assertThat(ticket.getSubject()).isEqualTo("Login issue");
+        assertThat(ticket.getSubject()).isEqualTo("로그인 문의");
         assertThat(ticket.getTicketNo()).isEqualTo("TICKET-20260531-0001");
     }
 
     @Test
     void acceptChangesStatusToInProgress() {
-        Ticket ticket = Ticket.createWaiting(customer(1L), category(10L), ChannelType.WEB_INQUIRY, "Issue", "TICKET-20260531-0002");
+        // given
+        Ticket ticket = Ticket.createWaiting(customer(1L), category(10L), ChannelType.WEB_INQUIRY, "문의 제목", "TICKET-20260531-0002");
 
+        // when
         ticket.accept(100L);
 
+        // then
         assertThat(ticket.getStatus()).isEqualTo(TicketStatus.IN_PROGRESS);
         assertThat(ticket.getAgentId()).isEqualTo(100L);
     }
 
     @Test
-    void acceptRejectsClosedTicket() {
-        Ticket ticket = Ticket.createWaiting(customer(1L), category(10L), ChannelType.WEB_INQUIRY, "Issue", "TICKET-20260531-0003");
+    void acceptRejectsAlreadyAssignedTicket() {
+        // given
+        Ticket ticket = Ticket.createWaiting(customer(1L), category(10L), ChannelType.WEB_INQUIRY, "문의 제목", "TICKET-20260531-0004");
         ticket.accept(100L);
-        ticket.close(100L, "resolved");
 
+        // when & then
         assertThatThrownBy(() -> ticket.accept(200L))
                 .isInstanceOf(BusinessException.class)
                 .extracting("errorCode")
-                .isEqualTo(ErrorCode.TICKET_CANNOT_ACCEPT);
+                .isEqualTo(ErrorCode.TICKET_ALREADY_ASSIGNED);
+    }
+
+    @Test
+    void acceptRejectsClosedTicket() {
+        // given
+        Ticket ticket = Ticket.createWaiting(customer(1L), category(10L), ChannelType.WEB_INQUIRY, "문의 제목", "TICKET-20260531-0003");
+        ticket.accept(100L);
+        ticket.close(100L, "처리 완료");
+
+        // when & then
+        assertThatThrownBy(() -> ticket.accept(200L))
+                .isInstanceOf(BusinessException.class)
+                .extracting("errorCode")
+                .isEqualTo(ErrorCode.TICKET_ALREADY_ASSIGNED);
     }
 
     private Customer customer(Long id) {

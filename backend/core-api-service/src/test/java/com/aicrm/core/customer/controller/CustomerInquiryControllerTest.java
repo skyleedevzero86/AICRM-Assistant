@@ -34,12 +34,14 @@ class CustomerInquiryControllerTest {
 
     @Test
     void createReturnsCreatedResponse() throws Exception {
+        // given
         when(createCustomerInquiryService.create(any())).thenReturn(new CreateCustomerInquiryResponse(
                 1L,
                 "TICKET-20260530-0001",
                 TicketStatus.WAITING
         ));
 
+        // when & then
         mockMvc.perform(post("/api/customer/inquiries")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
@@ -61,12 +63,14 @@ class CustomerInquiryControllerTest {
 
     @Test
     void createReturnsBadRequestWhenCategoryDepthIsInvalid() throws Exception {
+        // given
         when(createCustomerInquiryService.create(any()))
                 .thenThrow(new BusinessException(
                         ErrorCode.INVALID_CATEGORY_DEPTH,
-                        "Consultation category must be a depth-3 leaf category: 1"
+                        "상담 카테고리는 3단계 리프 카테고리여야 합니다: 1"
                 ));
 
+        // when & then
         mockMvc.perform(post("/api/customer/inquiries")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
@@ -75,8 +79,8 @@ class CustomerInquiryControllerTest {
                                   "phone": "010-1234-5678",
                                   "email": "customer@test.com",
                                   "categoryId": 1,
-                                  "title": "Invalid category",
-                                  "content": "This should fail."
+                                  "title": "잘못된 카테고리",
+                                  "content": "요청이 실패해야 합니다."
                                 }
                                 """))
                 .andExpect(status().isBadRequest())

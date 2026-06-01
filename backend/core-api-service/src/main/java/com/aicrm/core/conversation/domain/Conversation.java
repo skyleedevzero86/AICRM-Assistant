@@ -34,6 +34,9 @@ public class Conversation {
     @Column(nullable = false, columnDefinition = "channel_type")
     private ChannelType channel = ChannelType.WEB_CHAT;
 
+    @Column(name = "agent_id")
+    private Long agentId;
+
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt = Instant.now();
 
@@ -48,8 +51,16 @@ public class Conversation {
         return conversation;
     }
 
+    public void assignAgent(Long agentId) {
+        this.agentId = agentId;
+    }
+
     public Long getId() {
         return id;
+    }
+
+    public Long getAgentId() {
+        return agentId;
     }
 
     public Ticket getTicket() {

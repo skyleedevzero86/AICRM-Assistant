@@ -112,7 +112,7 @@ public class ConsultationCategory {
         if (!isLeaf()) {
             throw new BusinessException(
                     ErrorCode.INVALID_CATEGORY_DEPTH,
-                    "Consultation category must be a depth-3 leaf category: " + id
+                    "상담 카테고리는 3단계 리프 카테고리여야 합니다: " + id
             );
         }
     }
