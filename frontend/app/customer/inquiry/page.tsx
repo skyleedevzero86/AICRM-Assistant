@@ -1,7 +1,7 @@
 "use client";
 
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { AlertBanner } from "@/components/alert-banner";
 import { FormField } from "@/components/form-field";
 import { PageShell } from "@/components/page-shell";
@@ -10,6 +10,11 @@ import { createCustomerInquiry } from "@/lib/api/customer";
 import { ApiError } from "@/lib/api/client";
 import { collectLeafCategoryOptions } from "@/lib/category-utils";
 import { formatTicketStatus } from "@/lib/format";
+import {
+  loadRecentInquiries,
+  saveRecentInquiry,
+  type RecentInquiryRecord
+} from "@/lib/recent-inquiries";
 
 const inputClassName =
   "w-full rounded-md border border-zinc-300 bg-white px-3 py-2 text-sm outline-none focus:border-teal-600 focus:ring-1 focus:ring-teal-600";
@@ -22,6 +27,11 @@ export default function CustomerInquiryPage() {
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
+  const [recentInquiries, setRecentInquiries] = useState<RecentInquiryRecord[]>([]);
+
+  useEffect(() => {
+    setRecentInquiries(loadRecentInquiries());
+  }, []);
 
   const categoryQuery = useQuery({
     queryKey: ["consultation-category-tree"],
@@ -32,16 +42,28 @@ export default function CustomerInquiryPage() {
 
   const submitMutation = useMutation({
     mutationFn: createCustomerInquiry,
-    onSuccess: () => {
-      setCustomerName("");
-      setPhone("");
-      setEmail("");
-      setCategoryId("");
-      setTitle("");
-      setContent("");
+    onSuccess: (data, variables) => {
       setFieldErrors({});
+      const record = saveRecentInquiry({
+        ...data,
+        title: variables.title,
+        customerName: variables.customerName,
+        submittedAt: new Date().toISOString()
+      });
+      setRecentInquiries(record);
     }
   });
+
+  function resetForm() {
+    setCustomerName("");
+    setPhone("");
+    setEmail("");
+    setCategoryId("");
+    setTitle("");
+    setContent("");
+    setFieldErrors({});
+    submitMutation.reset();
+  }
 
   function validateForm(): boolean {
     const errors: Record<string, string> = {};
@@ -91,6 +113,26 @@ export default function CustomerInquiryPage() {
         {errorMessage ? <AlertBanner message={errorMessage} variant="error" /> : null}
         {categoryQuery.isError ? (
           <AlertBanner message="상담 구분 목록을 불러오지 못했습니다." variant="error" />
+        ) : null}
+
+        {recentInquiries.length > 0 ? (
+          <section className="rounded-lg border border-zinc-200 bg-white p-4">
+            <h2 className="mb-3 text-sm font-semibold text-zinc-800">이번 세션 접수 내역</h2>
+            <ul className="divide-y divide-zinc-100 text-sm">
+              {recentInquiries.map((inquiry) => (
+                <li className="flex flex-wrap items-baseline justify-between gap-2 py-2" key={inquiry.ticketId}>
+                  <div>
+                    <span className="font-medium text-zinc-900">{inquiry.ticketNo}</span>
+                    <span className="mx-2 text-zinc-300">·</span>
+                    <span className="text-zinc-700">{inquiry.title}</span>
+                    <span className="ml-2 text-xs text-zinc-500">({inquiry.customerName})</span>
+                  </div>
+                  <span className="text-xs text-zinc-500">{formatTicketStatus(inquiry.status)}</span>
+                </li>
+              ))}
+            </ul>
+            <p className="mt-2 text-xs text-zinc-500">브라우저 탭을 닫으면 목록이 사라집니다.</p>
+          </section>
         ) : null}
 
         <form
@@ -165,13 +207,22 @@ export default function CustomerInquiryPage() {
             />
           </FormField>
 
-          <button
-            className="rounded-md bg-teal-700 px-4 py-2 text-sm font-medium text-white hover:bg-teal-800 disabled:opacity-50"
-            disabled={submitMutation.isPending}
-            type="submit"
-          >
-            {submitMutation.isPending ? "접수 중..." : "접수하기"}
-          </button>
+          <div className="flex flex-wrap gap-2">
+            <button
+              className="rounded-md bg-teal-700 px-4 py-2 text-sm font-medium text-white hover:bg-teal-800 disabled:opacity-50"
+              disabled={submitMutation.isPending}
+              type="submit"
+            >
+              {submitMutation.isPending ? "접수 중..." : "접수하기"}
+            </button>
+            <button
+              className="rounded-md border border-zinc-300 bg-white px-4 py-2 text-sm font-medium text-zinc-700 hover:bg-zinc-50"
+              onClick={resetForm}
+              type="button"
+            >
+              입력 초기화
+            </button>
+          </div>
         </form>
       </div>
     </PageShell>
