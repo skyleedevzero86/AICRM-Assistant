@@ -7,6 +7,8 @@ import com.aicrm.core.auth.domain.UserAccount;
 import com.aicrm.core.auth.domain.UserRole;
 import com.aicrm.core.auth.dto.AdminAgentUserResponse;
 import com.aicrm.core.auth.dto.AdminCustomerUserResponse;
+import com.aicrm.core.auth.dto.AdminUpdateAgentRequest;
+import com.aicrm.core.auth.dto.AdminUpdateCustomerRequest;
 import com.aicrm.core.auth.infrastructure.AgentAccountRepository;
 import com.aicrm.core.auth.infrastructure.UserAccountRepository;
 import com.aicrm.core.customer.domain.Customer;
@@ -106,6 +108,88 @@ public class AdminUserManagementService {
                 .orElseThrow(() -> new BusinessException(ErrorCode.NOT_FOUND, "USER_NOT_FOUND", userId));
         user.setWithdrawnYn(value);
         userAccountRepository.save(user);
+    }
+
+    @Transactional
+    public AdminCustomerUserResponse updateCustomerUser(Long userId, AdminUpdateCustomerRequest request) {
+        UserAccount user = userAccountRepository.findById(userId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.NOT_FOUND, "USER_NOT_FOUND", userId));
+        if (user.getRole() != UserRole.CUSTOMER) {
+            throw new BusinessException(ErrorCode.INVALID_REQUEST);
+        }
+        String email = request.email().trim().toLowerCase();
+        String name = request.name().trim();
+        ensureEmailAvailableForUpdate(email, userId);
+        user.updateName(name);
+        user.updateEmail(email);
+        userAccountRepository.save(user);
+
+        Customer customer = customerRepository.findByUserId(userId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.NOT_FOUND, "CUSTOMER_NOT_FOUND", userId));
+        String phone = request.phone() == null ? "" : request.phone().trim();
+        customer.updateAccount(name, phone);
+        customer.updateProfile(name, email);
+        customerRepository.save(customer);
+
+        return toCustomerResponse(user, customer);
+    }
+
+    @Transactional
+    public AdminAgentUserResponse updateAgentUser(Long userId, AdminUpdateAgentRequest request) {
+        UserAccount user = userAccountRepository.findById(userId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.NOT_FOUND, "USER_NOT_FOUND", userId));
+        if (user.getRole() != UserRole.AGENT) {
+            throw new BusinessException(ErrorCode.INVALID_REQUEST);
+        }
+        String email = request.email().trim().toLowerCase();
+        String name = request.name().trim();
+        String employeeNo = AgentEmployeeNoValidator.normalize(request.employeeNo());
+        AgentEmployeeNoValidator.validate(employeeNo);
+        ensureEmailAvailableForUpdate(email, userId);
+
+        AgentAccount agent = agentAccountRepository.findByUserId(userId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.NOT_FOUND, "AGENT_NOT_FOUND", userId));
+        if (agentAccountRepository.existsByEmployeeNoAndIdNot(employeeNo, agent.getId())) {
+            throw new BusinessException(ErrorCode.DUPLICATE_EMPLOYEE_NO);
+        }
+
+        user.updateName(name);
+        user.updateEmail(email);
+        userAccountRepository.save(user);
+        agent.updateName(name);
+        agent.updateEmployeeNo(employeeNo);
+        agentAccountRepository.save(agent);
+
+        return toAgentResponse(user, agent);
+    }
+
+    private AdminCustomerUserResponse toCustomerResponse(UserAccount user, Customer customer) {
+        return new AdminCustomerUserResponse(
+                user.getId(),
+                user.getName(),
+                user.getEmail(),
+                customer.getPhone() == null ? "" : customer.getPhone(),
+                user.getWithdrawnYn(),
+                user.getSuspendedYn());
+    }
+
+    private AdminAgentUserResponse toAgentResponse(UserAccount user, AgentAccount agent) {
+        return new AdminAgentUserResponse(
+                user.getId(),
+                agent.getId(),
+                agent.getEmployeeNo(),
+                user.getName(),
+                user.getEmail(),
+                agent.getStatus(),
+                agent.getGrade(),
+                user.getWithdrawnYn(),
+                user.getSuspendedYn());
+    }
+
+    private void ensureEmailAvailableForUpdate(String email, Long userId) {
+        if (userAccountRepository.existsByEmailAndIdNot(email, userId)) {
+            throw new BusinessException(ErrorCode.DUPLICATE_EMAIL);
+        }
     }
 
     private Predicate<UserAccount> byKeyword(String keyword) {

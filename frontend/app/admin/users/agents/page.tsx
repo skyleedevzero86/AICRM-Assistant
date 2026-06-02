@@ -4,21 +4,26 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { Route } from "next";
 import Link from "next/link";
 import { useState } from "react";
+import { AdminAgentRow } from "@/components/admin-agent-row";
 import { AlertBanner } from "@/components/alert-banner";
 import { PageShell } from "@/components/page-shell";
 import {
   approveAgent,
   fetchAdminAgents,
+  updateAdminAgent,
   updateAgentGrade,
   updateSuspension,
   updateWithdrawal
 } from "@/lib/api/admin";
-import { msg } from "@/lib/messages";
+import { msg, resolveApiError } from "@/lib/messages";
 
 export default function AdminAgentsPage() {
   const queryClient = useQueryClient();
   const [keyword, setKeyword] = useState("");
   const [submittedKeyword, setSubmittedKeyword] = useState("");
+  const [notice, setNotice] = useState<string | null>(null);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [savingUserId, setSavingUserId] = useState<number | null>(null);
 
   const agentsQuery = useQuery({
     queryKey: ["admin-agents", submittedKeyword],
@@ -34,6 +39,7 @@ export default function AdminAgentsPage() {
     mutationFn: ({ userId, value }: { userId: number; value: "Y" | "N" }) => updateSuspension(userId, value),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["admin-agents"] })
   });
+
   const gradeMutation = useMutation({
     mutationFn: ({ agentId, grade }: { agentId: number; grade: "ADMIN" | "COUNSELOR" | "TEAM_LEAD" }) =>
       updateAgentGrade(agentId, grade),
@@ -44,6 +50,21 @@ export default function AdminAgentsPage() {
     mutationFn: ({ userId, value }: { userId: number; value: "Y" | "N" }) => updateWithdrawal(userId, value),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["admin-agents"] })
   });
+
+  async function saveAgent(userId: number, payload: { name: string; email: string; employeeNo: string }) {
+    setSavingUserId(userId);
+    setNotice(null);
+    setErrorMessage(null);
+    try {
+      await updateAdminAgent(userId, payload);
+      setNotice(msg.ui("admin.profileSaved"));
+      await queryClient.invalidateQueries({ queryKey: ["admin-agents"] });
+    } catch (error) {
+      setErrorMessage(resolveApiError(error, "admin.updateProfileFailed"));
+    } finally {
+      setSavingUserId(null);
+    }
+  }
 
   return (
     <PageShell title={msg.ui("admin.agentsTitle")} description={msg.ui("admin.agentsDescription")}>
@@ -64,6 +85,8 @@ export default function AdminAgentsPage() {
           {msg.ui("admin.manageAttendance")}
         </Link>
       </div>
+      {notice ? <AlertBanner message={notice} variant="success" /> : null}
+      {errorMessage ? <AlertBanner message={errorMessage} variant="error" /> : null}
       {agentsQuery.isError ? <AlertBanner message={msg.ui("admin.loadAgentsFailed")} variant="error" /> : null}
       <table className="min-w-full divide-y divide-zinc-200 rounded border bg-white text-sm">
         <thead className="bg-zinc-50">
@@ -80,49 +103,20 @@ export default function AdminAgentsPage() {
         </thead>
         <tbody className="divide-y divide-zinc-100">
           {agentsQuery.data?.map((item) => (
-            <tr key={item.agentId}>
-              <td className="px-3 py-2">{item.employeeNo}</td>
-              <td className="px-3 py-2">{item.name}</td>
-              <td className="px-3 py-2">{item.email}</td>
-              <td className="px-3 py-2">{msg.label("approvalStatus", item.approvalStatus)}</td>
-              <td className="px-3 py-2">{msg.label("grade", item.grade)}</td>
-              <td className="px-3 py-2">{msg.label("yn", item.suspendedYn)}</td>
-              <td className="px-3 py-2">{msg.label("yn", item.withdrawnYn)}</td>
-              <td className="px-3 py-2">
-                <div className="flex gap-2">
-                  {item.approvalStatus === "PENDING" ? (
-                    <button className="rounded border px-2 py-1" onClick={() => approveMutation.mutate(item.agentId)} type="button">
-                      {msg.ui("common.approve")}
-                    </button>
-                  ) : null}
-                  <button
-                    className="rounded border px-2 py-1"
-                    onClick={() => suspendMutation.mutate({ userId: item.userId, value: item.suspendedYn === "Y" ? "N" : "Y" })}
-                    type="button"
-                  >
-                    {msg.ui("admin.toggleSuspend")}
-                  </button>
-                  <button
-                    className="rounded border px-2 py-1"
-                    onClick={() => withdrawMutation.mutate({ userId: item.userId, value: item.withdrawnYn === "Y" ? "N" : "Y" })}
-                    type="button"
-                  >
-                    {msg.ui("admin.toggleWithdraw")}
-                  </button>
-                  <select
-                    className="rounded border px-2 py-1"
-                    defaultValue={item.grade}
-                    onChange={(event) =>
-                      gradeMutation.mutate({ agentId: item.agentId, grade: event.target.value as "ADMIN" | "COUNSELOR" | "TEAM_LEAD" })
-                    }
-                  >
-                    <option value="ADMIN">{msg.label("grade", "ADMIN")}</option>
-                    <option value="COUNSELOR">{msg.label("grade", "COUNSELOR")}</option>
-                    <option value="TEAM_LEAD">{msg.label("grade", "TEAM_LEAD")}</option>
-                  </select>
-                </div>
-              </td>
-            </tr>
+            <AdminAgentRow
+              item={item}
+              key={item.agentId}
+              onApprove={() => approveMutation.mutate(item.agentId)}
+              onGradeChange={(grade) => gradeMutation.mutate({ agentId: item.agentId, grade })}
+              onSave={(payload) => void saveAgent(item.userId, payload)}
+              onToggleSuspend={() =>
+                suspendMutation.mutate({ userId: item.userId, value: item.suspendedYn === "Y" ? "N" : "Y" })
+              }
+              onToggleWithdraw={() =>
+                withdrawMutation.mutate({ userId: item.userId, value: item.withdrawnYn === "Y" ? "N" : "Y" })
+              }
+              pending={savingUserId === item.userId}
+            />
           ))}
         </tbody>
       </table>

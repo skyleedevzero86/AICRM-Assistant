@@ -48,9 +48,19 @@ export const msg = {
   }
 };
 
+const LOGIN_UNAVAILABLE_CODES = new Set([
+  "ACCOUNT_UNAVAILABLE",
+  "ACCOUNT_WITHDRAWN",
+  "ACCOUNT_SUSPENDED",
+  "AGENT_APPROVAL_REQUIRED"
+]);
+
 export function resolveApiError(error: unknown, fallbackUiKey: string): string {
   if (error instanceof Error && "code" in error) {
     const apiError = error as Error & { code?: string; message: string };
+    if (apiError.code && LOGIN_UNAVAILABLE_CODES.has(apiError.code)) {
+      return msg.error("ACCOUNT_UNAVAILABLE");
+    }
     if (apiError.message) {
       return apiError.message;
     }

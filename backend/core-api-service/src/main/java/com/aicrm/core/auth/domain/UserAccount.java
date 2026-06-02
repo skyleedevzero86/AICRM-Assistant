@@ -116,4 +116,9 @@ public class UserAccount {
         this.passwordHash = passwordHash;
         this.updatedAt = Instant.now();
     }
+
+    public void updateEmail(String email) {
+        this.email = email.trim().toLowerCase();
+        this.updatedAt = Instant.now();
+    }
 }

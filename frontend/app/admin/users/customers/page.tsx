@@ -4,15 +4,19 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { Route } from "next";
 import Link from "next/link";
 import { useState } from "react";
+import { AdminCustomerRow } from "@/components/admin-customer-row";
 import { AlertBanner } from "@/components/alert-banner";
 import { PageShell } from "@/components/page-shell";
-import { fetchAdminCustomers, updateSuspension, updateWithdrawal } from "@/lib/api/admin";
-import { msg } from "@/lib/messages";
+import { fetchAdminCustomers, updateAdminCustomer, updateSuspension, updateWithdrawal } from "@/lib/api/admin";
+import { msg, resolveApiError } from "@/lib/messages";
 
 export default function AdminCustomersPage() {
   const queryClient = useQueryClient();
   const [keyword, setKeyword] = useState("");
   const [submittedKeyword, setSubmittedKeyword] = useState("");
+  const [notice, setNotice] = useState<string | null>(null);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [savingUserId, setSavingUserId] = useState<number | null>(null);
 
   const customersQuery = useQuery({
     queryKey: ["admin-customers", submittedKeyword],
@@ -28,6 +32,21 @@ export default function AdminCustomersPage() {
     mutationFn: ({ userId, value }: { userId: number; value: "Y" | "N" }) => updateWithdrawal(userId, value),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["admin-customers"] })
   });
+
+  async function saveCustomer(userId: number, payload: { name: string; email: string; phone: string }) {
+    setSavingUserId(userId);
+    setNotice(null);
+    setErrorMessage(null);
+    try {
+      await updateAdminCustomer(userId, payload);
+      setNotice(msg.ui("admin.profileSaved"));
+      await queryClient.invalidateQueries({ queryKey: ["admin-customers"] });
+    } catch (error) {
+      setErrorMessage(resolveApiError(error, "admin.updateProfileFailed"));
+    } finally {
+      setSavingUserId(null);
+    }
+  }
 
   return (
     <PageShell title={msg.ui("admin.customersTitle")} description={msg.ui("admin.customersDescription")}>
@@ -48,6 +67,8 @@ export default function AdminCustomersPage() {
           {msg.ui("admin.manageAttendance")}
         </Link>
       </div>
+      {notice ? <AlertBanner message={notice} variant="success" /> : null}
+      {errorMessage ? <AlertBanner message={errorMessage} variant="error" /> : null}
       {customersQuery.isError ? <AlertBanner message={msg.ui("admin.loadCustomersFailed")} variant="error" /> : null}
       <table className="min-w-full divide-y divide-zinc-200 rounded border bg-white text-sm">
         <thead className="bg-zinc-50">
@@ -62,31 +83,18 @@ export default function AdminCustomersPage() {
         </thead>
         <tbody className="divide-y divide-zinc-100">
           {customersQuery.data?.map((item) => (
-            <tr key={item.userId}>
-              <td className="px-3 py-2">{item.name}</td>
-              <td className="px-3 py-2">{item.email}</td>
-              <td className="px-3 py-2">{item.phone || "-"}</td>
-              <td className="px-3 py-2">{msg.label("yn", item.suspendedYn)}</td>
-              <td className="px-3 py-2">{msg.label("yn", item.withdrawnYn)}</td>
-              <td className="px-3 py-2">
-                <div className="flex gap-2">
-                  <button
-                    className="rounded border px-2 py-1"
-                    onClick={() => suspendMutation.mutate({ userId: item.userId, value: item.suspendedYn === "Y" ? "N" : "Y" })}
-                    type="button"
-                  >
-                    {msg.ui("admin.toggleSuspend")}
-                  </button>
-                  <button
-                    className="rounded border px-2 py-1"
-                    onClick={() => withdrawMutation.mutate({ userId: item.userId, value: item.withdrawnYn === "Y" ? "N" : "Y" })}
-                    type="button"
-                  >
-                    {msg.ui("admin.toggleWithdraw")}
-                  </button>
-                </div>
-              </td>
-            </tr>
+            <AdminCustomerRow
+              item={item}
+              key={item.userId}
+              onSave={(payload) => void saveCustomer(item.userId, payload)}
+              onToggleSuspend={() =>
+                suspendMutation.mutate({ userId: item.userId, value: item.suspendedYn === "Y" ? "N" : "Y" })
+              }
+              onToggleWithdraw={() =>
+                withdrawMutation.mutate({ userId: item.userId, value: item.withdrawnYn === "Y" ? "N" : "Y" })
+              }
+              pending={savingUserId === item.userId}
+            />
           ))}
         </tbody>
       </table>

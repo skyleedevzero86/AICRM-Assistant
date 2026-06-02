@@ -11,4 +11,6 @@ public interface AgentAccountRepository extends JpaRepository<AgentAccount, Long
     boolean existsByUserId(Long userId);
 
     boolean existsByEmployeeNo(String employeeNo);
+
+    boolean existsByEmployeeNoAndIdNot(String employeeNo, Long id);
 }

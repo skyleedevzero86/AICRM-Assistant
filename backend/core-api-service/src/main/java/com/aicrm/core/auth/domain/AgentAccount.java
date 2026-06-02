@@ -90,4 +90,9 @@ public class AgentAccount {
         this.name = name;
         this.updatedAt = Instant.now();
     }
+
+    public void updateEmployeeNo(String employeeNo) {
+        this.employeeNo = employeeNo;
+        this.updatedAt = Instant.now();
+    }
 }

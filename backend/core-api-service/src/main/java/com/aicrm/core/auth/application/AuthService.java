@@ -63,17 +63,17 @@ public class AuthService {
             throw new BusinessException(ErrorCode.AUTH_FAILED);
         }
         if (account.isWithdrawn()) {
-            throw new BusinessException(ErrorCode.ACCOUNT_WITHDRAWN);
+            throw new BusinessException(ErrorCode.ACCOUNT_UNAVAILABLE);
         }
         if (account.isSuspended()) {
-            throw new BusinessException(ErrorCode.ACCOUNT_SUSPENDED);
+            throw new BusinessException(ErrorCode.ACCOUNT_UNAVAILABLE);
         }
 
         if (account.getRole() == UserRole.AGENT) {
             AgentAccount agent = agentAccountRepository.findByUserId(account.getId())
                     .orElseThrow(() -> new BusinessException(ErrorCode.AUTH_FAILED));
             if (agent.getStatus() != AgentAccountStatus.ACTIVE) {
-                throw new BusinessException(ErrorCode.AGENT_APPROVAL_REQUIRED);
+                throw new BusinessException(ErrorCode.ACCOUNT_UNAVAILABLE);
             }
         }
 
