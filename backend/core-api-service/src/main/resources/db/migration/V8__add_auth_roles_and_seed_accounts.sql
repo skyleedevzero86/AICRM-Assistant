@@ -27,3 +27,7 @@ WHERE u.email = 'agent-pending@aicrm.local'
   AND NOT EXISTS (
       SELECT 1 FROM agents a WHERE a.user_id = u.id
   );
+
+UPDATE users
+SET role = 'ADMIN'
+WHERE email = 'admin@aicrm.local';

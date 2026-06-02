@@ -31,6 +31,12 @@ public class UserAccount {
     @Column(nullable = false, length = 30)
     private UserRole role;
 
+    @Column(name = "withdrawn_yn", nullable = false, length = 1)
+    private String withdrawnYn = "N";
+
+    @Column(name = "suspended_yn", nullable = false, length = 1)
+    private String suspendedYn = "N";
+
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt = Instant.now();
 
@@ -69,5 +75,31 @@ public class UserAccount {
 
     public UserRole getRole() {
         return role;
+    }
+
+    public String getWithdrawnYn() {
+        return withdrawnYn;
+    }
+
+    public String getSuspendedYn() {
+        return suspendedYn;
+    }
+
+    public boolean isWithdrawn() {
+        return "Y".equals(withdrawnYn);
+    }
+
+    public boolean isSuspended() {
+        return "Y".equals(suspendedYn);
+    }
+
+    public void setSuspendedYn(String suspendedYn) {
+        this.suspendedYn = suspendedYn;
+        this.updatedAt = Instant.now();
+    }
+
+    public void setWithdrawnYn(String withdrawnYn) {
+        this.withdrawnYn = withdrawnYn;
+        this.updatedAt = Instant.now();
     }
 }

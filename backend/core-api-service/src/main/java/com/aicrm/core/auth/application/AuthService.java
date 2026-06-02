@@ -9,6 +9,8 @@ import com.aicrm.core.auth.dto.LoginResponse;
 import com.aicrm.core.auth.dto.MeResponse;
 import com.aicrm.core.auth.dto.SignUpRequest;
 import com.aicrm.core.auth.dto.SignUpResponse;
+import com.aicrm.core.auth.domain.AgentGrade;
+import com.aicrm.core.attendance.application.AgentAttendanceService;
 import com.aicrm.core.auth.infrastructure.AgentAccountRepository;
 import com.aicrm.core.auth.infrastructure.UserAccountRepository;
 import com.aicrm.core.auth.security.AuthenticatedUser;
@@ -31,6 +33,7 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
     private final JwtTokenProvider jwtTokenProvider;
     private final CurrentUserProvider currentUserProvider;
+    private final AgentAttendanceService agentAttendanceService;
 
     public AuthService(
             UserAccountRepository userAccountRepository,
@@ -38,7 +41,8 @@ public class AuthService {
             CustomerRepository customerRepository,
             PasswordEncoder passwordEncoder,
             JwtTokenProvider jwtTokenProvider,
-            CurrentUserProvider currentUserProvider
+            CurrentUserProvider currentUserProvider,
+            AgentAttendanceService agentAttendanceService
     ) {
         this.userAccountRepository = userAccountRepository;
         this.agentAccountRepository = agentAccountRepository;
@@ -46,6 +50,7 @@ public class AuthService {
         this.passwordEncoder = passwordEncoder;
         this.jwtTokenProvider = jwtTokenProvider;
         this.currentUserProvider = currentUserProvider;
+        this.agentAttendanceService = agentAttendanceService;
     }
 
     @Transactional(readOnly = true)
@@ -55,6 +60,12 @@ public class AuthService {
 
         if (!passwordEncoder.matches(request.password(), account.getPasswordHash())) {
             throw new BusinessException(ErrorCode.AUTH_FAILED);
+        }
+        if (account.isWithdrawn()) {
+            throw new BusinessException(ErrorCode.ACCOUNT_WITHDRAWN);
+        }
+        if (account.isSuspended()) {
+            throw new BusinessException(ErrorCode.ACCOUNT_SUSPENDED);
         }
 
         if (account.getRole() == UserRole.AGENT) {
@@ -72,6 +83,9 @@ public class AuthService {
                 account.getRole()
         );
         String token = jwtTokenProvider.generateToken(user);
+        if (user.role() == UserRole.AGENT) {
+            agentAttendanceService.markAgentLogin(user.userId());
+        }
         return new LoginResponse(token, "Bearer", user.userId(), user.email(), user.role());
     }
 
@@ -119,6 +133,23 @@ public class AuthService {
                 .orElseThrow(() -> new BusinessException(ErrorCode.NOT_FOUND, "상담원 계정을 찾을 수 없습니다: " + agentId));
         agentAccount.approve();
         agentAccountRepository.save(agentAccount);
+    }
+
+    @Transactional
+    public void updateAgentGrade(Long agentId, AgentGrade grade) {
+        AgentAccount agentAccount = agentAccountRepository.findById(agentId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.NOT_FOUND, "상담원 계정을 찾을 수 없습니다: " + agentId));
+        agentAccount.changeGrade(grade);
+        agentAccountRepository.save(agentAccount);
+    }
+
+    @Transactional
+    public void withdrawCurrentUser() {
+        AuthenticatedUser current = currentUserProvider.require();
+        UserAccount account = userAccountRepository.findById(current.userId())
+                .orElseThrow(() -> new BusinessException(ErrorCode.NOT_FOUND, "사용자를 찾을 수 없습니다: " + current.userId()));
+        account.setWithdrawnYn("Y");
+        userAccountRepository.save(account);
     }
 
     private void ensureEmailAvailable(String email) {

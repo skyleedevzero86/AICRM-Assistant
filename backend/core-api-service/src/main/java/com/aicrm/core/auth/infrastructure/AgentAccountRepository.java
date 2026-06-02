@@ -7,4 +7,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 public interface AgentAccountRepository extends JpaRepository<AgentAccount, Long> {
 
     Optional<AgentAccount> findByUserId(Long userId);
+
+    boolean existsByUserId(Long userId);
 }

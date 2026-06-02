@@ -1,13 +1,17 @@
 "use client";
 
 import { useMutation, useQuery } from "@tanstack/react-query";
+import type { Route } from "next";
+import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { AlertBanner } from "@/components/alert-banner";
 import { FormField } from "@/components/form-field";
 import { PageShell } from "@/components/page-shell";
 import { fetchConsultationCategoryTree } from "@/lib/api/categories";
 import { createCustomerInquiry } from "@/lib/api/customer";
+import { withdrawMe } from "@/lib/api/auth";
 import { ApiError } from "@/lib/api/client";
+import { clearAccessToken } from "@/lib/auth-storage";
 import { collectLeafCategoryOptions } from "@/lib/category-utils";
 import { formatTicketStatus } from "@/lib/format";
 import {
@@ -20,6 +24,7 @@ const inputClassName =
   "w-full rounded-md border border-zinc-300 bg-white px-3 py-2 text-sm outline-none focus:border-teal-600 focus:ring-1 focus:ring-teal-600";
 
 export default function CustomerInquiryPage() {
+  const router = useRouter();
   const [customerName, setCustomerName] = useState("");
   const [phone, setPhone] = useState("");
   const [email, setEmail] = useState("");
@@ -51,6 +56,14 @@ export default function CustomerInquiryPage() {
         submittedAt: new Date().toISOString()
       });
       setRecentInquiries(record);
+    }
+  });
+
+  const withdrawMutation = useMutation({
+    mutationFn: withdrawMe,
+    onSuccess: () => {
+      clearAccessToken();
+      router.push("/auth/login" as Route);
     }
   });
 
@@ -221,6 +234,13 @@ export default function CustomerInquiryPage() {
               type="button"
             >
               입력 초기화
+            </button>
+            <button
+              className="rounded-md border border-red-300 bg-red-50 px-4 py-2 text-sm font-medium text-red-700 hover:bg-red-100"
+              onClick={() => withdrawMutation.mutate()}
+              type="button"
+            >
+              회원탈퇴
             </button>
           </div>
         </form>

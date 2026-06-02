@@ -94,6 +94,7 @@ Windows 개발 환경에서는 Android Expo Go 실행을 우선 확인하고, iO
 | `GET /api/auth/me` | 현재 로그인 사용자 조회 |
 | `POST /api/auth/signup/customer` | 고객 회원가입 |
 | `POST /api/auth/signup/agent` | 상담원 회원가입(승인 대기) |
+| `POST /api/auth/withdraw` | 본인 탈퇴 처리(soft delete, Y/N) |
 
 ## 테스트 계정
 

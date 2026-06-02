@@ -173,6 +173,18 @@ chat-ai-service는 OPENAI_API_KEY, OPENAI_CHAT_MODEL 환경 변수를 사용합�
 - `POST /api/auth/signup/customer`
 - `POST /api/auth/signup/agent`
 - `POST /api/admin/agents/{agentId}/approve`
+- `POST /api/auth/withdraw`
+- `GET /api/admin/users/customers`
+- `GET /api/admin/users/agents`
+- `POST /api/admin/users/{userId}/suspension`
+- `POST /api/admin/users/{userId}/withdrawal`
+- `GET /api/admin/attendance/agents`
+
+관리자 페이지:
+
+- `frontend/app/admin/users/customers/page.tsx`
+- `frontend/app/admin/users/agents/page.tsx`
+- `frontend/app/admin/attendance/page.tsx`
 
 테스트 계정:
 

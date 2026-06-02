@@ -47,4 +47,10 @@ public class AuthController {
     public ApiResponse<MeResponse> me() {
         return ApiResponse.ok(authService.me());
     }
+
+    @PostMapping("/withdraw")
+    public ApiResponse<Void> withdraw() {
+        authService.withdrawCurrentUser();
+        return ApiResponse.ok();
+    }
 }

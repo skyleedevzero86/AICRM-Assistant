@@ -28,6 +28,10 @@ public class AgentAccount {
     @Column(nullable = false, length = 40)
     private AgentAccountStatus status;
 
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 30)
+    private AgentGrade grade;
+
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt = Instant.now();
 
@@ -42,6 +46,7 @@ public class AgentAccount {
         agent.userId = userId;
         agent.name = name;
         agent.status = AgentAccountStatus.PENDING;
+        agent.grade = AgentGrade.COUNSELOR;
         agent.createdAt = Instant.now();
         agent.updatedAt = Instant.now();
         return agent;
@@ -62,5 +67,14 @@ public class AgentAccount {
 
     public AgentAccountStatus getStatus() {
         return status;
+    }
+
+    public AgentGrade getGrade() {
+        return grade;
+    }
+
+    public void changeGrade(AgentGrade grade) {
+        this.grade = grade;
+        this.updatedAt = Instant.now();
     }
 }
