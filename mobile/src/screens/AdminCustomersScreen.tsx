@@ -2,7 +2,9 @@ import { useCallback, useState } from "react";
 import { useFocusEffect } from "expo-router";
 import { StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
 import { fetchAdminCustomers } from "@/api/admin";
+import { ApiError, AUTH_REQUIRED_CODE } from "@/api/client";
 import type { AdminCustomerUser } from "@/api/types";
+import { getAccessToken } from "@/storage/authStorage";
 import { Screen } from "@/components/Screen";
 
 export function AdminCustomersScreen() {
@@ -12,7 +14,36 @@ export function AdminCustomersScreen() {
 
   useFocusEffect(
     useCallback(() => {
-      fetchAdminCustomers(query).then(setItems).catch(() => setItems([]));
+      let active = true;
+
+      async function load() {
+        const token = await getAccessToken();
+        if (!token) {
+          if (active) {
+            setItems([]);
+          }
+          return;
+        }
+        try {
+          const data = await fetchAdminCustomers(query);
+          if (active) {
+            setItems(data);
+          }
+        } catch (error) {
+          if (active) {
+            setItems([]);
+          }
+          if (error instanceof ApiError && error.code !== AUTH_REQUIRED_CODE && error.code !== "UNAUTHORIZED") {
+            console.warn(error.message);
+          }
+        }
+      }
+
+      void load();
+
+      return () => {
+        active = false;
+      };
     }, [query])
   );
 

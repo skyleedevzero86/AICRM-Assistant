@@ -76,10 +76,10 @@ public class Customer {
 
     public void updateProfile(String name, String email) {
         if (name == null || name.isBlank()) {
-            throw new BusinessException(ErrorCode.INVALID_REQUEST, "이름이 필요합니다");
+            throw new BusinessException(ErrorCode.INVALID_REQUEST, "NAME_REQUIRED");
         }
         if (email == null || email.isBlank()) {
-            throw new BusinessException(ErrorCode.INVALID_REQUEST, "이메일이 필요합니다");
+            throw new BusinessException(ErrorCode.INVALID_REQUEST, "EMAIL_REQUIRED");
         }
         this.name = name.trim();
         this.email = email.trim();

@@ -1,12 +1,31 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { ApiError, apiRequest } from "./client";
+import { msg } from "../messages";
+import { ApiError, AUTH_REQUIRED_CODE, apiRequest } from "./client";
+
+vi.mock("../auth-storage", () => ({
+  getAccessToken: vi.fn(() => null),
+  clearAccessToken: vi.fn()
+}));
 
 describe("apiRequest", () => {
   afterEach(() => {
     vi.unstubAllGlobals();
   });
 
+  it("does not call fetch when auth token is missing for protected API", async () => {
+    const fetchMock = vi.fn();
+    vi.stubGlobal("fetch", fetchMock);
+
+    await expect(apiRequest("/api/admin/users/agents")).rejects.toMatchObject({
+      code: AUTH_REQUIRED_CODE,
+      message: msg.client("AUTH_REQUIRED")
+    });
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
   it("returns data when API responds with success", async () => {
+    const { getAccessToken } = await import("../auth-storage");
+    vi.mocked(getAccessToken).mockReturnValue("test-token");
     const responseBody = { success: true, data: { ticketId: 10 }, error: null };
     vi.stubGlobal(
       "fetch",
@@ -22,6 +41,8 @@ describe("apiRequest", () => {
   });
 
   it("throws ApiError when API responds with failure", async () => {
+    const { getAccessToken } = await import("../auth-storage");
+    vi.mocked(getAccessToken).mockReturnValue("test-token");
     const responseBody = {
       success: false,
       data: null,

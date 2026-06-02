@@ -65,10 +65,7 @@ class CustomerInquiryControllerTest {
     void createReturnsBadRequestWhenCategoryDepthIsInvalid() throws Exception {
         // given
         when(createCustomerInquiryService.create(any()))
-                .thenThrow(new BusinessException(
-                        ErrorCode.INVALID_CATEGORY_DEPTH,
-                        "상담 카테고리는 3단계 리프 카테고리여야 합니다: 1"
-                ));
+                .thenThrow(new BusinessException(ErrorCode.INVALID_CATEGORY_DEPTH, "INVALID_CATEGORY_DEPTH", 1L));
 
         // when & then
         mockMvc.perform(post("/api/customer/inquiries")

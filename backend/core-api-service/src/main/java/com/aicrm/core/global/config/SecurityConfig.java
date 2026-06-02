@@ -2,6 +2,7 @@ package com.aicrm.core.global.config;
 
 import com.aicrm.core.auth.security.JwtAuthenticationFilter;
 import com.aicrm.core.global.exception.ErrorCode;
+import com.aicrm.core.global.message.MessagesHolder;
 import com.aicrm.core.global.response.ApiResponse;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletResponse;
@@ -80,7 +81,7 @@ public class SecurityConfig {
         response.setCharacterEncoding(StandardCharsets.UTF_8.name());
         response.setContentType("application/json");
         response.getWriter().write(objectMapper.writeValueAsString(
-                ApiResponse.failure(errorCode.getCode(), errorCode.getDefaultMessage())
+                ApiResponse.failure(errorCode.getCode(), MessagesHolder.get().error(errorCode))
         ));
     }
 }

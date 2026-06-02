@@ -53,10 +53,7 @@ public class UpdateCustomerInquiryService {
 
         Conversation conversation = conversationRepository.getByTicketId(ticketId);
         Message inquiryMessage = messageRepository.findFirstCustomerMessageByConversationId(conversation.getId())
-                .orElseThrow(() -> new BusinessException(
-                        ErrorCode.NOT_FOUND,
-                        "문의 메시지를 찾을 수 없습니다: " + ticketId
-                ));
+                .orElseThrow(() -> new BusinessException(ErrorCode.NOT_FOUND, "INQUIRY_MESSAGE_NOT_FOUND", ticketId));
         inquiryMessage.updateContent(request.content());
 
         return getCustomerTicketsService.getTicket(ticketId);

@@ -130,7 +130,7 @@ public class AuthService {
     @Transactional
     public void approveAgent(Long agentId) {
         AgentAccount agentAccount = agentAccountRepository.findById(agentId)
-                .orElseThrow(() -> new BusinessException(ErrorCode.NOT_FOUND, "상담원 계정을 찾을 수 없습니다: " + agentId));
+                .orElseThrow(() -> new BusinessException(ErrorCode.NOT_FOUND, "AGENT_NOT_FOUND", agentId));
         agentAccount.approve();
         agentAccountRepository.save(agentAccount);
     }
@@ -138,7 +138,7 @@ public class AuthService {
     @Transactional
     public void updateAgentGrade(Long agentId, AgentGrade grade) {
         AgentAccount agentAccount = agentAccountRepository.findById(agentId)
-                .orElseThrow(() -> new BusinessException(ErrorCode.NOT_FOUND, "상담원 계정을 찾을 수 없습니다: " + agentId));
+                .orElseThrow(() -> new BusinessException(ErrorCode.NOT_FOUND, "AGENT_NOT_FOUND", agentId));
         agentAccount.changeGrade(grade);
         agentAccountRepository.save(agentAccount);
     }
@@ -147,7 +147,7 @@ public class AuthService {
     public void withdrawCurrentUser() {
         AuthenticatedUser current = currentUserProvider.require();
         UserAccount account = userAccountRepository.findById(current.userId())
-                .orElseThrow(() -> new BusinessException(ErrorCode.NOT_FOUND, "사용자를 찾을 수 없습니다: " + current.userId()));
+                .orElseThrow(() -> new BusinessException(ErrorCode.NOT_FOUND, "USER_NOT_FOUND", current.userId()));
         account.setWithdrawnYn("Y");
         userAccountRepository.save(account);
     }

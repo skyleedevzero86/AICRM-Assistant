@@ -3,18 +3,17 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { Route } from "next";
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { AlertBanner } from "@/components/alert-banner";
 import { PageShell } from "@/components/page-shell";
 import {
   approveAgent,
-  fetchAdminAgentAttendance,
   fetchAdminAgents,
-  fetchAdminCustomers,
   updateAgentGrade,
   updateSuspension,
   updateWithdrawal
 } from "@/lib/api/admin";
+import { msg } from "@/lib/messages";
 
 export default function AdminAgentsPage() {
   const queryClient = useQueryClient();
@@ -25,17 +24,6 @@ export default function AdminAgentsPage() {
     queryKey: ["admin-agents", submittedKeyword],
     queryFn: () => fetchAdminAgents(submittedKeyword)
   });
-
-  useEffect(() => {
-    void queryClient.prefetchQuery({
-      queryKey: ["admin-customers", ""],
-      queryFn: () => fetchAdminCustomers("")
-    });
-    void queryClient.prefetchQuery({
-      queryKey: ["admin-attendance", ""],
-      queryFn: () => fetchAdminAgentAttendance("")
-    });
-  }, [queryClient]);
 
   const approveMutation = useMutation({
     mutationFn: (agentId: number) => approveAgent(agentId),
@@ -58,25 +46,36 @@ export default function AdminAgentsPage() {
   });
 
   return (
-    <PageShell title="관리자 - 상담사 회원 관리" description="상담사 승인, 등급 조회, 검색, 정지, 탈퇴 상태를 관리합니다.">
+    <PageShell title={msg.ui("admin.agentsTitle")} description={msg.ui("admin.agentsDescription")}>
       <div className="mb-4 flex gap-2">
-        <input className="rounded border px-3 py-2 text-sm" onChange={(e) => setKeyword(e.target.value)} placeholder="이름/이메일/사원번호 검색" value={keyword} />
-        <button className="rounded bg-zinc-900 px-3 py-2 text-sm text-white" onClick={() => setSubmittedKeyword(keyword)} type="button">검색</button>
-        <Link className="rounded border px-3 py-2 text-sm" href={"/admin/users/customers" as Route}>고객 관리</Link>
-        <Link className="rounded border px-3 py-2 text-sm" href={"/admin/attendance" as Route}>근태 관리</Link>
+        <input
+          className="rounded border px-3 py-2 text-sm"
+          onChange={(e) => setKeyword(e.target.value)}
+          placeholder={msg.ui("admin.searchAgents")}
+          value={keyword}
+        />
+        <button className="rounded bg-zinc-900 px-3 py-2 text-sm text-white" onClick={() => setSubmittedKeyword(keyword)} type="button">
+          {msg.ui("common.search")}
+        </button>
+        <Link className="rounded border px-3 py-2 text-sm" href={"/admin/users/customers" as Route}>
+          {msg.ui("admin.manageCustomers")}
+        </Link>
+        <Link className="rounded border px-3 py-2 text-sm" href={"/admin/attendance" as Route}>
+          {msg.ui("admin.manageAttendance")}
+        </Link>
       </div>
-      {agentsQuery.isError ? <AlertBanner message="상담사 목록을 불러오지 못했습니다." variant="error" /> : null}
+      {agentsQuery.isError ? <AlertBanner message={msg.ui("admin.loadAgentsFailed")} variant="error" /> : null}
       <table className="min-w-full divide-y divide-zinc-200 rounded border bg-white text-sm">
         <thead className="bg-zinc-50">
           <tr>
-            <th className="px-3 py-2 text-left">사원번호</th>
-            <th className="px-3 py-2 text-left">이름</th>
-            <th className="px-3 py-2 text-left">이메일</th>
-            <th className="px-3 py-2 text-left">승인상태</th>
-            <th className="px-3 py-2 text-left">직급</th>
-            <th className="px-3 py-2 text-left">정지</th>
-            <th className="px-3 py-2 text-left">탈퇴</th>
-            <th className="px-3 py-2 text-left">작업</th>
+            <th className="px-3 py-2 text-left">{msg.ui("admin.employeeNo")}</th>
+            <th className="px-3 py-2 text-left">{msg.ui("common.name")}</th>
+            <th className="px-3 py-2 text-left">{msg.ui("common.email")}</th>
+            <th className="px-3 py-2 text-left">{msg.ui("admin.approvalStatus")}</th>
+            <th className="px-3 py-2 text-left">{msg.ui("admin.grade")}</th>
+            <th className="px-3 py-2 text-left">{msg.ui("admin.suspended")}</th>
+            <th className="px-3 py-2 text-left">{msg.ui("admin.withdrawn")}</th>
+            <th className="px-3 py-2 text-left">{msg.ui("admin.actions")}</th>
           </tr>
         </thead>
         <tbody className="divide-y divide-zinc-100">
@@ -85,25 +84,41 @@ export default function AdminAgentsPage() {
               <td className="px-3 py-2">{item.employeeNo}</td>
               <td className="px-3 py-2">{item.name}</td>
               <td className="px-3 py-2">{item.email}</td>
-              <td className="px-3 py-2">{item.approvalStatus}</td>
-              <td className="px-3 py-2">{item.grade}</td>
-              <td className="px-3 py-2">{item.suspendedYn}</td>
-              <td className="px-3 py-2">{item.withdrawnYn}</td>
+              <td className="px-3 py-2">{msg.label("approvalStatus", item.approvalStatus)}</td>
+              <td className="px-3 py-2">{msg.label("grade", item.grade)}</td>
+              <td className="px-3 py-2">{msg.label("yn", item.suspendedYn)}</td>
+              <td className="px-3 py-2">{msg.label("yn", item.withdrawnYn)}</td>
               <td className="px-3 py-2">
                 <div className="flex gap-2">
                   {item.approvalStatus === "PENDING" ? (
-                    <button className="rounded border px-2 py-1" onClick={() => approveMutation.mutate(item.agentId)} type="button">승인</button>
+                    <button className="rounded border px-2 py-1" onClick={() => approveMutation.mutate(item.agentId)} type="button">
+                      {msg.ui("common.approve")}
+                    </button>
                   ) : null}
-                  <button className="rounded border px-2 py-1" onClick={() => suspendMutation.mutate({ userId: item.userId, value: item.suspendedYn === "Y" ? "N" : "Y" })} type="button">정지토글</button>
-                  <button className="rounded border px-2 py-1" onClick={() => withdrawMutation.mutate({ userId: item.userId, value: item.withdrawnYn === "Y" ? "N" : "Y" })} type="button">탈퇴토글</button>
+                  <button
+                    className="rounded border px-2 py-1"
+                    onClick={() => suspendMutation.mutate({ userId: item.userId, value: item.suspendedYn === "Y" ? "N" : "Y" })}
+                    type="button"
+                  >
+                    {msg.ui("admin.toggleSuspend")}
+                  </button>
+                  <button
+                    className="rounded border px-2 py-1"
+                    onClick={() => withdrawMutation.mutate({ userId: item.userId, value: item.withdrawnYn === "Y" ? "N" : "Y" })}
+                    type="button"
+                  >
+                    {msg.ui("admin.toggleWithdraw")}
+                  </button>
                   <select
                     className="rounded border px-2 py-1"
                     defaultValue={item.grade}
-                    onChange={(event) => gradeMutation.mutate({ agentId: item.agentId, grade: event.target.value as "ADMIN" | "COUNSELOR" | "TEAM_LEAD" })}
+                    onChange={(event) =>
+                      gradeMutation.mutate({ agentId: item.agentId, grade: event.target.value as "ADMIN" | "COUNSELOR" | "TEAM_LEAD" })
+                    }
                   >
-                    <option value="ADMIN">관리자상담자</option>
-                    <option value="COUNSELOR">일반상담자</option>
-                    <option value="TEAM_LEAD">팀장상담자</option>
+                    <option value="ADMIN">{msg.label("grade", "ADMIN")}</option>
+                    <option value="COUNSELOR">{msg.label("grade", "COUNSELOR")}</option>
+                    <option value="TEAM_LEAD">{msg.label("grade", "TEAM_LEAD")}</option>
                   </select>
                 </div>
               </td>

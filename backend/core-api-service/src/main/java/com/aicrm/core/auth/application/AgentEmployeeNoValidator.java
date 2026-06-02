@@ -21,19 +21,16 @@ public final class AgentEmployeeNoValidator {
 
     public static void validate(String employeeNo) {
         if (!DIGITS_16.matcher(employeeNo).matches()) {
-            throw new BusinessException(
-                    ErrorCode.INVALID_EMPLOYEE_NO,
-                    "사원번호는 연월일시분초순번 형식의 16자리 숫자여야 합니다 (예: 2026060207120101)"
-            );
+            throw new BusinessException(ErrorCode.INVALID_EMPLOYEE_NO, "INVALID_EMPLOYEE_NO_FORMAT");
         }
         try {
             LocalDateTime.parse(employeeNo.substring(0, 14), DATE_TIME);
         } catch (DateTimeParseException exception) {
-            throw new BusinessException(ErrorCode.INVALID_EMPLOYEE_NO, "사원번호의 연월일시분초가 올바르지 않습니다");
+            throw new BusinessException(ErrorCode.INVALID_EMPLOYEE_NO, "INVALID_EMPLOYEE_NO_DATETIME");
         }
         int sequence = Integer.parseInt(employeeNo.substring(14, 16));
         if (sequence < 1 || sequence > 99) {
-            throw new BusinessException(ErrorCode.INVALID_EMPLOYEE_NO, "사원번호 순번은 01~99여야 합니다");
+            throw new BusinessException(ErrorCode.INVALID_EMPLOYEE_NO, "INVALID_EMPLOYEE_NO_SEQUENCE");
         }
     }
 }

@@ -1,14 +1,19 @@
 import { Link } from "expo-router";
 import { StyleSheet, Text, View } from "react-native";
 import { Screen } from "@/components/Screen";
+import { msg } from "@/messages";
 
 export function AdminMenuScreen() {
   return (
     <Screen>
       <View style={styles.card}>
-        <Text style={styles.title}>관리자 메뉴</Text>
-        <Link href="/admin/agents" style={styles.menuLink}>상담사 회원 목록</Link>
-        <Link href="/admin/customers" style={styles.menuLink}>고객 회원 목록</Link>
+        <Text style={styles.title}>{msg.ui("admin.menuTitle")}</Text>
+        <Link href="/admin/agents" style={styles.menuLink}>
+          {msg.ui("admin.agentsLink")}
+        </Link>
+        <Link href="/admin/customers" style={styles.menuLink}>
+          {msg.ui("admin.customersLink")}
+        </Link>
       </View>
     </Screen>
   );

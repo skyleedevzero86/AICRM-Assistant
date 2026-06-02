@@ -95,7 +95,7 @@ public class AdminUserManagementService {
     @Transactional
     public void updateSuspendedYn(Long userId, String value) {
         UserAccount user = userAccountRepository.findById(userId)
-                .orElseThrow(() -> new BusinessException(ErrorCode.NOT_FOUND, "사용자를 찾을 수 없습니다: " + userId));
+                .orElseThrow(() -> new BusinessException(ErrorCode.NOT_FOUND, "USER_NOT_FOUND", userId));
         user.setSuspendedYn(value);
         userAccountRepository.save(user);
     }
@@ -103,7 +103,7 @@ public class AdminUserManagementService {
     @Transactional
     public void updateWithdrawnYn(Long userId, String value) {
         UserAccount user = userAccountRepository.findById(userId)
-                .orElseThrow(() -> new BusinessException(ErrorCode.NOT_FOUND, "사용자를 찾을 수 없습니다: " + userId));
+                .orElseThrow(() -> new BusinessException(ErrorCode.NOT_FOUND, "USER_NOT_FOUND", userId));
         user.setWithdrawnYn(value);
         userAccountRepository.save(user);
     }

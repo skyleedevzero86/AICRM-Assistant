@@ -2,6 +2,12 @@ plugins {
     `java-library`
 }
 
+tasks.processResources {
+    from("${rootProject.projectDir}/shared/messages/ko.json") {
+        into("messages")
+    }
+}
+
 dependencies {
     api(project(":backend:chat-ai-service"))
 

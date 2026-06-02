@@ -23,9 +23,6 @@ public class JpaConversationRepository implements ConversationRepository {
     @Override
     public Conversation getByTicketId(Long ticketId) {
         return springDataJpaRepository.findByTicket_Id(ticketId)
-                .orElseThrow(() -> new BusinessException(
-                        ErrorCode.NOT_FOUND,
-                        "티켓에 연결된 대화를 찾을 수 없습니다: " + ticketId
-                ));
+                .orElseThrow(() -> new BusinessException(ErrorCode.NOT_FOUND, "CONVERSATION_NOT_FOUND", ticketId));
     }
 }

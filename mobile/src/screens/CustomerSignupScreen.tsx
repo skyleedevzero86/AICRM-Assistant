@@ -2,8 +2,8 @@ import { useState } from "react";
 import { Link, useRouter } from "expo-router";
 import { StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
 import { login, signupCustomer } from "@/api/auth";
-import { ApiError } from "@/api/client";
 import { Screen } from "@/components/Screen";
+import { msg, resolveApiError } from "@/messages";
 import { setAccessToken } from "@/storage/authStorage";
 
 export function CustomerSignupScreen() {
@@ -18,13 +18,12 @@ export function CustomerSignupScreen() {
     setPending(true);
     setErrorMessage(null);
     try {
-      const normalizedEmail = email.trim();
-      await signupCustomer({ name: name.trim(), email: normalizedEmail, password });
-      const loginResponse = await login({ email: normalizedEmail, password });
-      await setAccessToken(loginResponse.accessToken);
+      await signupCustomer({ name: name.trim(), email: email.trim(), password });
+      const response = await login({ email: email.trim(), password });
+      await setAccessToken(response.accessToken);
       router.replace("/(tabs)");
     } catch (error) {
-      setErrorMessage(error instanceof ApiError ? error.message : "회원가입에 실패했습니다.");
+      setErrorMessage(resolveApiError(error, "auth.signupFailed"));
     } finally {
       setPending(false);
     }
@@ -33,15 +32,17 @@ export function CustomerSignupScreen() {
   return (
     <Screen>
       <View style={styles.card}>
-        <Text style={styles.title}>고객 회원가입</Text>
-        <TextInput onChangeText={setName} placeholder="이름" style={styles.input} value={name} />
-        <TextInput autoCapitalize="none" onChangeText={setEmail} placeholder="이메일" style={styles.input} value={email} />
-        <TextInput onChangeText={setPassword} placeholder="비밀번호(8자 이상)" secureTextEntry style={styles.input} value={password} />
+        <Text style={styles.title}>{msg.ui("auth.customerSignupTitle")}</Text>
+        <TextInput onChangeText={setName} placeholder={msg.ui("common.name")} style={styles.input} value={name} />
+        <TextInput autoCapitalize="none" onChangeText={setEmail} placeholder={msg.ui("common.email")} style={styles.input} value={email} />
+        <TextInput onChangeText={setPassword} placeholder={msg.ui("common.passwordMin")} secureTextEntry style={styles.input} value={password} />
         {errorMessage ? <Text style={styles.error}>{errorMessage}</Text> : null}
         <TouchableOpacity disabled={pending} onPress={submit} style={styles.button}>
-          <Text style={styles.buttonText}>{pending ? "가입 중..." : "고객 회원가입"}</Text>
+          <Text style={styles.buttonText}>{pending ? msg.ui("auth.signupPending") : msg.ui("auth.signupCustomer")}</Text>
         </TouchableOpacity>
-        <Link href="/auth/login" style={styles.link}>로그인으로 이동</Link>
+        <Link href="/auth/login" style={styles.link}>
+          {msg.ui("auth.goToLogin")}
+        </Link>
       </View>
     </Screen>
   );
@@ -52,7 +53,7 @@ const styles = StyleSheet.create({
   title: { fontSize: 22, fontWeight: "900", color: "#09090b" },
   input: { borderWidth: 1, borderColor: "#d4d4d8", borderRadius: 8, minHeight: 44, paddingHorizontal: 12 },
   error: { color: "#dc2626", fontSize: 13 },
-  button: { backgroundColor: "#0f766e", borderRadius: 8, minHeight: 46, alignItems: "center", justifyContent: "center" },
+  button: { backgroundColor: "#09090b", borderRadius: 8, minHeight: 46, alignItems: "center", justifyContent: "center" },
   buttonText: { color: "#fff", fontWeight: "800" },
   link: { color: "#0f766e", fontSize: 14 }
 });

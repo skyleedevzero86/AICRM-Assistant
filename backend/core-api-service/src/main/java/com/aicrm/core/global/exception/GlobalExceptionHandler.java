@@ -1,5 +1,6 @@
 package com.aicrm.core.global.exception;
 
+import com.aicrm.core.global.message.MessagesHolder;
 import com.aicrm.core.global.response.ApiResponse;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
@@ -24,7 +25,7 @@ public class GlobalExceptionHandler {
         String message = exception.getBindingResult().getFieldErrors().stream()
                 .map(error -> error.getField() + ": " + error.getDefaultMessage())
                 .findFirst()
-                .orElse(ErrorCode.INVALID_REQUEST.getDefaultMessage());
+                .orElse(MessagesHolder.get().error(ErrorCode.INVALID_REQUEST));
         return ResponseEntity
                 .badRequest()
                 .body(ApiResponse.failure(ErrorCode.INVALID_REQUEST.getCode(), message));
@@ -36,20 +37,20 @@ public class GlobalExceptionHandler {
                 .internalServerError()
                 .body(ApiResponse.failure(
                         ErrorCode.INTERNAL_ERROR.getCode(),
-                        ErrorCode.INTERNAL_ERROR.getDefaultMessage()));
+                        MessagesHolder.get().error(ErrorCode.INTERNAL_ERROR)));
     }
 
     @ExceptionHandler(AuthenticationException.class)
     public ResponseEntity<ApiResponse<Void>> handleAuthenticationException(AuthenticationException exception) {
         return ResponseEntity
                 .status(ErrorCode.UNAUTHORIZED.getStatus())
-                .body(ApiResponse.failure(ErrorCode.UNAUTHORIZED.getCode(), ErrorCode.UNAUTHORIZED.getDefaultMessage()));
+                .body(ApiResponse.failure(ErrorCode.UNAUTHORIZED.getCode(), MessagesHolder.get().error(ErrorCode.UNAUTHORIZED)));
     }
 
     @ExceptionHandler(AccessDeniedException.class)
     public ResponseEntity<ApiResponse<Void>> handleAccessDeniedException(AccessDeniedException exception) {
         return ResponseEntity
                 .status(ErrorCode.FORBIDDEN.getStatus())
-                .body(ApiResponse.failure(ErrorCode.FORBIDDEN.getCode(), ErrorCode.FORBIDDEN.getDefaultMessage()));
+                .body(ApiResponse.failure(ErrorCode.FORBIDDEN.getCode(), MessagesHolder.get().error(ErrorCode.FORBIDDEN)));
     }
 }

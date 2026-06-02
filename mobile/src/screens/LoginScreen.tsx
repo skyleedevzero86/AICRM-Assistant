@@ -2,25 +2,9 @@ import { useState } from "react";
 import { Link, useRouter } from "expo-router";
 import { StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
 import { login } from "@/api/auth";
-import { ApiError } from "@/api/client";
 import { Screen } from "@/components/Screen";
+import { msg, resolveApiError } from "@/messages";
 import { setAccessToken } from "@/storage/authStorage";
-
-function getLoginErrorMessage(error: ApiError): string {
-  if (error.code === "AUTH_FAILED") {
-    return "이메일 또는 비밀번호가 올바르지 않습니다.";
-  }
-  if (error.code === "AGENT_APPROVAL_REQUIRED") {
-    return "상담원 계정 승인이 필요합니다.";
-  }
-  if (error.code === "ACCOUNT_SUSPENDED") {
-    return "정지된 계정입니다. 관리자에게 문의하세요.";
-  }
-  if (error.code === "ACCOUNT_WITHDRAWN") {
-    return "탈퇴 처리된 계정입니다.";
-  }
-  return error.message;
-}
 
 export function LoginScreen() {
   const router = useRouter();
@@ -41,11 +25,7 @@ export function LoginScreen() {
         router.replace("/(tabs)");
       }
     } catch (error) {
-      if (error instanceof ApiError) {
-        setErrorMessage(getLoginErrorMessage(error));
-      } else {
-        setErrorMessage("로그인에 실패했습니다.");
-      }
+      setErrorMessage(resolveApiError(error, "auth.loginFailed"));
     } finally {
       setPending(false);
     }
@@ -54,15 +34,19 @@ export function LoginScreen() {
   return (
     <Screen>
       <View style={styles.card}>
-        <Text style={styles.title}>로그인</Text>
-        <TextInput autoCapitalize="none" onChangeText={setEmail} placeholder="이메일" style={styles.input} value={email} />
-        <TextInput onChangeText={setPassword} placeholder="비밀번호" secureTextEntry style={styles.input} value={password} />
+        <Text style={styles.title}>{msg.ui("auth.loginTitle")}</Text>
+        <TextInput autoCapitalize="none" onChangeText={setEmail} placeholder={msg.ui("common.email")} style={styles.input} value={email} />
+        <TextInput onChangeText={setPassword} placeholder={msg.ui("common.password")} secureTextEntry style={styles.input} value={password} />
         {errorMessage ? <Text style={styles.error}>{errorMessage}</Text> : null}
         <TouchableOpacity disabled={pending} onPress={submit} style={styles.button}>
-          <Text style={styles.buttonText}>{pending ? "로그인 중..." : "로그인"}</Text>
+          <Text style={styles.buttonText}>{pending ? msg.ui("auth.loginPending") : msg.ui("common.login")}</Text>
         </TouchableOpacity>
-        <Link href="/auth/signup-customer" style={styles.link}>고객 회원가입</Link>
-        <Link href="/auth/signup-agent" style={styles.link}>상담원 회원가입</Link>
+        <Link href="/auth/signup-customer" style={styles.link}>
+          {msg.ui("auth.signupCustomer")}
+        </Link>
+        <Link href="/auth/signup-agent" style={styles.link}>
+          {msg.ui("auth.signupAgent")}
+        </Link>
       </View>
     </Screen>
   );

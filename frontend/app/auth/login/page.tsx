@@ -7,26 +7,14 @@ import { useState } from "react";
 import { AlertBanner } from "@/components/alert-banner";
 import { PageShell } from "@/components/page-shell";
 import { login } from "@/lib/api/auth";
-import { ApiError } from "@/lib/api/client";
 import { clearAccessToken, setAccessToken } from "@/lib/auth-storage";
+import { msg, resolveApiError } from "@/lib/messages";
 
-function getLoginErrorMessage(error: ApiError): string {
-  if (error.code === "AUTH_FAILED") {
-    return "이메일 또는 비밀번호가 올바르지 않습니다.";
+function resolveReturnPath(returnUrl: string | null): Route | null {
+  if (!returnUrl || !returnUrl.startsWith("/") || returnUrl.startsWith("//")) {
+    return null;
   }
-  if (error.code === "AGENT_APPROVAL_REQUIRED") {
-    return "상담원 계정은 관리자 승인 후 로그인할 수 있습니다.";
-  }
-  if (error.code === "ACCOUNT_SUSPENDED") {
-    return "정지된 계정입니다. 관리자에게 문의해 주세요.";
-  }
-  if (error.code === "ACCOUNT_WITHDRAWN") {
-    return "탈퇴 처리된 계정입니다.";
-  }
-  if (error.code === "UNAUTHORIZED") {
-    return "로그인 정보가 만료되었습니다. 다시 로그인해 주세요.";
-  }
-  return error.message;
+  return returnUrl as Route;
 }
 
 export default function LoginPage() {
@@ -42,7 +30,7 @@ export default function LoginPage() {
 
     const normalizedEmail = email.trim().toLowerCase();
     if (!normalizedEmail || !password) {
-      setErrorMessage("이메일과 비밀번호를 입력해 주세요.");
+      setErrorMessage(msg.ui("auth.loginRequiredFields"));
       return;
     }
 
@@ -51,6 +39,13 @@ export default function LoginPage() {
       clearAccessToken();
       const response = await login({ email: normalizedEmail, password });
       setAccessToken(response.accessToken);
+      const returnPath = resolveReturnPath(
+        typeof window === "undefined" ? null : new URLSearchParams(window.location.search).get("returnUrl")
+      );
+      if (returnPath) {
+        router.push(returnPath);
+        return;
+      }
       if (response.role === "ADMIN") {
         router.push("/admin/users/agents" as Route);
       } else if (response.role === "AGENT") {
@@ -59,25 +54,21 @@ export default function LoginPage() {
         router.push("/customer/inquiry" as Route);
       }
     } catch (error) {
-      if (error instanceof ApiError) {
-        setErrorMessage(getLoginErrorMessage(error));
-      } else {
-        setErrorMessage("로그인에 실패했습니다.");
-      }
+      setErrorMessage(resolveApiError(error, "auth.loginFailed"));
     } finally {
       setPending(false);
     }
   }
 
   return (
-    <PageShell title="로그인" description="이메일과 비밀번호로 로그인하세요.">
+    <PageShell title={msg.ui("auth.loginTitle")} description={msg.ui("auth.loginDescription")}>
       <div className="max-w-lg space-y-4">
         {errorMessage ? <AlertBanner message={errorMessage} variant="error" /> : null}
 
         <form className="space-y-4 rounded-lg border border-zinc-200 bg-white p-6" onSubmit={handleSubmit}>
           <div className="space-y-1">
             <label className="text-sm font-medium text-zinc-700" htmlFor="email">
-              이메일
+              {msg.ui("common.email")}
             </label>
             <input
               autoComplete="email"
@@ -90,7 +81,7 @@ export default function LoginPage() {
           </div>
           <div className="space-y-1">
             <label className="text-sm font-medium text-zinc-700" htmlFor="password">
-              비밀번호
+              {msg.ui("common.password")}
             </label>
             <input
               autoComplete="current-password"
@@ -106,16 +97,16 @@ export default function LoginPage() {
             disabled={pending}
             type="submit"
           >
-            {pending ? "로그인 중..." : "로그인"}
+            {pending ? msg.ui("auth.loginPending") : msg.ui("common.login")}
           </button>
         </form>
 
         <div className="flex gap-4 text-sm">
           <Link className="text-teal-700 hover:underline" href={"/auth/signup/customer" as Route}>
-            고객 회원가입
+            {msg.ui("auth.signupCustomer")}
           </Link>
           <Link className="text-teal-700 hover:underline" href={"/auth/signup/agent" as Route}>
-            상담원 회원가입
+            {msg.ui("auth.signupAgent")}
           </Link>
         </div>
       </div>

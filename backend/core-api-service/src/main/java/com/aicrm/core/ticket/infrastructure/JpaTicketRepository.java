@@ -26,19 +26,13 @@ public class JpaTicketRepository implements TicketRepository {
     @Override
     public Ticket getById(Long ticketId) {
         return springDataJpaRepository.findById(ticketId)
-                .orElseThrow(() -> new BusinessException(
-                        ErrorCode.TICKET_NOT_FOUND,
-                        "티켓을 찾을 수 없습니다: " + ticketId
-                ));
+                .orElseThrow(() -> new BusinessException(ErrorCode.TICKET_NOT_FOUND, "TICKET_NOT_FOUND", ticketId));
     }
 
     @Override
     public Ticket getByIdForUpdate(Long ticketId) {
         return springDataJpaRepository.findByIdForUpdate(ticketId)
-                .orElseThrow(() -> new BusinessException(
-                        ErrorCode.TICKET_NOT_FOUND,
-                        "티켓을 찾을 수 없습니다: " + ticketId
-                ));
+                .orElseThrow(() -> new BusinessException(ErrorCode.TICKET_NOT_FOUND, "TICKET_NOT_FOUND", ticketId));
     }
 
     @Override
@@ -54,10 +48,7 @@ public class JpaTicketRepository implements TicketRepository {
     @Override
     public Ticket getByIdAndCustomerUserId(Long ticketId, Long userId) {
         return springDataJpaRepository.findByIdAndCustomerUserId(ticketId, userId)
-                .orElseThrow(() -> new BusinessException(
-                        ErrorCode.TICKET_NOT_FOUND,
-                        "티켓을 찾을 수 없습니다: " + ticketId
-                ));
+                .orElseThrow(() -> new BusinessException(ErrorCode.TICKET_NOT_FOUND, "TICKET_NOT_FOUND", ticketId));
     }
 
     @Override

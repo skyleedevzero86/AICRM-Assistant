@@ -2,8 +2,8 @@ import { useState } from "react";
 import { Link } from "expo-router";
 import { StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
 import { signupAgent } from "@/api/auth";
-import { ApiError } from "@/api/client";
 import { Screen } from "@/components/Screen";
+import { msg, resolveApiError } from "@/messages";
 
 export function AgentSignupScreen() {
   const [name, setName] = useState("");
@@ -26,7 +26,7 @@ export function AgentSignupScreen() {
       });
       setDone(true);
     } catch (error) {
-      setErrorMessage(error instanceof ApiError ? error.message : "회원가입에 실패했습니다.");
+      setErrorMessage(resolveApiError(error, "auth.signupFailed"));
     } finally {
       setPending(false);
     }
@@ -35,26 +35,28 @@ export function AgentSignupScreen() {
   return (
     <Screen>
       <View style={styles.card}>
-        <Text style={styles.title}>상담원 회원가입</Text>
-        <Text style={styles.description}>관리자 승인 후 로그인할 수 있습니다.</Text>
-        <TextInput onChangeText={setName} placeholder="이름" style={styles.input} value={name} />
+        <Text style={styles.title}>{msg.ui("auth.agentSignupTitle")}</Text>
+        <Text style={styles.description}>{msg.ui("auth.agentSignupDescription")}</Text>
+        <TextInput onChangeText={setName} placeholder={msg.ui("common.name")} style={styles.input} value={name} />
         <TextInput
           keyboardType="number-pad"
           maxLength={16}
           onChangeText={(value) => setEmployeeNo(value.replace(/\D/g, "").slice(0, 16))}
-          placeholder="사원번호 (예: 2026060207120101)"
+          placeholder={msg.ui("auth.employeeNo")}
           style={styles.input}
           value={employeeNo}
         />
-        <Text style={styles.hint}>연월일(8) + 시분초(6) + 순번(2) = 16자리</Text>
-        <TextInput autoCapitalize="none" onChangeText={setEmail} placeholder="이메일" style={styles.input} value={email} />
-        <TextInput onChangeText={setPassword} placeholder="비밀번호(8자 이상)" secureTextEntry style={styles.input} value={password} />
-        {done ? <Text style={styles.success}>가입 신청이 완료되었습니다. 승인 후 로그인해주세요.</Text> : null}
+        <Text style={styles.hint}>{msg.ui("auth.employeeNoHintMobile")}</Text>
+        <TextInput autoCapitalize="none" onChangeText={setEmail} placeholder={msg.ui("common.email")} style={styles.input} value={email} />
+        <TextInput onChangeText={setPassword} placeholder={msg.ui("common.passwordMin")} secureTextEntry style={styles.input} value={password} />
+        {done ? <Text style={styles.success}>{msg.ui("auth.signupAgentSuccess")}</Text> : null}
         {errorMessage ? <Text style={styles.error}>{errorMessage}</Text> : null}
         <TouchableOpacity disabled={pending} onPress={submit} style={styles.button}>
-          <Text style={styles.buttonText}>{pending ? "신청 중..." : "상담원 회원가입"}</Text>
+          <Text style={styles.buttonText}>{pending ? msg.ui("auth.signupSubmitting") : msg.ui("auth.agentSignupSubmit")}</Text>
         </TouchableOpacity>
-        <Link href="/auth/login" style={styles.link}>로그인으로 이동</Link>
+        <Link href="/auth/login" style={styles.link}>
+          {msg.ui("auth.goToLogin")}
+        </Link>
       </View>
     </Screen>
   );

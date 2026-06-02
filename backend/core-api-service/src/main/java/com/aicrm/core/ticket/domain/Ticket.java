@@ -100,7 +100,7 @@ public class Ticket {
             throw new BusinessException(ErrorCode.TICKET_CANNOT_UPDATE);
         }
         if (subject == null || subject.isBlank()) {
-            throw new BusinessException(ErrorCode.INVALID_REQUEST, "제목이 필요합니다");
+            throw new BusinessException(ErrorCode.INVALID_REQUEST, "TITLE_REQUIRED");
         }
         this.category = category;
         this.subject = subject.trim();

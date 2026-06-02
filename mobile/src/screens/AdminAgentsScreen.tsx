@@ -2,8 +2,11 @@ import { useCallback, useState } from "react";
 import { useFocusEffect } from "expo-router";
 import { StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
 import { fetchAdminAgents } from "@/api/admin";
+import { ApiError, AUTH_REQUIRED_CODE } from "@/api/client";
 import type { AdminAgentUser } from "@/api/types";
 import { Screen } from "@/components/Screen";
+import { msg } from "@/messages";
+import { getAccessToken } from "@/storage/authStorage";
 
 export function AdminAgentsScreen() {
   const [keyword, setKeyword] = useState("");
@@ -12,25 +15,60 @@ export function AdminAgentsScreen() {
 
   useFocusEffect(
     useCallback(() => {
-      fetchAdminAgents(query).then(setItems).catch(() => setItems([]));
+      let active = true;
+
+      async function load() {
+        const token = await getAccessToken();
+        if (!token) {
+          if (active) {
+            setItems([]);
+          }
+          return;
+        }
+        try {
+          const data = await fetchAdminAgents(query);
+          if (active) {
+            setItems(data);
+          }
+        } catch (error) {
+          if (active) {
+            setItems([]);
+          }
+          if (error instanceof ApiError && error.code !== AUTH_REQUIRED_CODE && error.code !== "UNAUTHORIZED") {
+            console.warn(error.message);
+          }
+        }
+      }
+
+      void load();
+
+      return () => {
+        active = false;
+      };
     }, [query])
   );
 
   return (
     <Screen>
       <View style={styles.searchRow}>
-        <TextInput onChangeText={setKeyword} placeholder="이름/이메일/사원번호" style={styles.input} value={keyword} />
+        <TextInput onChangeText={setKeyword} placeholder={msg.ui("admin.searchAgentsMobile")} style={styles.input} value={keyword} />
         <TouchableOpacity onPress={() => setQuery(keyword)} style={styles.button}>
-          <Text style={styles.buttonText}>검색</Text>
+          <Text style={styles.buttonText}>{msg.ui("common.search")}</Text>
         </TouchableOpacity>
       </View>
       {items.map((item) => (
         <View key={item.agentId} style={styles.card}>
           <Text style={styles.name}>{item.name}</Text>
-          <Text style={styles.meta}>사원번호: {item.employeeNo}</Text>
+          <Text style={styles.meta}>
+            {msg.ui("admin.employeeNo")}: {item.employeeNo}
+          </Text>
           <Text style={styles.meta}>{item.email}</Text>
-          <Text style={styles.meta}>승인: {item.approvalStatus}</Text>
-          <Text style={styles.meta}>직급: {item.grade}</Text>
+          <Text style={styles.meta}>
+            {msg.ui("admin.approvalStatus")}: {msg.label("approvalStatus", item.approvalStatus)}
+          </Text>
+          <Text style={styles.meta}>
+            {msg.ui("admin.grade")}: {msg.label("grade", item.grade)}
+          </Text>
         </View>
       ))}
     </Screen>

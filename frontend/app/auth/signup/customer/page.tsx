@@ -7,8 +7,8 @@ import { useState } from "react";
 import { AlertBanner } from "@/components/alert-banner";
 import { PageShell } from "@/components/page-shell";
 import { login, signupCustomer } from "@/lib/api/auth";
-import { ApiError } from "@/lib/api/client";
 import { setAccessToken } from "@/lib/auth-storage";
+import { msg, resolveApiError } from "@/lib/messages";
 
 export default function CustomerSignupPage() {
   const router = useRouter();
@@ -28,25 +28,44 @@ export default function CustomerSignupPage() {
       setAccessToken(loginResponse.accessToken);
       router.push("/customer/inquiry" as Route);
     } catch (error) {
-      setErrorMessage(error instanceof ApiError ? error.message : "회원가입에 실패했습니다.");
+      setErrorMessage(resolveApiError(error, "auth.signupFailed"));
     } finally {
       setPending(false);
     }
   }
 
   return (
-    <PageShell title="고객 회원가입" description="가입 즉시 고객 계정이 활성화됩니다.">
+    <PageShell title={msg.ui("auth.customerSignupTitle")} description={msg.ui("auth.customerSignupDescription")}>
       <div className="max-w-lg space-y-4">
         {errorMessage ? <AlertBanner message={errorMessage} variant="error" /> : null}
         <form className="space-y-4 rounded-lg border border-zinc-200 bg-white p-6" onSubmit={submit}>
-          <input className="w-full rounded-md border border-zinc-300 px-3 py-2 text-sm" onChange={(e) => setName(e.target.value)} placeholder="이름" value={name} />
-          <input className="w-full rounded-md border border-zinc-300 px-3 py-2 text-sm" onChange={(e) => setEmail(e.target.value)} placeholder="이메일" type="email" value={email} />
-          <input className="w-full rounded-md border border-zinc-300 px-3 py-2 text-sm" onChange={(e) => setPassword(e.target.value)} placeholder="비밀번호(8자 이상)" type="password" value={password} />
+          <input
+            className="w-full rounded-md border border-zinc-300 px-3 py-2 text-sm"
+            onChange={(e) => setName(e.target.value)}
+            placeholder={msg.ui("common.name")}
+            value={name}
+          />
+          <input
+            className="w-full rounded-md border border-zinc-300 px-3 py-2 text-sm"
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder={msg.ui("common.email")}
+            type="email"
+            value={email}
+          />
+          <input
+            className="w-full rounded-md border border-zinc-300 px-3 py-2 text-sm"
+            onChange={(e) => setPassword(e.target.value)}
+            placeholder={msg.ui("common.passwordMin")}
+            type="password"
+            value={password}
+          />
           <button className="rounded-md bg-teal-700 px-4 py-2 text-sm font-medium text-white disabled:opacity-50" disabled={pending} type="submit">
-            {pending ? "가입 중..." : "고객 회원가입"}
+            {pending ? msg.ui("auth.signupPending") : msg.ui("auth.signupCustomer")}
           </button>
         </form>
-        <Link className="text-sm text-teal-700 hover:underline" href={"/auth/login" as Route}>로그인으로 이동</Link>
+        <Link className="text-sm text-teal-700 hover:underline" href={"/auth/login" as Route}>
+          {msg.ui("auth.goToLogin")}
+        </Link>
       </div>
     </PageShell>
   );

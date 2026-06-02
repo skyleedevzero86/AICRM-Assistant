@@ -19,10 +19,7 @@ public class JpaCustomerRepository implements CustomerRepository {
     @Override
     public Customer getById(Long customerId) {
         return springDataJpaRepository.findById(customerId)
-                .orElseThrow(() -> new BusinessException(
-                        ErrorCode.NOT_FOUND,
-                        "고객을 찾을 수 없습니다: " + customerId
-                ));
+                .orElseThrow(() -> new BusinessException(ErrorCode.NOT_FOUND, "CUSTOMER_NOT_FOUND", customerId));
     }
 
     @Override
