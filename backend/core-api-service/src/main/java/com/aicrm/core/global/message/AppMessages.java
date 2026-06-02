@@ -5,6 +5,8 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.text.MessageFormat;
 import java.util.Locale;
 import java.util.Map;
@@ -18,7 +20,7 @@ public class AppMessages implements MessageSource {
     private final Map<String, Object> catalog;
 
     public AppMessages(ObjectMapper objectMapper) {
-        try (InputStream inputStream = getClass().getResourceAsStream("/messages/ko.json")) {
+        try (InputStream inputStream = openCatalog()) {
             if (inputStream == null) {
                 throw new IllegalStateException("messages/ko.json not found");
             }
@@ -27,6 +29,26 @@ public class AppMessages implements MessageSource {
         } catch (IOException exception) {
             throw new IllegalStateException("Failed to load messages/ko.json", exception);
         }
+    }
+
+    private InputStream openCatalog() throws IOException {
+        InputStream classpathStream = getClass().getResourceAsStream("/messages/ko.json");
+        if (classpathStream != null) {
+            return classpathStream;
+        }
+
+        Path workingDirectory = Path.of("").toAbsolutePath();
+        Path[] fallbackPaths = {
+                workingDirectory.resolve("shared/messages/ko.json"),
+                workingDirectory.resolve("../shared/messages/ko.json"),
+                workingDirectory.resolve("../../shared/messages/ko.json")
+        };
+        for (Path path : fallbackPaths) {
+            if (Files.exists(path)) {
+                return Files.newInputStream(path);
+            }
+        }
+        return null;
     }
 
     public String error(ErrorCode errorCode) {

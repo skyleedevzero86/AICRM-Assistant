@@ -2,9 +2,12 @@ plugins {
     `java-library`
 }
 
-tasks.processResources {
-    from("${rootProject.projectDir}/shared/messages/ko.json") {
-        into("messages")
+sourceSets {
+    main {
+        resources {
+            srcDir("${rootProject.projectDir}/shared")
+            include("messages/ko.json")
+        }
     }
 }
 
