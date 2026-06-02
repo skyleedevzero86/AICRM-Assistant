@@ -5,9 +5,16 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.aicrm.core.global.exception.BusinessException;
 import com.aicrm.core.global.exception.ErrorCode;
+import com.aicrm.core.support.MessagesInitializer;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 class ConsultationCategoryTest {
+
+    @BeforeAll
+    static void setUpMessages() {
+        MessagesInitializer.init();
+    }
 
     @Test
     void ensureLeafCategoryAcceptsDepthThree() {

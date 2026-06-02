@@ -10,15 +10,19 @@ import { PageShell } from "@/components/page-shell";
 import { acceptTicket, fetchWaitingTickets } from "@/lib/api/agent";
 import { ApiError } from "@/lib/api/client";
 import { formatDateTime } from "@/lib/format";
+import { useAccessTokenRole } from "@/lib/use-access-token-role";
 
 export default function AgentTicketsPage() {
   const router = useRouter();
   const queryClient = useQueryClient();
   const [actionError, setActionError] = useState<string | null>(null);
+  const role = useAccessTokenRole();
+  const canAccessAgentTickets = role === "AGENT";
 
   const ticketsQuery = useQuery({
     queryKey: ["waiting-tickets"],
     queryFn: fetchWaitingTickets,
+    enabled: canAccessAgentTickets,
     refetchInterval: 15_000
   });
 
@@ -35,7 +39,9 @@ export default function AgentTicketsPage() {
     }
   });
 
-  const listError =
+  const listError = !canAccessAgentTickets
+    ? "상담원 권한이 필요합니다."
+    :
     ticketsQuery.error instanceof ApiError
       ? ticketsQuery.error.message
       : ticketsQuery.isError

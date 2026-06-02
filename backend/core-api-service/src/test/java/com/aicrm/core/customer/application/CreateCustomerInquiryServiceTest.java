@@ -10,6 +10,9 @@ import com.aicrm.core.category.domain.ConsultationCategory;
 import com.aicrm.core.category.domain.ConsultationCategoryRepository;
 import com.aicrm.core.conversation.domain.Conversation;
 import com.aicrm.core.conversation.domain.ConversationRepository;
+import com.aicrm.core.auth.domain.UserRole;
+import com.aicrm.core.auth.security.AuthenticatedUser;
+import com.aicrm.core.auth.security.CurrentUserProvider;
 import com.aicrm.core.customer.domain.Customer;
 import com.aicrm.core.customer.domain.CustomerRepository;
 import com.aicrm.core.customer.dto.CreateCustomerInquiryRequest;
@@ -51,6 +54,9 @@ class CreateCustomerInquiryServiceTest {
     @Mock
     private MessageRepository messageRepository;
 
+    @Mock
+    private CurrentUserProvider currentUserProvider;
+
     @InjectMocks
     private CreateCustomerInquiryService createCustomerInquiryService;
 
@@ -74,8 +80,8 @@ class CreateCustomerInquiryServiceTest {
 
     @Test
     void createUsesExistingCustomerWhenPhoneMatches() {
-        // given
-        when(customerRepository.findByPhone("010-1234-5678")).thenReturn(Optional.of(existingCustomer));
+        when(currentUserProvider.require()).thenReturn(new AuthenticatedUser(100L, "customer@test.com", "김고객", UserRole.CUSTOMER));
+        when(customerRepository.findByUserId(100L)).thenReturn(Optional.of(existingCustomer));
         when(consultationCategoryRepository.getEnabledLeafCategory(3L)).thenReturn(category);
         when(ticketNoGenerator.generateNext()).thenReturn("TICKET-20260530-0001");
         when(ticketRepository.save(any(Ticket.class))).thenAnswer(invocation -> {
@@ -104,8 +110,8 @@ class CreateCustomerInquiryServiceTest {
 
     @Test
     void createCreatesNewCustomerWhenPhoneNotFound() {
-        // given
-        when(customerRepository.findByPhone("010-1234-5678")).thenReturn(Optional.empty());
+        when(currentUserProvider.require()).thenReturn(new AuthenticatedUser(100L, "customer@test.com", "김고객", UserRole.CUSTOMER));
+        when(customerRepository.findByUserId(100L)).thenReturn(Optional.empty());
         when(customerRepository.save(any(Customer.class))).thenAnswer(invocation -> {
             Customer customer = invocation.getArgument(0);
             return customerWithId(customer, 2L);

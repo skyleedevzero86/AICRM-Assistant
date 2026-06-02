@@ -4,7 +4,7 @@ AICRM-Assistant `core-api-service` applies practical domain-centered design for 
 
 ## Scope
 
-Domains: `customer`, `agent`, `ticket`, `conversation`, `message`, `category`
+Domains: `auth`, `attendance`, `customer`, `agent`, `ticket`, `conversation`, `message`, `category`
 
 MVP use cases:
 
@@ -14,6 +14,10 @@ MVP use cases:
 - Message save
 - Ticket close
 - Consultation category tree query
+- JWT login and current-user auth
+- Customer/agent sign-up flow split
+- Admin customer/agent user management
+- Agent daily attendance tracking
 
 ## Not in MVP
 

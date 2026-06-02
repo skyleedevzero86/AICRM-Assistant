@@ -1,4 +1,71 @@
 export type TicketStatus = "WAITING" | "ASSIGNED" | "IN_PROGRESS" | "RESOLVED" | "CLOSED" | "ESCALATED";
+export type UserRole = "CUSTOMER" | "AGENT" | "ADMIN";
+
+export type LoginRequest = {
+  email: string;
+  password: string;
+};
+
+export type LoginResponse = {
+  accessToken: string;
+  tokenType: string;
+  userId: number;
+  email: string;
+  role: UserRole;
+};
+
+export type SignUpRequest = {
+  name: string;
+  email: string;
+  password: string;
+};
+
+export type AgentSignUpRequest = SignUpRequest & {
+  employeeNo: string;
+};
+
+export type SignUpResponse = {
+  userId: number;
+  email: string;
+  role: UserRole;
+  signupStatus: "ACTIVE" | "PENDING";
+};
+
+export type MeResponse = {
+  userId: number;
+  email: string;
+  name: string;
+  role: UserRole;
+  phone: string;
+  employeeNo: string;
+};
+
+export type UpdateMeRequest = {
+  name?: string;
+  password?: string;
+  phone?: string;
+};
+
+export type AdminCustomerUser = {
+  userId: number;
+  name: string;
+  email: string;
+  phone: string;
+  withdrawnYn: "Y" | "N";
+  suspendedYn: "Y" | "N";
+};
+
+export type AdminAgentUser = {
+  userId: number;
+  agentId: number;
+  employeeNo: string;
+  name: string;
+  email: string;
+  approvalStatus: "PENDING" | "ACTIVE";
+  grade: "ADMIN" | "COUNSELOR" | "TEAM_LEAD";
+  withdrawnYn: "Y" | "N";
+  suspendedYn: "Y" | "N";
+};
 
 export type ConsultationCategoryTreeNode = {
   id: number;

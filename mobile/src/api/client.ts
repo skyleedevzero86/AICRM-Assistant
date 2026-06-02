@@ -1,4 +1,7 @@
 import { getCandidateApiBaseUrls, resolveApiBaseUrl } from "@/config/api-base-url";
+import { isPublicApiPath, requiresAuthToken } from "@/api/requires-auth";
+import { msg, resolvePublicAuthError } from "@/messages";
+import { clearAccessToken, getAccessToken } from "@/storage/authStorage";
 
 type ApiResponse<T> = {
   success: boolean;
@@ -12,6 +15,8 @@ export function getApiBaseUrl(): string {
   return cachedBaseUrl ?? resolveApiBaseUrl();
 }
 
+export const AUTH_REQUIRED_CODE = "AUTH_REQUIRED";
+
 export class ApiError extends Error {
   constructor(
     message: string,
@@ -22,23 +27,32 @@ export class ApiError extends Error {
   }
 }
 
+const CONNECTION_FAILED_CODE = "CONNECTION_FAILED";
+
 function isConnectionError(error: unknown): boolean {
-  return error instanceof ApiError && error.message.includes("서버에 연결할 수 없습니다");
+  return error instanceof ApiError && error.code === CONNECTION_FAILED_CODE;
 }
 
 async function apiRequestAt<T>(baseUrl: string, path: string, options: RequestInit = {}): Promise<T> {
   let response: Response;
+  const token = await getAccessToken();
+  const shouldAttachToken = token && !isPublicApiPath(path);
+
+  if (requiresAuthToken(path) && !token) {
+    throw new ApiError(msg.client("AUTH_REQUIRED"), AUTH_REQUIRED_CODE);
+  }
 
   try {
     response = await fetch(`${baseUrl}${path}`, {
       ...options,
       headers: {
         "Content-Type": "application/json",
+        ...(shouldAttachToken ? { Authorization: `Bearer ${token}` } : {}),
         ...options.headers
       }
     });
   } catch {
-    throw new ApiError(`서버에 연결할 수 없습니다. (${baseUrl})`);
+    throw new ApiError(msg.client("CONNECTION_FAILED", { 0: baseUrl }), CONNECTION_FAILED_CODE);
   }
 
   const raw = await response.text();
@@ -47,11 +61,25 @@ async function apiRequestAt<T>(baseUrl: string, path: string, options: RequestIn
   try {
     payload = JSON.parse(raw) as ApiResponse<T>;
   } catch {
-    throw new ApiError(`서버 응답을 해석할 수 없습니다. (${baseUrl})`);
+    throw new ApiError(msg.client("RESPONSE_PARSE_FAILED", { 0: baseUrl }));
+  }
+
+  if (response.status === 401 && !isPublicApiPath(path)) {
+    await clearAccessToken();
+    throw new ApiError(
+      payload.error?.message ?? msg.error("UNAUTHORIZED"),
+      payload.error?.code ?? "UNAUTHORIZED"
+    );
   }
 
   if (!response.ok || !payload.success) {
-    throw new ApiError(payload.error?.message ?? "요청 처리 중 오류가 발생했습니다.", payload.error?.code);
+    if (isPublicApiPath(path)) {
+      throw new ApiError(
+        resolvePublicAuthError(payload.error?.code, payload.error?.message),
+        payload.error?.code ?? "REQUEST_FAILED"
+      );
+    }
+    throw new ApiError(payload.error?.message ?? msg.client("REQUEST_FAILED"), payload.error?.code);
   }
 
   return payload.data;
@@ -81,7 +109,7 @@ export async function apiRequest<T>(path: string, options: RequestInit = {}): Pr
   const tried = bases.join(", ");
   throw new ApiError(
     lastError?.message
-      ? `${lastError.message} 시도한 주소: ${tried}`
-      : `서버에 연결할 수 없습니다. 시도한 주소: ${tried}`
+      ? msg.client("CONNECTION_FAILED_WITH_TRIED", { 0: lastError.message, 1: tried })
+      : msg.client("CONNECTION_FAILED_TRIED", { 0: tried })
   );
 }

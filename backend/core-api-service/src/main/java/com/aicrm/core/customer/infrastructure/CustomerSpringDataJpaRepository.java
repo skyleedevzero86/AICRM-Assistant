@@ -7,4 +7,8 @@ import org.springframework.data.jpa.repository.JpaRepository;
 public interface CustomerSpringDataJpaRepository extends JpaRepository<Customer, Long> {
 
     Optional<Customer> findByPhone(String phone);
+
+    Optional<Customer> findByUserId(Long userId);
+
+    java.util.List<Customer> findAllByUserIdIsNotNull();
 }

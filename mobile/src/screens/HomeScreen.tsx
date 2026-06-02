@@ -2,10 +2,12 @@ import { useCallback, useState } from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { useFocusEffect, useRouter } from "expo-router";
 import { Screen } from "@/components/Screen";
+import { msg } from "@/messages";
 import { EmptyState } from "@/components/EmptyState";
 import { TicketCard } from "@/components/TicketCard";
 import type { StoredTicket } from "@/storage/ticketStorage";
 import { loadTicketsWithFallback } from "@/utils/ticket-sync";
+import { clearAccessToken } from "@/storage/authStorage";
 
 export function HomeScreen() {
   const router = useRouter();
@@ -23,6 +25,11 @@ export function HomeScreen() {
     }, [])
   );
 
+  async function logout() {
+    await clearAccessToken();
+    router.replace("/auth/login");
+  }
+
   return (
     <Screen>
       <View style={styles.hero}>
@@ -31,6 +38,14 @@ export function HomeScreen() {
         <TouchableOpacity onPress={() => router.push("/(tabs)/inquiry")} style={styles.heroButton}>
           <Text style={styles.heroButtonText}>빠른 문의하기</Text>
         </TouchableOpacity>
+        <View style={styles.heroActions}>
+          <TouchableOpacity onPress={() => router.push("/(tabs)/account")} style={styles.secondaryHeroButton}>
+            <Text style={styles.secondaryHeroButtonText}>{msg.ui("nav.account")}</Text>
+          </TouchableOpacity>
+          <TouchableOpacity onPress={() => void logout()} style={styles.secondaryHeroButton}>
+            <Text style={styles.secondaryHeroButtonText}>{msg.ui("common.logout")}</Text>
+          </TouchableOpacity>
+        </View>
       </View>
 
       <View style={styles.section}>
@@ -97,6 +112,25 @@ const styles = StyleSheet.create({
   heroButtonText: {
     color: "#09090b",
     fontSize: 14,
+    fontWeight: "800"
+  },
+  heroActions: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 8,
+    marginTop: 12
+  },
+  secondaryHeroButton: {
+    alignItems: "center",
+    backgroundColor: "#27272a",
+    borderRadius: 8,
+    minHeight: 36,
+    paddingHorizontal: 12,
+    justifyContent: "center"
+  },
+  secondaryHeroButtonText: {
+    color: "#fafafa",
+    fontSize: 13,
     fontWeight: "800"
   },
   section: {

@@ -166,6 +166,33 @@ curl http://localhost:8080/actuator/health
 
 chat-ai-service는 OPENAI_API_KEY, OPENAI_CHAT_MODEL 환경 변수를 사용합니다.
 
+기본 인증 API:
+
+- `POST /api/auth/login`
+- `GET /api/auth/me`
+- `POST /api/auth/signup/customer`
+- `POST /api/auth/signup/agent`
+- `POST /api/admin/agents/{agentId}/approve`
+- `POST /api/auth/withdraw`
+- `GET /api/admin/users/customers`
+- `GET /api/admin/users/agents`
+- `POST /api/admin/users/{userId}/suspension`
+- `POST /api/admin/users/{userId}/withdrawal`
+- `GET /api/admin/attendance/agents`
+
+관리자 페이지:
+
+- `frontend/app/admin/users/customers/page.tsx`
+- `frontend/app/admin/users/agents/page.tsx`
+- `frontend/app/admin/attendance/page.tsx`
+
+테스트 계정:
+
+- 관리자: `admin@aicrm.local` / `password`
+- 상담원(활성): `agent1@aicrm.local` / `password`
+- 상담원(대기): `agent-pending@aicrm.local` / `password`
+- 고객: `customer@example.com` / `password`
+
 ### 3. Frontend 실행
 
 ```bash

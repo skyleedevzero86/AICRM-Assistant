@@ -63,6 +63,10 @@ Expo Go 실기기 테스트 시 `localhost`는 사용할 수 없습니다. PC와
 
 | 탭 | 경로 | 설명 |
 | --- | --- | --- |
+| 인증 시작 | `/` | 토큰 유무에 따라 로그인 또는 탭으로 이동 |
+| 로그인 | `/auth/login` | 이메일/비밀번호 로그인 |
+| 고객 회원가입 | `/auth/signup-customer` | 가입 즉시 활성화, 자동 로그인 |
+| 상담원 회원가입 | `/auth/signup-agent` | 가입 후 승인 대기 |
 | 홈 | `/(tabs)/` | 최근 접수 문의 |
 | 문의 | `/(tabs)/inquiry` | 상담 구분 선택 후 문의 접수 |
 | 내 문의 | `/(tabs)/tickets` | AsyncStorage + API 동기화 목록 |
@@ -82,6 +86,21 @@ Expo Go 실기기 테스트 시 `localhost`는 사용할 수 없습니다. PC와
 
 Windows 개발 환경에서는 Android Expo Go 실행을 우선 확인하고, iOS는 macOS 또는 Expo Go for iOS가 있는 환경에서 확인합니다.
 
-## 제외 범위 (v0.1.1)
+## 인증 API
 
-로그인, 실시간 채팅, 파일 첨부, 예약상담, WebRTC, AI/RAG 직접 노출, 푸시 알림은 포함하지 않습니다.
+| API | 설명 |
+| --- | --- |
+| `POST /api/auth/login` | JWT 발급 |
+| `GET /api/auth/me` | 현재 로그인 사용자 조회 |
+| `POST /api/auth/signup/customer` | 고객 회원가입 |
+| `POST /api/auth/signup/agent` | 상담원 회원가입(승인 대기) |
+| `POST /api/auth/withdraw` | 본인 탈퇴 처리(soft delete, Y/N) |
+
+## 테스트 계정
+
+| 역할 | 이메일 | 비밀번호 |
+| --- | --- | --- |
+| 관리자 | `admin@aicrm.local` | `password` |
+| 활성 상담원 | `agent1@aicrm.local` | `password` |
+| 승인 대기 상담원 | `agent-pending@aicrm.local` | `password` |
+| 고객 | `customer@example.com` | `password` |
