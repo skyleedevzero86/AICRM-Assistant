@@ -94,4 +94,9 @@ public class Customer {
         this.phone = phone == null ? "" : phone.trim();
         this.updatedAt = Instant.now();
     }
+
+    public void updatePhone(String phone) {
+        this.phone = phone == null ? "" : phone.trim();
+        this.updatedAt = Instant.now();
+    }
 }

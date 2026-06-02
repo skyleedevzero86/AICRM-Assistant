@@ -6,12 +6,44 @@ import { ApiError } from "@/api/client";
 import { Screen } from "@/components/Screen";
 import { msg } from "@/messages";
 import { clearAccessToken } from "@/storage/authStorage";
-import type { MeResponse } from "@/api/types";
+import type { MeResponse, UpdateMeRequest, UserRole } from "@/api/types";
+
+function accountDescription(role: UserRole | undefined): string {
+  if (role === "CUSTOMER") {
+    return msg.ui("account.descriptionCustomer");
+  }
+  if (role === "AGENT") {
+    return msg.ui("account.descriptionAgent");
+  }
+  if (role === "ADMIN") {
+    return msg.ui("account.descriptionAdmin");
+  }
+  return msg.ui("account.description");
+}
+
+function buildUpdatePayload(
+  role: UserRole,
+  password: string,
+  phone: string,
+  adminName: string
+): UpdateMeRequest {
+  const payload: UpdateMeRequest = {};
+  if (password) {
+    payload.password = password;
+  }
+  if (role === "CUSTOMER") {
+    payload.phone = phone;
+  }
+  if (role === "ADMIN" && adminName.trim()) {
+    payload.name = adminName.trim();
+  }
+  return payload;
+}
 
 export function AccountScreen() {
   const router = useRouter();
   const [me, setMe] = useState<MeResponse | null>(null);
-  const [name, setName] = useState("");
+  const [adminName, setAdminName] = useState("");
   const [password, setPassword] = useState("");
   const [phone, setPhone] = useState("");
   const [loading, setLoading] = useState(true);
@@ -25,7 +57,7 @@ export function AccountScreen() {
     try {
       const data = await fetchMe();
       setMe(data);
-      setName(data.name);
+      setAdminName(data.name);
       setPhone(data.phone ?? "");
     } catch (err) {
       setError(err instanceof ApiError ? err.message : msg.ui("account.saveFailed"));
@@ -48,12 +80,9 @@ export function AccountScreen() {
     setNotice(null);
     setError(null);
     try {
-      const updated = await updateMe({
-        name,
-        ...(password ? { password } : {}),
-        ...(me.role === "CUSTOMER" ? { phone } : {})
-      });
+      const updated = await updateMe(buildUpdatePayload(me.role, password, phone, adminName));
       setMe(updated);
+      setAdminName(updated.name);
       setPassword("");
       setNotice(msg.ui("account.saved"));
     } catch (err) {
@@ -90,28 +119,43 @@ export function AccountScreen() {
   }
 
   const isCustomer = me?.role === "CUSTOMER";
+  const isAgent = me?.role === "AGENT";
+  const isAdmin = me?.role === "ADMIN";
 
   return (
     <Screen>
       <View style={styles.card}>
         <Text style={styles.title}>{msg.ui("account.title")}</Text>
-        <Text style={styles.description}>{msg.ui("account.description")}</Text>
+        <Text style={styles.description}>{accountDescription(me?.role)}</Text>
         {loading ? <ActivityIndicator color="#0f766e" /> : null}
         {notice ? <Text style={styles.notice}>{notice}</Text> : null}
         {error ? <Text style={styles.error}>{error}</Text> : null}
         {me ? (
           <>
-            <Field label={msg.ui("common.email")} value={me.email} editable={false} />
-            <Field label={msg.ui("common.name")} value={name} onChangeText={setName} />
+            <Field editable={false} label={msg.ui("common.email")} value={me.email} />
+            {isAgent ? (
+              <Field editable={false} label={msg.ui("admin.employeeNo")} value={me.employeeNo} />
+            ) : null}
+            <Field
+              editable={isAdmin}
+              label={msg.ui("common.name")}
+              onChangeText={isAdmin ? setAdminName : undefined}
+              value={isAdmin ? adminName : me.name}
+            />
             {isCustomer ? (
-              <Field label={msg.ui("common.phone")} value={phone} onChangeText={setPhone} keyboardType="phone-pad" />
+              <Field
+                keyboardType="phone-pad"
+                label={msg.ui("common.phone")}
+                onChangeText={setPhone}
+                value={phone}
+              />
             ) : null}
             <Field
               label={msg.ui("common.passwordMin")}
-              value={password}
               onChangeText={setPassword}
               placeholder={msg.ui("account.passwordOptional")}
               secureTextEntry
+              value={password}
             />
             <TouchableOpacity disabled={saving} onPress={() => void save()} style={styles.primaryButton}>
               <Text style={styles.primaryButtonText}>

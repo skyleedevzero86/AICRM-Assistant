@@ -7,6 +7,7 @@ public record MeResponse(
         String email,
         String name,
         UserRole role,
-        String phone
+        String phone,
+        String employeeNo
 ) {
 }

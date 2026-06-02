@@ -8,6 +8,7 @@ import { AlertBanner } from "@/components/alert-banner";
 import { FormField } from "@/components/form-field";
 import { PageShell } from "@/components/page-shell";
 import { fetchMe, updateMe, withdrawMe } from "@/lib/api/auth";
+import type { UpdateMeRequest, UserRole } from "@/lib/api/types";
 import { ApiError } from "@/lib/api/client";
 import { clearAccessToken } from "@/lib/auth-storage";
 import { msg } from "@/lib/messages";
@@ -15,12 +16,46 @@ import { useRequireAuth } from "@/lib/use-require-auth";
 
 const inputClassName =
   "w-full rounded-md border border-zinc-300 bg-white px-3 py-2 text-sm outline-none focus:border-teal-600 focus:ring-1 focus:ring-teal-600";
+const readOnlyClassName =
+  "w-full rounded-md border border-zinc-300 bg-zinc-50 px-3 py-2 text-sm text-zinc-600";
+
+function accountDescription(role: UserRole | undefined): string {
+  if (role === "CUSTOMER") {
+    return msg.ui("account.descriptionCustomer");
+  }
+  if (role === "AGENT") {
+    return msg.ui("account.descriptionAgent");
+  }
+  if (role === "ADMIN") {
+    return msg.ui("account.descriptionAdmin");
+  }
+  return msg.ui("account.description");
+}
+
+function buildUpdatePayload(
+  role: UserRole,
+  password: string,
+  phone: string,
+  adminName: string
+): UpdateMeRequest {
+  const payload: UpdateMeRequest = {};
+  if (password) {
+    payload.password = password;
+  }
+  if (role === "CUSTOMER") {
+    payload.phone = phone;
+  }
+  if (role === "ADMIN" && adminName.trim()) {
+    payload.name = adminName.trim();
+  }
+  return payload;
+}
 
 export default function AccountPage() {
   const router = useRouter();
   const queryClient = useQueryClient();
   const { status } = useRequireAuth();
-  const [name, setName] = useState("");
+  const [adminName, setAdminName] = useState("");
   const [password, setPassword] = useState("");
   const [phone, setPhone] = useState("");
   const [notice, setNotice] = useState<string | null>(null);
@@ -36,17 +71,17 @@ export default function AccountPage() {
     if (!meQuery.data) {
       return;
     }
-    setName(meQuery.data.name);
+    setAdminName(meQuery.data.name);
     setPhone(meQuery.data.phone ?? "");
   }, [meQuery.data]);
 
   const saveMutation = useMutation({
-    mutationFn: () =>
-      updateMe({
-        name,
-        ...(password ? { password } : {}),
-        ...(meQuery.data?.role === "CUSTOMER" ? { phone } : {})
-      }),
+    mutationFn: () => {
+      if (!meQuery.data) {
+        throw new Error("missing profile");
+      }
+      return updateMe(buildUpdatePayload(meQuery.data.role, password, phone, adminName));
+    },
     onSuccess: (data) => {
       setPassword("");
       setNotice(msg.ui("account.saved"));
@@ -81,11 +116,14 @@ export default function AccountPage() {
     }
   }
 
-  const isCustomer = meQuery.data?.role === "CUSTOMER";
+  const role = meQuery.data?.role;
+  const isCustomer = role === "CUSTOMER";
+  const isAgent = role === "AGENT";
+  const isAdmin = role === "ADMIN";
   const showForm = status === "allowed";
 
   return (
-    <PageShell description={msg.ui("account.description")} title={msg.ui("account.title")}>
+    <PageShell description={accountDescription(role)} title={msg.ui("account.title")}>
       <div className="space-y-4">
         {notice ? <AlertBanner message={notice} variant="success" /> : null}
         {error ? <AlertBanner message={error} variant="error" /> : null}
@@ -111,7 +149,7 @@ export default function AccountPage() {
           >
             <FormField htmlFor="account-email" label={msg.ui("common.email")}>
               <input
-                className={inputClassName}
+                className={readOnlyClassName}
                 disabled
                 id="account-email"
                 readOnly
@@ -119,15 +157,38 @@ export default function AccountPage() {
                 value={meQuery.data.email}
               />
             </FormField>
-            <FormField htmlFor="account-name" label={msg.ui("common.name")} required>
-              <input
-                className={inputClassName}
-                id="account-name"
-                onChange={(event) => setName(event.target.value)}
-                required
-                type="text"
-                value={name}
-              />
+            {isAgent ? (
+              <FormField htmlFor="account-employee-no" label={msg.ui("admin.employeeNo")}>
+                <input
+                  className={readOnlyClassName}
+                  disabled
+                  id="account-employee-no"
+                  readOnly
+                  type="text"
+                  value={meQuery.data.employeeNo}
+                />
+              </FormField>
+            ) : null}
+            <FormField htmlFor="account-name" label={msg.ui("common.name")} required={isAdmin}>
+              {isAdmin ? (
+                <input
+                  className={inputClassName}
+                  id="account-name"
+                  onChange={(event) => setAdminName(event.target.value)}
+                  required
+                  type="text"
+                  value={adminName}
+                />
+              ) : (
+                <input
+                  className={readOnlyClassName}
+                  disabled
+                  id="account-name"
+                  readOnly
+                  type="text"
+                  value={meQuery.data.name}
+                />
+              )}
             </FormField>
             {isCustomer ? (
               <FormField htmlFor="account-phone" label={msg.ui("common.phone")}>

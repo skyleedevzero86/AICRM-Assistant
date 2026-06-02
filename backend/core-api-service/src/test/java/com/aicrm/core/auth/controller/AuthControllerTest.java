@@ -110,7 +110,8 @@ class AuthControllerTest {
                 "agent@test.com",
                 "상담원",
                 UserRole.AGENT,
-                ""
+                "",
+                "2026060207120101"
         ));
 
         mockMvc.perform(get("/api/auth/me"))
@@ -144,20 +145,21 @@ class AuthControllerTest {
         when(authService.updateCurrentUser(any())).thenReturn(new MeResponse(
                 1L,
                 "agent@test.com",
-                "변경된 이름",
+                "상담원",
                 UserRole.AGENT,
-                ""
+                "",
+                "2026060207120101"
         ));
 
         mockMvc.perform(patch("/api/auth/me")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                                 {
-                                  "name": "변경된 이름"
+                                  "password": "newpassword123"
                                 }
                                 """))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.data.name").value("변경된 이름"));
+                .andExpect(jsonPath("$.data.role").value("AGENT"));
     }
 
     @Test

@@ -135,24 +135,21 @@ public class AuthService {
         AuthenticatedUser current = currentUserProvider.require();
         UserAccount account = userAccountRepository.findById(current.userId())
                 .orElseThrow(() -> new BusinessException(ErrorCode.NOT_FOUND, "USER_NOT_FOUND", current.userId()));
-        String name = request.name().trim();
-        account.updateName(name);
+
         if (request.password() != null && !request.password().isBlank()) {
             account.updatePasswordHash(passwordEncoder.encode(request.password()));
+            userAccountRepository.save(account);
         }
-        userAccountRepository.save(account);
 
-        if (account.getRole() == UserRole.CUSTOMER) {
+        if (account.getRole() == UserRole.ADMIN && request.name() != null && !request.name().isBlank()) {
+            account.updateName(request.name().trim());
+            userAccountRepository.save(account);
+        } else if (account.getRole() == UserRole.CUSTOMER) {
             Customer customer = customerRepository.findByUserId(account.getId())
                     .orElseThrow(() -> new BusinessException(ErrorCode.NOT_FOUND, "CUSTOMER_NOT_FOUND", account.getId()));
             String phone = request.phone() == null ? "" : request.phone().trim();
-            customer.updateAccount(name, phone);
+            customer.updatePhone(phone);
             customerRepository.save(customer);
-        } else if (account.getRole() == UserRole.AGENT) {
-            AgentAccount agent = agentAccountRepository.findByUserId(account.getId())
-                    .orElseThrow(() -> new BusinessException(ErrorCode.NOT_FOUND, "AGENT_NOT_FOUND", account.getId()));
-            agent.updateName(name);
-            agentAccountRepository.save(agent);
         }
 
         return toMeResponse(account);
@@ -160,12 +157,23 @@ public class AuthService {
 
     private MeResponse toMeResponse(UserAccount account) {
         String phone = "";
+        String employeeNo = "";
         if (account.getRole() == UserRole.CUSTOMER) {
             phone = customerRepository.findByUserId(account.getId())
                     .map(customer -> customer.getPhone() == null ? "" : customer.getPhone())
                     .orElse("");
+        } else if (account.getRole() == UserRole.AGENT) {
+            employeeNo = agentAccountRepository.findByUserId(account.getId())
+                    .map(AgentAccount::getEmployeeNo)
+                    .orElse("");
         }
-        return new MeResponse(account.getId(), account.getEmail(), account.getName(), account.getRole(), phone);
+        return new MeResponse(
+                account.getId(),
+                account.getEmail(),
+                account.getName(),
+                account.getRole(),
+                phone,
+                employeeNo);
     }
 
     @Transactional

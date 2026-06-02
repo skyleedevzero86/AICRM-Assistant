@@ -44,10 +44,11 @@ export type MeResponse = {
   name: string;
   role: UserRole;
   phone: string;
+  employeeNo: string;
 };
 
 export type UpdateMeRequest = {
-  name: string;
+  name?: string;
   password?: string;
   phone?: string;
 };
