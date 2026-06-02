@@ -31,6 +31,11 @@ public class JpaCustomerRepository implements CustomerRepository {
     }
 
     @Override
+    public Optional<Customer> findByUserId(Long userId) {
+        return springDataJpaRepository.findByUserId(userId);
+    }
+
+    @Override
     public Customer save(Customer customer) {
         return springDataJpaRepository.save(customer);
     }

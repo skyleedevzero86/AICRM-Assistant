@@ -8,5 +8,7 @@ public interface CustomerRepository {
 
     Optional<Customer> findByPhone(String phone);
 
+    Optional<Customer> findByUserId(Long userId);
+
     Customer save(Customer customer);
 }

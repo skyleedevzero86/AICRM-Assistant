@@ -47,6 +47,20 @@ public class JpaTicketRepository implements TicketRepository {
     }
 
     @Override
+    public List<Ticket> findAllByCustomerUserIdOrderByCreatedAtDesc(Long userId) {
+        return springDataJpaRepository.findAllByCustomerUserIdOrderByCreatedAtDesc(userId);
+    }
+
+    @Override
+    public Ticket getByIdAndCustomerUserId(Long ticketId, Long userId) {
+        return springDataJpaRepository.findByIdAndCustomerUserId(ticketId, userId)
+                .orElseThrow(() -> new BusinessException(
+                        ErrorCode.TICKET_NOT_FOUND,
+                        "티켓을 찾을 수 없습니다: " + ticketId
+                ));
+    }
+
+    @Override
     public List<Ticket> findAllByStatusOrderByCreatedAtAsc(TicketStatus status) {
         return springDataJpaRepository.findAllByStatusOrderByCreatedAtAsc(status);
     }

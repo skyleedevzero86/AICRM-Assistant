@@ -5,6 +5,11 @@ import com.aicrm.core.customer.dto.CustomerTicketSummaryResponse;
 import com.aicrm.core.message.application.GetTicketMessagesService;
 import com.aicrm.core.message.domain.SenderType;
 import com.aicrm.core.message.dto.MessageResponse;
+import com.aicrm.core.auth.domain.UserRole;
+import com.aicrm.core.auth.security.AuthenticatedUser;
+import com.aicrm.core.auth.security.CurrentUserProvider;
+import com.aicrm.core.global.exception.BusinessException;
+import com.aicrm.core.global.exception.ErrorCode;
 import com.aicrm.core.ticket.domain.Ticket;
 import com.aicrm.core.ticket.domain.TicketRepository;
 import java.util.Comparator;
@@ -17,25 +22,30 @@ public class GetCustomerTicketsService {
 
     private final TicketRepository ticketRepository;
     private final GetTicketMessagesService getTicketMessagesService;
+    private final CurrentUserProvider currentUserProvider;
 
     public GetCustomerTicketsService(
             TicketRepository ticketRepository,
-            GetTicketMessagesService getTicketMessagesService
+            GetTicketMessagesService getTicketMessagesService,
+            CurrentUserProvider currentUserProvider
     ) {
         this.ticketRepository = ticketRepository;
         this.getTicketMessagesService = getTicketMessagesService;
+        this.currentUserProvider = currentUserProvider;
     }
 
     @Transactional(readOnly = true)
     public List<CustomerTicketSummaryResponse> getTickets() {
-        return ticketRepository.findAllOrderByCreatedAtDesc().stream()
+        Long userId = requireCustomerUserId();
+        return ticketRepository.findAllByCustomerUserIdOrderByCreatedAtDesc(userId).stream()
                 .map(this::toSummary)
                 .toList();
     }
 
     @Transactional(readOnly = true)
     public CustomerTicketDetailResponse getTicket(Long ticketId) {
-        Ticket ticket = ticketRepository.getById(ticketId);
+        Long userId = requireCustomerUserId();
+        Ticket ticket = ticketRepository.getByIdAndCustomerUserId(ticketId, userId);
         String inquiryContent = getTicketMessagesService.getMessages(ticketId).stream()
                 .filter(message -> message.senderType() == SenderType.CUSTOMER)
                 .min(Comparator.comparing(MessageResponse::createdAt))
@@ -68,5 +78,13 @@ public class GetCustomerTicketsService {
                 ticket.getCategory().getName(),
                 ticket.getCreatedAt()
         );
+    }
+
+    private Long requireCustomerUserId() {
+        AuthenticatedUser user = currentUserProvider.require();
+        if (user.role() != UserRole.CUSTOMER) {
+            throw new BusinessException(ErrorCode.FORBIDDEN);
+        }
+        return user.userId();
     }
 }

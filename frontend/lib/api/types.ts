@@ -4,6 +4,41 @@ export type ApiResponse<T> = {
   error: { code: string; message: string } | null;
 };
 
+export type UserRole = "CUSTOMER" | "AGENT" | "ADMIN";
+
+export type LoginRequest = {
+  email: string;
+  password: string;
+};
+
+export type LoginResponse = {
+  accessToken: string;
+  tokenType: string;
+  userId: number;
+  email: string;
+  role: UserRole;
+};
+
+export type SignUpRequest = {
+  name: string;
+  email: string;
+  password: string;
+};
+
+export type SignUpResponse = {
+  userId: number;
+  email: string;
+  role: UserRole;
+  signupStatus: "ACTIVE" | "PENDING";
+};
+
+export type MeResponse = {
+  userId: number;
+  email: string;
+  name: string;
+  role: UserRole;
+};
+
 export type TicketStatus =
   | "WAITING"
   | "ASSIGNED"

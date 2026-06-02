@@ -40,7 +40,12 @@ public class Customer {
     }
 
     public static Customer create(String name, String phone, String email) {
+        return create(name, phone, email, null);
+    }
+
+    public static Customer create(String name, String phone, String email, Long userId) {
         Customer customer = new Customer();
+        customer.userId = userId;
         customer.name = name;
         customer.phone = phone;
         customer.email = email;
@@ -63,6 +68,10 @@ public class Customer {
 
     public String getEmail() {
         return email;
+    }
+
+    public Long getUserId() {
+        return userId;
     }
 
     public void updateProfile(String name, String email) {

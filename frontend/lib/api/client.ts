@@ -1,4 +1,5 @@
 import type { ApiResponse } from "./types";
+import { getAccessToken } from "../auth-storage";
 
 export class ApiError extends Error {
   constructor(
@@ -18,11 +19,13 @@ type RequestOptions = {
 
 export async function apiRequest<T>(path: string, options: RequestOptions = {}): Promise<T> {
   const { method = "GET", body, headers = {} } = options;
+  const token = getAccessToken();
 
   const response = await fetch(path, {
     method,
     headers: {
       "Content-Type": "application/json",
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
       ...headers
     },
     body: body === undefined ? undefined : JSON.stringify(body)

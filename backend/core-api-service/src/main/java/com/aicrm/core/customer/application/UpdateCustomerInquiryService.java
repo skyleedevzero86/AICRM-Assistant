@@ -4,6 +4,7 @@ import com.aicrm.core.category.domain.ConsultationCategory;
 import com.aicrm.core.category.domain.ConsultationCategoryRepository;
 import com.aicrm.core.conversation.domain.Conversation;
 import com.aicrm.core.conversation.domain.ConversationRepository;
+import com.aicrm.core.auth.security.CurrentUserProvider;
 import com.aicrm.core.customer.dto.CustomerTicketDetailResponse;
 import com.aicrm.core.customer.dto.UpdateCustomerInquiryRequest;
 import com.aicrm.core.global.exception.BusinessException;
@@ -23,24 +24,28 @@ public class UpdateCustomerInquiryService {
     private final ConversationRepository conversationRepository;
     private final MessageRepository messageRepository;
     private final GetCustomerTicketsService getCustomerTicketsService;
+    private final CurrentUserProvider currentUserProvider;
 
     public UpdateCustomerInquiryService(
             TicketRepository ticketRepository,
             ConsultationCategoryRepository consultationCategoryRepository,
             ConversationRepository conversationRepository,
             MessageRepository messageRepository,
-            GetCustomerTicketsService getCustomerTicketsService
+            GetCustomerTicketsService getCustomerTicketsService,
+            CurrentUserProvider currentUserProvider
     ) {
         this.ticketRepository = ticketRepository;
         this.consultationCategoryRepository = consultationCategoryRepository;
         this.conversationRepository = conversationRepository;
         this.messageRepository = messageRepository;
         this.getCustomerTicketsService = getCustomerTicketsService;
+        this.currentUserProvider = currentUserProvider;
     }
 
     @Transactional
     public CustomerTicketDetailResponse update(Long ticketId, UpdateCustomerInquiryRequest request) {
-        Ticket ticket = ticketRepository.getById(ticketId);
+        Long userId = currentUserProvider.require().userId();
+        Ticket ticket = ticketRepository.getByIdAndCustomerUserId(ticketId, userId);
         ConsultationCategory category = consultationCategoryRepository.getEnabledLeafCategory(request.categoryId());
 
         ticket.updateWaitingInquiry(category, request.title());

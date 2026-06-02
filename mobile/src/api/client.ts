@@ -1,4 +1,5 @@
 import { getCandidateApiBaseUrls, resolveApiBaseUrl } from "@/config/api-base-url";
+import { getAccessToken } from "@/storage/authStorage";
 
 type ApiResponse<T> = {
   success: boolean;
@@ -28,12 +29,14 @@ function isConnectionError(error: unknown): boolean {
 
 async function apiRequestAt<T>(baseUrl: string, path: string, options: RequestInit = {}): Promise<T> {
   let response: Response;
+  const token = await getAccessToken();
 
   try {
     response = await fetch(`${baseUrl}${path}`, {
       ...options,
       headers: {
         "Content-Type": "application/json",
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
         ...options.headers
       }
     });

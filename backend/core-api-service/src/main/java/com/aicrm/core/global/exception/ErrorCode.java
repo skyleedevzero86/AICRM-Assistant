@@ -19,6 +19,11 @@ public enum ErrorCode {
     MESSAGE_CONTENT_REQUIRED("MESSAGE_CONTENT_REQUIRED", HttpStatus.BAD_REQUEST, "메시지 내용이 필요합니다"),
     TICKET_CANNOT_ADD_MESSAGE("TICKET_CANNOT_ADD_MESSAGE", HttpStatus.BAD_REQUEST, "종료된 티켓에는 메시지를 등록할 수 없습니다"),
     INVALID_MESSAGE_TYPE("INVALID_MESSAGE_TYPE", HttpStatus.BAD_REQUEST, "지원하지 않는 메시지 유형입니다"),
+    AUTH_FAILED("AUTH_FAILED", HttpStatus.UNAUTHORIZED, "이메일 또는 비밀번호가 올바르지 않습니다"),
+    UNAUTHORIZED("UNAUTHORIZED", HttpStatus.UNAUTHORIZED, "인증이 필요합니다"),
+    FORBIDDEN("FORBIDDEN", HttpStatus.FORBIDDEN, "접근 권한이 없습니다"),
+    DUPLICATE_EMAIL("DUPLICATE_EMAIL", HttpStatus.CONFLICT, "이미 사용 중인 이메일입니다"),
+    AGENT_APPROVAL_REQUIRED("AGENT_APPROVAL_REQUIRED", HttpStatus.FORBIDDEN, "상담원 계정 승인이 필요합니다"),
     INTERNAL_ERROR("INTERNAL_ERROR", HttpStatus.INTERNAL_SERVER_ERROR, "내부 서버 오류가 발생했습니다");
 
     private final String code;

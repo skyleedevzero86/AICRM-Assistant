@@ -30,6 +30,12 @@ export default function Home() {
             >
               고객 문의
             </Link>
+            <Link
+              className="flex w-full items-center rounded-md px-3 py-2 text-zinc-700 hover:bg-zinc-100"
+              href={"/auth/login" as Route}
+            >
+              로그인
+            </Link>
             {["지식 문서", "CRM 액션", "관리자 대시보드"].map((item) => (
               <span
                 className="flex w-full cursor-not-allowed items-center rounded-md px-3 py-2 text-zinc-400"

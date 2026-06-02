@@ -1,42 +1,86 @@
 package com.aicrm.core.global.config;
 
+import com.aicrm.core.auth.security.JwtAuthenticationFilter;
+import com.aicrm.core.global.exception.ErrorCode;
+import com.aicrm.core.global.response.ApiResponse;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.servlet.http.HttpServletResponse;
+import java.nio.charset.StandardCharsets;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Profile;
-import org.springframework.security.config.Customizer;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.access.AccessDeniedHandler;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
 
     @Bean
-    @Profile("local")
-    SecurityFilterChain localSecurityFilterChain(HttpSecurity http) throws Exception {
-        http.cors(Customizer.withDefaults())
+    PasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();
+    }
+
+    @Bean
+    SecurityFilterChain securityFilterChain(
+            HttpSecurity http,
+            ObjectProvider<JwtAuthenticationFilter> jwtAuthenticationFilterProvider,
+            ObjectMapper objectMapper
+    ) throws Exception {
+        http
                 .csrf(AbstractHttpConfigurer::disable)
-                .authorizeHttpRequests(auth -> auth.anyRequest().permitAll());
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .authorizeHttpRequests(auth -> auth
+                        .requestMatchers(
+                                "/actuator/health",
+                                "/actuator/info",
+                                "/swagger-ui/**",
+                                "/v3/api-docs/**",
+                                "/api/auth/login",
+                                "/api/auth/signup/**"
+                        ).permitAll()
+                        .requestMatchers("/api/auth/me").authenticated()
+                        .requestMatchers("/api/admin/**").hasRole("ADMIN")
+                        .requestMatchers("/api/agent/**").hasRole("AGENT")
+                        .requestMatchers("/api/customer/**").hasRole("CUSTOMER")
+                        .requestMatchers("/api/tickets/*/messages").authenticated()
+                        .anyRequest().authenticated()
+                )
+                .exceptionHandling(ex -> ex
+                        .authenticationEntryPoint(authenticationEntryPoint(objectMapper))
+                        .accessDeniedHandler(accessDeniedHandler(objectMapper))
+                );
+        JwtAuthenticationFilter jwtAuthenticationFilter = jwtAuthenticationFilterProvider.getIfAvailable();
+        if (jwtAuthenticationFilter != null) {
+            http.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+        }
         return http.build();
     }
 
     @Bean
-    @Profile("!local")
-    SecurityFilterChain defaultSecurityFilterChain(HttpSecurity http) throws Exception {
-        http.cors(Customizer.withDefaults())
-                .csrf(AbstractHttpConfigurer::disable)
-                .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/actuator/health", "/actuator/info").permitAll()
-                        .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
-                        .requestMatchers(
-                                "/api/categories/**",
-                                "/api/customer/**",
-                                "/api/tickets/*/messages"
-                        ).permitAll()
-                        .anyRequest().authenticated())
-                .oauth2ResourceServer(oauth2 -> oauth2.jwt(Customizer.withDefaults()));
-        return http.build();
+    AuthenticationEntryPoint authenticationEntryPoint(ObjectMapper objectMapper) {
+        return (request, response, authException) -> writeFailure(response, objectMapper, ErrorCode.UNAUTHORIZED);
+    }
+
+    @Bean
+    AccessDeniedHandler accessDeniedHandler(ObjectMapper objectMapper) {
+        return (request, response, accessDeniedException) -> writeFailure(response, objectMapper, ErrorCode.FORBIDDEN);
+    }
+
+    private void writeFailure(HttpServletResponse response, ObjectMapper objectMapper, ErrorCode errorCode) throws java.io.IOException {
+        response.setStatus(errorCode.getStatus().value());
+        response.setCharacterEncoding(StandardCharsets.UTF_8.name());
+        response.setContentType("application/json");
+        response.getWriter().write(objectMapper.writeValueAsString(
+                ApiResponse.failure(errorCode.getCode(), errorCode.getDefaultMessage())
+        ));
     }
 }
