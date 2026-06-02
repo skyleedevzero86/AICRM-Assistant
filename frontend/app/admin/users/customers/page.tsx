@@ -3,10 +3,10 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { Route } from "next";
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { AlertBanner } from "@/components/alert-banner";
 import { PageShell } from "@/components/page-shell";
-import { fetchAdminCustomers, updateSuspension, updateWithdrawal } from "@/lib/api/admin";
+import { fetchAdminAgentAttendance, fetchAdminAgents, fetchAdminCustomers, updateSuspension, updateWithdrawal } from "@/lib/api/admin";
 
 export default function AdminCustomersPage() {
   const queryClient = useQueryClient();
@@ -17,6 +17,17 @@ export default function AdminCustomersPage() {
     queryKey: ["admin-customers", submittedKeyword],
     queryFn: () => fetchAdminCustomers(submittedKeyword)
   });
+
+  useEffect(() => {
+    void queryClient.prefetchQuery({
+      queryKey: ["admin-agents", ""],
+      queryFn: () => fetchAdminAgents("")
+    });
+    void queryClient.prefetchQuery({
+      queryKey: ["admin-attendance", ""],
+      queryFn: () => fetchAdminAgentAttendance("")
+    });
+  }, [queryClient]);
 
   const suspendMutation = useMutation({
     mutationFn: ({ userId, value }: { userId: number; value: "Y" | "N" }) => updateSuspension(userId, value),

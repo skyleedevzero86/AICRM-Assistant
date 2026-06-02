@@ -1,14 +1,15 @@
 "use client";
 
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import type { Route } from "next";
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { AlertBanner } from "@/components/alert-banner";
 import { PageShell } from "@/components/page-shell";
-import { fetchAdminAgentAttendance } from "@/lib/api/admin";
+import { fetchAdminAgentAttendance, fetchAdminAgents } from "@/lib/api/admin";
 
 export default function AdminAttendancePage() {
+  const queryClient = useQueryClient();
   const [keyword, setKeyword] = useState("");
   const [submittedKeyword, setSubmittedKeyword] = useState("");
 
@@ -16,6 +17,13 @@ export default function AdminAttendancePage() {
     queryKey: ["admin-attendance", submittedKeyword],
     queryFn: () => fetchAdminAgentAttendance(submittedKeyword)
   });
+
+  useEffect(() => {
+    void queryClient.prefetchQuery({
+      queryKey: ["admin-agents", ""],
+      queryFn: () => fetchAdminAgents("")
+    });
+  }, [queryClient]);
 
   return (
     <PageShell title="관리자 - 상담사 근태" description="로그인 기반 근태 데이터를 조회하고 검색합니다.">

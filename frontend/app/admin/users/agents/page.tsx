@@ -3,10 +3,18 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { Route } from "next";
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { AlertBanner } from "@/components/alert-banner";
 import { PageShell } from "@/components/page-shell";
-import { approveAgent, fetchAdminAgents, updateAgentGrade, updateSuspension, updateWithdrawal } from "@/lib/api/admin";
+import {
+  approveAgent,
+  fetchAdminAgentAttendance,
+  fetchAdminAgents,
+  fetchAdminCustomers,
+  updateAgentGrade,
+  updateSuspension,
+  updateWithdrawal
+} from "@/lib/api/admin";
 
 export default function AdminAgentsPage() {
   const queryClient = useQueryClient();
@@ -17,6 +25,17 @@ export default function AdminAgentsPage() {
     queryKey: ["admin-agents", submittedKeyword],
     queryFn: () => fetchAdminAgents(submittedKeyword)
   });
+
+  useEffect(() => {
+    void queryClient.prefetchQuery({
+      queryKey: ["admin-customers", ""],
+      queryFn: () => fetchAdminCustomers("")
+    });
+    void queryClient.prefetchQuery({
+      queryKey: ["admin-attendance", ""],
+      queryFn: () => fetchAdminAgentAttendance("")
+    });
+  }, [queryClient]);
 
   const approveMutation = useMutation({
     mutationFn: (agentId: number) => approveAgent(agentId),
