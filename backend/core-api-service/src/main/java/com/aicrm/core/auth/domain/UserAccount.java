@@ -9,6 +9,8 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import java.time.Instant;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 @Entity
 @Table(name = "users")
@@ -31,10 +33,12 @@ public class UserAccount {
     @Column(nullable = false, length = 30)
     private UserRole role;
 
-    @Column(name = "withdrawn_yn", nullable = false, length = 1)
+    @JdbcTypeCode(SqlTypes.CHAR)
+    @Column(name = "withdrawn_yn", nullable = false, columnDefinition = "char(1)")
     private String withdrawnYn = "N";
 
-    @Column(name = "suspended_yn", nullable = false, length = 1)
+    @JdbcTypeCode(SqlTypes.CHAR)
+    @Column(name = "suspended_yn", nullable = false, columnDefinition = "char(1)")
     private String suspendedYn = "N";
 
     @Column(name = "created_at", nullable = false, updatable = false)

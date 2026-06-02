@@ -8,6 +8,8 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import java.time.Instant;
 import java.time.LocalDate;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 @Entity
 @Table(name = "agent_attendance_daily")
@@ -23,7 +25,8 @@ public class AgentAttendanceDaily {
     @Column(name = "work_date", nullable = false)
     private LocalDate workDate;
 
-    @Column(name = "login_mark", nullable = false, length = 1)
+    @JdbcTypeCode(SqlTypes.CHAR)
+    @Column(name = "login_mark", nullable = false, columnDefinition = "char(1)")
     private String loginMark = "X";
 
     @Column(name = "login_count", nullable = false)
