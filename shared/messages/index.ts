@@ -55,25 +55,46 @@ const LOGIN_UNAVAILABLE_CODES = new Set([
   "AGENT_APPROVAL_REQUIRED"
 ]);
 
+export function resolvePublicAuthError(code?: string, message?: string): string {
+  return resolveApiErrorPayload(code, message, "auth.loginFailed", "auth.loginAccountUnavailable");
+}
+
+function resolveApiErrorPayload(
+  code: string | undefined,
+  message: string | undefined,
+  fallbackUiKey: string,
+  blockedUiKey = "auth.loginAccountUnavailable"
+): string {
+  if (code && LOGIN_UNAVAILABLE_CODES.has(code)) {
+    return msg.ui(blockedUiKey);
+  }
+  if (code === "AUTH_FAILED") {
+    return msg.error("AUTH_FAILED");
+  }
+  if (message) {
+    return message;
+  }
+  if (code) {
+    const mapped = msg.error(code);
+    if (mapped !== `errors.${code}`) {
+      return mapped;
+    }
+    const clientMapped = msg.client(code);
+    if (clientMapped !== `client.${code}`) {
+      return clientMapped;
+    }
+  }
+  return msg.ui(fallbackUiKey);
+}
+
 export function resolveApiError(error: unknown, fallbackUiKey: string): string {
   if (error instanceof Error && "code" in error) {
     const apiError = error as Error & { code?: string; message: string };
-    if (apiError.code && LOGIN_UNAVAILABLE_CODES.has(apiError.code)) {
-      return msg.error("ACCOUNT_UNAVAILABLE");
-    }
-    if (apiError.message) {
-      return apiError.message;
-    }
-    if (apiError.code) {
-      const mapped = msg.error(apiError.code);
-      if (mapped !== `errors.${apiError.code}`) {
-        return mapped;
-      }
-      const clientMapped = msg.client(apiError.code);
-      if (clientMapped !== `client.${apiError.code}`) {
-        return clientMapped;
-      }
-    }
+    const blockedUiKey =
+      apiError.code && LOGIN_UNAVAILABLE_CODES.has(apiError.code)
+        ? "auth.loginAccountUnavailable"
+        : fallbackUiKey;
+    return resolveApiErrorPayload(apiError.code, apiError.message, fallbackUiKey, blockedUiKey);
   }
   return msg.ui(fallbackUiKey);
 }

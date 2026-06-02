@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import type { AdminCustomerUser } from "@/lib/api/types";
-import { adminUserInputClassName } from "@/lib/admin-user-display";
+import { adminUserInputClassName, adminUserRowClassName } from "@/lib/admin-user-display";
 import { msg } from "@/lib/messages";
 
 type AdminCustomerRowProps = {
@@ -25,9 +25,10 @@ export function AdminCustomerRow({ item, pending, onSave, onToggleSuspend, onTog
   }, [item]);
 
   const fieldClass = adminUserInputClassName(item.withdrawnYn, item.suspendedYn);
+  const rowClass = adminUserRowClassName(item.withdrawnYn, item.suspendedYn);
 
   return (
-    <tr>
+    <tr className={rowClass}>
       <td className="px-3 py-2">
         <input className={fieldClass} onChange={(e) => setName(e.target.value)} value={name} />
       </td>

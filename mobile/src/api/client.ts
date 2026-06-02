@@ -1,6 +1,6 @@
 import { getCandidateApiBaseUrls, resolveApiBaseUrl } from "@/config/api-base-url";
 import { isPublicApiPath, requiresAuthToken } from "@/api/requires-auth";
-import { msg } from "@/messages";
+import { msg, resolvePublicAuthError } from "@/messages";
 import { clearAccessToken, getAccessToken } from "@/storage/authStorage";
 
 type ApiResponse<T> = {
@@ -64,10 +64,8 @@ async function apiRequestAt<T>(baseUrl: string, path: string, options: RequestIn
     throw new ApiError(msg.client("RESPONSE_PARSE_FAILED", { 0: baseUrl }));
   }
 
-  if (response.status === 401) {
-    if (!isPublicApiPath(path)) {
-      await clearAccessToken();
-    }
+  if (response.status === 401 && !isPublicApiPath(path)) {
+    await clearAccessToken();
     throw new ApiError(
       payload.error?.message ?? msg.error("UNAUTHORIZED"),
       payload.error?.code ?? "UNAUTHORIZED"
@@ -75,6 +73,12 @@ async function apiRequestAt<T>(baseUrl: string, path: string, options: RequestIn
   }
 
   if (!response.ok || !payload.success) {
+    if (isPublicApiPath(path)) {
+      throw new ApiError(
+        resolvePublicAuthError(payload.error?.code, payload.error?.message),
+        payload.error?.code ?? "REQUEST_FAILED"
+      );
+    }
     throw new ApiError(payload.error?.message ?? msg.client("REQUEST_FAILED"), payload.error?.code);
   }
 

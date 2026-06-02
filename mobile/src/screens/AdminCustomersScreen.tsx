@@ -7,7 +7,7 @@ import type { AdminCustomerUser } from "@/api/types";
 import { Screen } from "@/components/Screen";
 import { msg } from "@/messages";
 import { getAccessToken } from "@/storage/authStorage";
-import { adminUserFieldStyle } from "@/utils/admin-user-display";
+import { adminUserFieldStyle, adminUserRowStyle } from "@/utils/admin-user-display";
 
 function CustomerCard({ item, onSaved }: { item: AdminCustomerUser; onSaved: () => void }) {
   const [name, setName] = useState(item.name);
@@ -23,6 +23,7 @@ function CustomerCard({ item, onSaved }: { item: AdminCustomerUser; onSaved: () 
   }, [item]);
 
   const fieldStyle = adminUserFieldStyle(item.withdrawnYn, item.suspendedYn);
+  const rowStyle = adminUserRowStyle(item.withdrawnYn, item.suspendedYn);
 
   async function save() {
     setSaving(true);
@@ -38,7 +39,7 @@ function CustomerCard({ item, onSaved }: { item: AdminCustomerUser; onSaved: () 
   }
 
   return (
-    <View style={styles.card}>
+    <View style={[styles.card, rowStyle]}>
       <TextInput onChangeText={setName} style={[styles.input, fieldStyle]} value={name} />
       <TextInput
         autoCapitalize="none"

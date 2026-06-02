@@ -1,6 +1,6 @@
 import type { ApiResponse } from "./types";
 import { clearAccessToken, getAccessToken } from "../auth-storage";
-import { msg } from "../messages";
+import { msg, resolvePublicAuthError } from "../messages";
 import { isPublicApiPath, requiresAuthToken } from "./requires-auth";
 
 export const AUTH_REQUIRED_CODE = "AUTH_REQUIRED";
@@ -67,11 +67,9 @@ export async function apiRequest<T>(path: string, options: RequestOptions = {}):
     throw new ApiError(msg.client("REQUEST_FAILED"), "INVALID_RESPONSE");
   }
 
-  if (response.status === 401) {
-    if (!isPublicApiPath(path)) {
-      clearAccessToken();
-      redirectToLoginForProtectedPage();
-    }
+  if (response.status === 401 && !isPublicApiPath(path)) {
+    clearAccessToken();
+    redirectToLoginForProtectedPage();
     throw new ApiError(
       payload.error?.message ?? msg.error("UNAUTHORIZED"),
       payload.error?.code ?? "UNAUTHORIZED"
@@ -79,6 +77,12 @@ export async function apiRequest<T>(path: string, options: RequestOptions = {}):
   }
 
   if (!response.ok || !payload.success) {
+    if (isPublicApiPath(path)) {
+      throw new ApiError(
+        resolvePublicAuthError(payload.error?.code, payload.error?.message),
+        payload.error?.code ?? "REQUEST_FAILED"
+      );
+    }
     if (response.status >= 500) {
       throw new ApiError(msg.client("BACKEND_UNAVAILABLE"), "BACKEND_UNAVAILABLE");
     }

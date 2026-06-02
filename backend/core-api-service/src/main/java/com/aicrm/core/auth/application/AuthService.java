@@ -63,10 +63,10 @@ public class AuthService {
             throw new BusinessException(ErrorCode.AUTH_FAILED);
         }
         if (account.isWithdrawn()) {
-            throw new BusinessException(ErrorCode.ACCOUNT_UNAVAILABLE);
+            throw new BusinessException(ErrorCode.ACCOUNT_WITHDRAWN);
         }
         if (account.isSuspended()) {
-            throw new BusinessException(ErrorCode.ACCOUNT_UNAVAILABLE);
+            throw new BusinessException(ErrorCode.ACCOUNT_SUSPENDED);
         }
 
         if (account.getRole() == UserRole.AGENT) {

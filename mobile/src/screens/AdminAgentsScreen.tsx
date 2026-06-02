@@ -7,7 +7,7 @@ import type { AdminAgentUser } from "@/api/types";
 import { Screen } from "@/components/Screen";
 import { msg } from "@/messages";
 import { getAccessToken } from "@/storage/authStorage";
-import { adminUserFieldStyle } from "@/utils/admin-user-display";
+import { adminUserFieldStyle, adminUserRowStyle } from "@/utils/admin-user-display";
 
 function AgentCard({ item, onSaved }: { item: AdminAgentUser; onSaved: () => void }) {
   const [employeeNo, setEmployeeNo] = useState(item.employeeNo);
@@ -23,6 +23,7 @@ function AgentCard({ item, onSaved }: { item: AdminAgentUser; onSaved: () => voi
   }, [item]);
 
   const fieldStyle = adminUserFieldStyle(item.withdrawnYn, item.suspendedYn);
+  const rowStyle = adminUserRowStyle(item.withdrawnYn, item.suspendedYn);
 
   async function save() {
     setSaving(true);
@@ -38,7 +39,7 @@ function AgentCard({ item, onSaved }: { item: AdminAgentUser; onSaved: () => voi
   }
 
   return (
-    <View style={styles.card}>
+    <View style={[styles.card, rowStyle]}>
       <TextInput onChangeText={setEmployeeNo} style={[styles.input, fieldStyle]} value={employeeNo} />
       <TextInput onChangeText={setName} style={[styles.input, fieldStyle]} value={name} />
       <TextInput

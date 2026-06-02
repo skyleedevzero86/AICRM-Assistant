@@ -82,28 +82,28 @@ public class UserAccount {
     }
 
     public String getWithdrawnYn() {
-        return withdrawnYn;
+        return withdrawnYn == null ? "N" : withdrawnYn.trim();
     }
 
     public String getSuspendedYn() {
-        return suspendedYn;
+        return suspendedYn == null ? "N" : suspendedYn.trim();
     }
 
     public boolean isWithdrawn() {
-        return "Y".equals(withdrawnYn);
+        return "Y".equals(getWithdrawnYn());
     }
 
     public boolean isSuspended() {
-        return "Y".equals(suspendedYn);
+        return "Y".equals(getSuspendedYn());
     }
 
     public void setSuspendedYn(String suspendedYn) {
-        this.suspendedYn = suspendedYn;
+        this.suspendedYn = suspendedYn == null ? "N" : suspendedYn.trim();
         this.updatedAt = Instant.now();
     }
 
     public void setWithdrawnYn(String withdrawnYn) {
-        this.withdrawnYn = withdrawnYn;
+        this.withdrawnYn = withdrawnYn == null ? "N" : withdrawnYn.trim();
         this.updatedAt = Instant.now();
     }
 
