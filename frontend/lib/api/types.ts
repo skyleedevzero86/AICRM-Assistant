@@ -123,6 +123,33 @@ export type CreateCustomerInquiryResponse = {
   status: TicketStatus;
 };
 
+export type CustomerTicketSummary = {
+  ticketId: number;
+  ticketNo: string;
+  status: TicketStatus;
+  subject: string;
+  categoryName: string;
+  createdAt: string;
+};
+
+export type CustomerTicketDetail = CustomerTicketSummary & {
+  categoryId: number;
+  customerName: string;
+  customerPhone: string;
+  customerEmail: string;
+  inquiryContent: string;
+  resolution: string | null;
+  closedAt: string | null;
+};
+
+export type UpdateCustomerInquiryRequest = {
+  customerName: string;
+  email: string;
+  categoryId: number;
+  title: string;
+  content: string;
+};
+
 export type WaitingTicket = {
   ticketId: number;
   ticketNo: string;

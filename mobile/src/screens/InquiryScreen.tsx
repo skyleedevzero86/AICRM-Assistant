@@ -8,7 +8,7 @@ import { CategoryPicker } from "@/components/CategoryPicker";
 import { ErrorMessage } from "@/components/ErrorMessage";
 import { Screen } from "@/components/Screen";
 import { TicketStatusBadge } from "@/components/TicketStatusBadge";
-import { syncTicketsFromApi } from "@/utils/ticket-sync";
+import { loadCustomerTickets } from "@/utils/ticket-sync";
 
 export function InquiryScreen() {
   const router = useRouter();
@@ -64,7 +64,7 @@ export function InquiryScreen() {
         categoryId
       });
 
-      await syncTicketsFromApi();
+      await loadCustomerTickets();
 
       setSuccess(result);
       setTitle("");

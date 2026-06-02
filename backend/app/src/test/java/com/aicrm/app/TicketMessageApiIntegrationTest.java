@@ -1,11 +1,12 @@
 package com.aicrm.app;
 
+import static com.aicrm.app.IntegrationTestAuth.bearer;
+import static com.aicrm.app.IntegrationTestAuth.login;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import com.aicrm.core.agent.infrastructure.RequestHeaderAgentContext;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.nio.charset.StandardCharsets;
@@ -32,6 +33,9 @@ class TicketMessageApiIntegrationTest {
     @Test
     void ticketMessageFlow() throws Exception {
         // given
+        String customerToken = login(mockMvc, objectMapper, "customer@example.com", "password");
+        String agentToken = login(mockMvc, objectMapper, "agent1@aicrm.local", "password");
+
         MvcResult treeResult = mockMvc.perform(get("/api/categories/consultation/tree"))
                 .andExpect(status().isOk())
                 .andReturn();
@@ -40,6 +44,7 @@ class TicketMessageApiIntegrationTest {
         long leafCategoryId = findNodeByCode(rootNodes, "DELIVERY_DELAY").path("id").asLong();
 
         MvcResult inquiryResult = mockMvc.perform(post("/api/customer/inquiries")
+                        .header("Authorization", bearer(customerToken))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                                 {
@@ -60,7 +65,7 @@ class TicketMessageApiIntegrationTest {
                 .asLong();
 
         // when & then
-        mockMvc.perform(get("/api/tickets/{ticketId}/messages", ticketId))
+        mockMvc.perform(get("/api/tickets/{ticketId}/messages", ticketId).header("Authorization", bearer(customerToken)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.data.length()").value(1))
@@ -68,6 +73,7 @@ class TicketMessageApiIntegrationTest {
                 .andExpect(jsonPath("$.data[0].content").value("배송이 지연되고 있습니다."));
 
         mockMvc.perform(post("/api/customer/tickets/{ticketId}/messages", ticketId)
+                        .header("Authorization", bearer(customerToken))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                                 {
@@ -78,33 +84,32 @@ class TicketMessageApiIntegrationTest {
                 .andExpect(jsonPath("$.data.senderType").value("CUSTOMER"));
 
         mockMvc.perform(post("/api/agent/tickets/{ticketId}/messages", ticketId)
+                        .header("Authorization", bearer(agentToken))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                                 {
                                   "content": "답변 시도"
                                 }
-                                """)
-                        .header(RequestHeaderAgentContext.AGENT_ID_HEADER, "1"))
+                                """))
                 .andExpect(status().isForbidden())
                 .andExpect(jsonPath("$.error.code").value("NOT_ASSIGNED_AGENT"));
 
-        mockMvc.perform(post("/api/agent/tickets/{ticketId}/accept", ticketId)
-                        .header(RequestHeaderAgentContext.AGENT_ID_HEADER, "1"))
+        mockMvc.perform(post("/api/agent/tickets/{ticketId}/accept", ticketId).header("Authorization", bearer(agentToken)))
                 .andExpect(status().isOk());
 
         mockMvc.perform(post("/api/agent/tickets/{ticketId}/messages", ticketId)
+                        .header("Authorization", bearer(agentToken))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                                 {
                                   "content": "확인 후 안내드리겠습니다."
                                 }
-                                """)
-                        .header(RequestHeaderAgentContext.AGENT_ID_HEADER, "1"))
+                                """))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.data.senderType").value("AGENT"))
                 .andExpect(jsonPath("$.data.messageType").value("TEXT"));
 
-        mockMvc.perform(get("/api/tickets/{ticketId}/messages", ticketId))
+        mockMvc.perform(get("/api/tickets/{ticketId}/messages", ticketId).header("Authorization", bearer(customerToken)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.length()").value(3))
                 .andExpect(jsonPath("$.data[0].senderType").value("CUSTOMER"))

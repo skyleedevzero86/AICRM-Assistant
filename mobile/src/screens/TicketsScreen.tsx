@@ -6,12 +6,12 @@ import { EmptyState } from "@/components/EmptyState";
 import { ErrorMessage } from "@/components/ErrorMessage";
 import { LoadingView } from "@/components/LoadingView";
 import { TicketCard } from "@/components/TicketCard";
-import type { StoredTicket } from "@/storage/ticketStorage";
-import { loadTicketsWithFallback } from "@/utils/ticket-sync";
+import type { CustomerTicketSummary } from "@/api/types";
+import { loadCustomerTickets } from "@/utils/ticket-sync";
 
 export function TicketsScreen() {
   const router = useRouter();
-  const [tickets, setTickets] = useState<StoredTicket[]>([]);
+  const [tickets, setTickets] = useState<CustomerTicketSummary[]>([]);
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
@@ -19,7 +19,7 @@ export function TicketsScreen() {
     setLoading(true);
     setErrorMessage(null);
     try {
-      const refreshed = await loadTicketsWithFallback();
+      const refreshed = await loadCustomerTickets();
       setTickets(refreshed);
     } catch (error) {
       setErrorMessage(error instanceof Error ? error.message : "문의 목록을 불러오지 못했습니다.");
@@ -39,7 +39,7 @@ export function TicketsScreen() {
       <View style={styles.headerRow}>
         <View>
           <Text style={styles.title}>내 문의</Text>
-          <Text style={styles.description}>이 기기에서 접수한 문의 내역입니다.</Text>
+          <Text style={styles.description}>로그인한 계정으로 접수한 문의 내역입니다.</Text>
         </View>
         <TouchableOpacity disabled={loading} onPress={loadTickets} style={styles.refreshButton}>
           <Text style={styles.refreshText}>새로고침</Text>
@@ -59,7 +59,7 @@ export function TicketsScreen() {
         : null}
       {!loading && !errorMessage && tickets.length === 0 ? (
         <EmptyState
-          description="문의 탭에서 접수하면 이 목록에 표시됩니다."
+          description="문의 탭에서 접수하면 로그인 계정 기준으로 이 목록에 표시됩니다."
           title="표시할 문의가 없습니다"
         />
       ) : null}

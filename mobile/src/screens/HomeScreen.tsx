@@ -5,18 +5,19 @@ import { Screen } from "@/components/Screen";
 import { msg } from "@/messages";
 import { EmptyState } from "@/components/EmptyState";
 import { TicketCard } from "@/components/TicketCard";
-import type { StoredTicket } from "@/storage/ticketStorage";
-import { loadTicketsWithFallback } from "@/utils/ticket-sync";
+import type { CustomerTicketSummary } from "@/api/types";
 import { clearAccessToken } from "@/storage/authStorage";
+import { clearStoredTickets } from "@/storage/ticketStorage";
+import { loadCustomerTickets } from "@/utils/ticket-sync";
 
 export function HomeScreen() {
   const router = useRouter();
-  const [tickets, setTickets] = useState<StoredTicket[]>([]);
+  const [tickets, setTickets] = useState<CustomerTicketSummary[]>([]);
 
   useFocusEffect(
     useCallback(() => {
       let active = true;
-      loadTicketsWithFallback().then((next) => {
+      loadCustomerTickets().then((next) => {
         if (active) setTickets(next.slice(0, 3));
       });
       return () => {
@@ -27,6 +28,7 @@ export function HomeScreen() {
 
   async function logout() {
     await clearAccessToken();
+    await clearStoredTickets();
     router.replace("/auth/login");
   }
 

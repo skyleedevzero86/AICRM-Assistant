@@ -24,29 +24,11 @@ export async function loadStoredTickets(): Promise<StoredTicket[]> {
   }
 }
 
-export async function saveStoredTicket(ticket: StoredTicket): Promise<StoredTicket[]> {
-  const current = await loadStoredTickets();
-  const next = [ticket, ...current.filter((item) => item.ticketId !== ticket.ticketId)].slice(0, MAX_ITEMS);
-  await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(next));
-  return next;
-}
-
-export async function clearStoredTickets(): Promise<void> {
-  await AsyncStorage.removeItem(STORAGE_KEY);
-}
-
 export async function replaceStoredTickets(tickets: StoredTicket[]): Promise<StoredTicket[]> {
   await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(tickets.slice(0, MAX_ITEMS)));
   return tickets;
 }
 
-export async function loadAndRefreshTickets(
-  refresh: (stored: StoredTicket[]) => Promise<StoredTicket[]>
-): Promise<StoredTicket[]> {
-  const stored = await loadStoredTickets();
-  const refreshed = await refresh(stored);
-  if (refreshed.length > 0) {
-    await replaceStoredTickets(refreshed);
-  }
-  return refreshed;
+export async function clearStoredTickets(): Promise<void> {
+  await AsyncStorage.removeItem(STORAGE_KEY);
 }

@@ -4,7 +4,6 @@ import com.aicrm.core.category.domain.ConsultationCategory;
 import com.aicrm.core.category.domain.ConsultationCategoryRepository;
 import com.aicrm.core.conversation.domain.Conversation;
 import com.aicrm.core.conversation.domain.ConversationRepository;
-import com.aicrm.core.auth.security.CurrentUserProvider;
 import com.aicrm.core.customer.dto.CustomerTicketDetailResponse;
 import com.aicrm.core.customer.dto.UpdateCustomerInquiryRequest;
 import com.aicrm.core.global.exception.BusinessException;
@@ -24,7 +23,7 @@ public class UpdateCustomerInquiryService {
     private final ConversationRepository conversationRepository;
     private final MessageRepository messageRepository;
     private final GetCustomerTicketsService getCustomerTicketsService;
-    private final CurrentUserProvider currentUserProvider;
+    private final CurrentCustomerService currentCustomerService;
 
     public UpdateCustomerInquiryService(
             TicketRepository ticketRepository,
@@ -32,20 +31,20 @@ public class UpdateCustomerInquiryService {
             ConversationRepository conversationRepository,
             MessageRepository messageRepository,
             GetCustomerTicketsService getCustomerTicketsService,
-            CurrentUserProvider currentUserProvider
+            CurrentCustomerService currentCustomerService
     ) {
         this.ticketRepository = ticketRepository;
         this.consultationCategoryRepository = consultationCategoryRepository;
         this.conversationRepository = conversationRepository;
         this.messageRepository = messageRepository;
         this.getCustomerTicketsService = getCustomerTicketsService;
-        this.currentUserProvider = currentUserProvider;
+        this.currentCustomerService = currentCustomerService;
     }
 
     @Transactional
     public CustomerTicketDetailResponse update(Long ticketId, UpdateCustomerInquiryRequest request) {
-        Long userId = currentUserProvider.require().userId();
-        Ticket ticket = ticketRepository.getByIdAndCustomerUserId(ticketId, userId);
+        Long customerId = currentCustomerService.requireCustomerId();
+        Ticket ticket = ticketRepository.getByIdAndCustomerId(ticketId, customerId);
         ConsultationCategory category = consultationCategoryRepository.getEnabledLeafCategory(request.categoryId());
 
         ticket.updateWaitingInquiry(category, request.title());

@@ -2,27 +2,22 @@
 
 import { useMutation, useQuery } from "@tanstack/react-query";
 import type { Route } from "next";
-import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import Link from "next/link";
+import { useState } from "react";
 import { AlertBanner } from "@/components/alert-banner";
 import { FormField } from "@/components/form-field";
 import { PageShell } from "@/components/page-shell";
 import { fetchConsultationCategoryTree } from "@/lib/api/categories";
-import { createCustomerInquiry } from "@/lib/api/customer";
+import { createCustomerInquiry, fetchCustomerTickets } from "@/lib/api/customer";
 import { ApiError } from "@/lib/api/client";
 import { collectLeafCategoryOptions } from "@/lib/category-utils";
-import { formatTicketStatus } from "@/lib/format";
-import {
-  loadRecentInquiries,
-  saveRecentInquiry,
-  type RecentInquiryRecord
-} from "@/lib/recent-inquiries";
+import { formatDateTime, formatTicketStatus } from "@/lib/format";
+import { useRequireAuth } from "@/lib/use-require-auth";
 
 const inputClassName =
   "w-full rounded-md border border-zinc-300 bg-white px-3 py-2 text-sm outline-none focus:border-teal-600 focus:ring-1 focus:ring-teal-600";
 
 export default function CustomerInquiryPage() {
-  const router = useRouter();
   const [customerName, setCustomerName] = useState("");
   const [phone, setPhone] = useState("");
   const [email, setEmail] = useState("");
@@ -30,11 +25,7 @@ export default function CustomerInquiryPage() {
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
-  const [recentInquiries, setRecentInquiries] = useState<RecentInquiryRecord[]>([]);
-
-  useEffect(() => {
-    setRecentInquiries(loadRecentInquiries());
-  }, []);
+  const { status: authStatus } = useRequireAuth();
 
   const categoryQuery = useQuery({
     queryKey: ["consultation-category-tree"],
@@ -43,19 +34,23 @@ export default function CustomerInquiryPage() {
 
   const categoryOptions = collectLeafCategoryOptions(categoryQuery.data ?? []);
 
+  const ticketsQuery = useQuery({
+    queryKey: ["customer-tickets"],
+    queryFn: fetchCustomerTickets,
+    enabled: authStatus === "allowed"
+  });
+
   const submitMutation = useMutation({
     mutationFn: createCustomerInquiry,
-    onSuccess: (data, variables) => {
+    onSuccess: () => {
       setFieldErrors({});
-      const record = saveRecentInquiry({
-        ...data,
-        title: variables.title,
-        customerName: variables.customerName,
-        submittedAt: new Date().toISOString()
-      });
-      setRecentInquiries(record);
+      void ticketsQuery.refetch();
     }
   });
+
+  if (authStatus !== "allowed") {
+    return null;
+  }
 
   function resetForm() {
     setCustomerName("");
@@ -118,23 +113,30 @@ export default function CustomerInquiryPage() {
           <AlertBanner message="상담 구분 목록을 불러오지 못했습니다." variant="error" />
         ) : null}
 
-        {recentInquiries.length > 0 ? (
+        {ticketsQuery.data && ticketsQuery.data.length > 0 ? (
           <section className="rounded-lg border border-zinc-200 bg-white p-4">
-            <h2 className="mb-3 text-sm font-semibold text-zinc-800">이번 세션 접수 내역</h2>
+            <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+              <h2 className="text-sm font-semibold text-zinc-800">내 문의</h2>
+              <Link className="text-xs font-medium text-teal-700 hover:underline" href={"/customer/tickets" as Route}>
+                전체 보기
+              </Link>
+            </div>
             <ul className="divide-y divide-zinc-100 text-sm">
-              {recentInquiries.map((inquiry) => (
-                <li className="flex flex-wrap items-baseline justify-between gap-2 py-2" key={inquiry.ticketId}>
+              {ticketsQuery.data.slice(0, 5).map((ticket) => (
+                <li className="flex flex-wrap items-baseline justify-between gap-2 py-2" key={ticket.ticketId}>
                   <div>
-                    <span className="font-medium text-zinc-900">{inquiry.ticketNo}</span>
+                    <span className="font-medium text-zinc-900">{ticket.ticketNo}</span>
                     <span className="mx-2 text-zinc-300">·</span>
-                    <span className="text-zinc-700">{inquiry.title}</span>
-                    <span className="ml-2 text-xs text-zinc-500">({inquiry.customerName})</span>
+                    <span className="text-zinc-700">{ticket.subject}</span>
+                    <span className="ml-2 text-xs text-zinc-500">{ticket.categoryName}</span>
                   </div>
-                  <span className="text-xs text-zinc-500">{formatTicketStatus(inquiry.status)}</span>
+                  <span className="text-xs text-zinc-500">{formatTicketStatus(ticket.status)}</span>
                 </li>
               ))}
             </ul>
-            <p className="mt-2 text-xs text-zinc-500">브라우저 탭을 닫으면 목록이 사라집니다.</p>
+            <p className="mt-2 text-xs text-zinc-500">
+              최근 접수: {formatDateTime(ticketsQuery.data[0]?.createdAt ?? "")}
+            </p>
           </section>
         ) : null}
 
