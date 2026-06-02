@@ -14,7 +14,7 @@ import org.springframework.context.MessageSource;
 import org.springframework.context.MessageSourceResolvable;
 import org.springframework.stereotype.Component;
 
-@Component
+@Component("messageSource")
 public class AppMessages implements MessageSource {
 
     private final Map<String, Object> catalog;

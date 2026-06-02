@@ -6,7 +6,7 @@ sourceSets {
     main {
         resources {
             srcDir("${rootProject.projectDir}/shared")
-            include("messages/ko.json")
+            exclude("messages/index.ts")
         }
     }
 }
