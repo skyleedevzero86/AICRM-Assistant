@@ -9,4 +9,6 @@ public interface CustomerSpringDataJpaRepository extends JpaRepository<Customer,
     Optional<Customer> findByPhone(String phone);
 
     Optional<Customer> findByUserId(Long userId);
+
+    java.util.List<Customer> findAllByUserIdIsNotNull();
 }

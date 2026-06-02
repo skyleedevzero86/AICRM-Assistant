@@ -24,7 +24,9 @@ export default function LoginPage() {
     try {
       const response = await login({ email: email.trim(), password });
       setAccessToken(response.accessToken);
-      if (response.role === "AGENT") {
+      if (response.role === "ADMIN") {
+        router.push("/admin/users/agents" as Route);
+      } else if (response.role === "AGENT") {
         router.push("/agent/tickets" as Route);
       } else {
         router.push("/customer/inquiry" as Route);

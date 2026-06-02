@@ -31,3 +31,9 @@ export function signupAgent(request: SignUpRequest): Promise<SignUpResponse> {
 export function fetchMe(): Promise<MeResponse> {
   return apiRequest<MeResponse>("/api/auth/me");
 }
+
+export function withdrawMe(): Promise<void> {
+  return apiRequest<void>("/api/auth/withdraw", {
+    method: "POST"
+  });
+}

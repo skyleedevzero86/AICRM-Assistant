@@ -10,5 +10,7 @@ public interface CustomerRepository {
 
     Optional<Customer> findByUserId(Long userId);
 
+    java.util.List<Customer> findAllRegisteredUsers();
+
     Customer save(Customer customer);
 }

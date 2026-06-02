@@ -8,7 +8,9 @@ import { useState } from "react";
 import { AlertBanner } from "@/components/alert-banner";
 import { PageShell } from "@/components/page-shell";
 import { acceptTicket, fetchWaitingTickets } from "@/lib/api/agent";
+import { withdrawMe } from "@/lib/api/auth";
 import { ApiError } from "@/lib/api/client";
+import { clearAccessToken } from "@/lib/auth-storage";
 import { formatDateTime } from "@/lib/format";
 
 export default function AgentTicketsPage() {
@@ -35,6 +37,14 @@ export default function AgentTicketsPage() {
     }
   });
 
+  const withdrawMutation = useMutation({
+    mutationFn: withdrawMe,
+    onSuccess: () => {
+      clearAccessToken();
+      router.push("/auth/login" as Route);
+    }
+  });
+
   const listError =
     ticketsQuery.error instanceof ApiError
       ? ticketsQuery.error.message
@@ -51,6 +61,9 @@ export default function AgentTicketsPage() {
         <Link className="text-sm text-teal-700 hover:underline" href={"/" as Route}>
           ← 홈으로
         </Link>
+        <button className="ml-4 rounded border border-red-300 px-2 py-1 text-xs text-red-700" onClick={() => withdrawMutation.mutate()} type="button">
+          회원탈퇴
+        </button>
       </div>
 
       <div className="space-y-4">

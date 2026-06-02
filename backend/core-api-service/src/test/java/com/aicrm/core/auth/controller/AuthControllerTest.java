@@ -122,4 +122,24 @@ class AuthControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true));
     }
+
+    @Test
+    void updateAgentGradeReturnsOk() throws Exception {
+        mockMvc.perform(post("/api/admin/agents/{agentId}/grade", 99L)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "grade": "TEAM_LEAD"
+                                }
+                                """))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true));
+    }
+
+    @Test
+    void withdrawReturnsOk() throws Exception {
+        mockMvc.perform(post("/api/auth/withdraw"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true));
+    }
 }

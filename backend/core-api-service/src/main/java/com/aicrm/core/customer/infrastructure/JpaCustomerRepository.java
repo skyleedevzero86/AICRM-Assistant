@@ -36,6 +36,11 @@ public class JpaCustomerRepository implements CustomerRepository {
     }
 
     @Override
+    public java.util.List<Customer> findAllRegisteredUsers() {
+        return springDataJpaRepository.findAllByUserIdIsNotNull();
+    }
+
+    @Override
     public Customer save(Customer customer) {
         return springDataJpaRepository.save(customer);
     }

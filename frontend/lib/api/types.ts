@@ -5,6 +5,8 @@ export type ApiResponse<T> = {
 };
 
 export type UserRole = "CUSTOMER" | "AGENT" | "ADMIN";
+export type AgentGrade = "ADMIN" | "COUNSELOR" | "TEAM_LEAD";
+export type AgentApprovalStatus = "PENDING" | "ACTIVE";
 
 export type LoginRequest = {
   email: string;
@@ -37,6 +39,38 @@ export type MeResponse = {
   email: string;
   name: string;
   role: UserRole;
+};
+
+export type AdminCustomerUser = {
+  userId: number;
+  name: string;
+  email: string;
+  phone: string;
+  withdrawnYn: "Y" | "N";
+  suspendedYn: "Y" | "N";
+};
+
+export type AdminAgentUser = {
+  userId: number;
+  agentId: number;
+  name: string;
+  email: string;
+  approvalStatus: AgentApprovalStatus;
+  grade: AgentGrade;
+  withdrawnYn: "Y" | "N";
+  suspendedYn: "Y" | "N";
+};
+
+export type AdminAgentAttendance = {
+  agentId: number;
+  agentName: string;
+  email: string;
+  grade: AgentGrade;
+  workDate: string;
+  loginMark: "0" | "X";
+  loginCount: number;
+  breakMinutes: number;
+  workMinutes: number;
 };
 
 export type TicketStatus =
