@@ -32,7 +32,15 @@ export default function LoginPage() {
         router.push("/customer/inquiry" as Route);
       }
     } catch (error) {
-      setErrorMessage(error instanceof ApiError ? error.message : "로그인에 실패했습니다.");
+      if (error instanceof ApiError) {
+        if (error.code === "AUTH_FAILED" && email.trim().toLowerCase() === "admin@aicrm.local") {
+          setErrorMessage("관리자 로그인 실패: 시드 계정 비밀번호는 password 입니다. 백엔드를 재시작해 최신 마이그레이션을 반영한 뒤 다시 시도하세요.");
+        } else {
+          setErrorMessage(error.message);
+        }
+      } else {
+        setErrorMessage("로그인에 실패했습니다.");
+      }
     } finally {
       setPending(false);
     }
