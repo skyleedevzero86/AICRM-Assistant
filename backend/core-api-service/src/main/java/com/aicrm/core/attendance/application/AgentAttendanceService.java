@@ -17,6 +17,7 @@ import java.util.Map;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
@@ -36,7 +37,7 @@ public class AgentAttendanceService {
         this.userAccountRepository = userAccountRepository;
     }
 
-    @Transactional
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void markAgentLogin(Long userId) {
         AgentAccount agent = agentAccountRepository.findByUserId(userId).orElse(null);
         if (agent == null) {

@@ -53,7 +53,7 @@ public class AuthService {
         this.agentAttendanceService = agentAttendanceService;
     }
 
-    @Transactional(readOnly = true)
+    @Transactional
     public LoginResponse login(LoginRequest request) {
         UserAccount account = userAccountRepository.findByEmail(request.email().trim().toLowerCase())
                 .orElseThrow(() -> new BusinessException(ErrorCode.AUTH_FAILED));

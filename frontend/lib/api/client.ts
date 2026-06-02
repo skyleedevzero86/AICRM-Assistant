@@ -52,7 +52,12 @@ export async function apiRequest<T>(path: string, options: RequestOptions = {}):
     body: body === undefined ? undefined : JSON.stringify(body)
   });
 
-  const payload = (await response.json()) as ApiResponse<T>;
+  let payload: ApiResponse<T>;
+  try {
+    payload = (await response.json()) as ApiResponse<T>;
+  } catch {
+    throw new ApiError(msg.client("REQUEST_FAILED"), "INVALID_RESPONSE");
+  }
 
   if (response.status === 401) {
     if (!isPublicApiPath(path)) {

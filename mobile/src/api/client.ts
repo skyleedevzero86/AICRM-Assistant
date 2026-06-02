@@ -1,5 +1,5 @@
 import { getCandidateApiBaseUrls, resolveApiBaseUrl } from "@/config/api-base-url";
-import { requiresAuthToken } from "@/api/requires-auth";
+import { isPublicApiPath, requiresAuthToken } from "@/api/requires-auth";
 import { msg } from "@/messages";
 import { clearAccessToken, getAccessToken } from "@/storage/authStorage";
 
@@ -36,6 +36,7 @@ function isConnectionError(error: unknown): boolean {
 async function apiRequestAt<T>(baseUrl: string, path: string, options: RequestInit = {}): Promise<T> {
   let response: Response;
   const token = await getAccessToken();
+  const shouldAttachToken = token && !isPublicApiPath(path);
 
   if (requiresAuthToken(path) && !token) {
     throw new ApiError(msg.client("AUTH_REQUIRED"), AUTH_REQUIRED_CODE);
@@ -46,7 +47,7 @@ async function apiRequestAt<T>(baseUrl: string, path: string, options: RequestIn
       ...options,
       headers: {
         "Content-Type": "application/json",
-        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        ...(shouldAttachToken ? { Authorization: `Bearer ${token}` } : {}),
         ...options.headers
       }
     });
@@ -64,7 +65,9 @@ async function apiRequestAt<T>(baseUrl: string, path: string, options: RequestIn
   }
 
   if (response.status === 401) {
-    await clearAccessToken();
+    if (!isPublicApiPath(path)) {
+      await clearAccessToken();
+    }
     throw new ApiError(
       payload.error?.message ?? msg.error("UNAUTHORIZED"),
       payload.error?.code ?? "UNAUTHORIZED"
