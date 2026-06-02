@@ -35,7 +35,11 @@ export function LoginScreen() {
     try {
       const response = await login({ email: email.trim(), password });
       await setAccessToken(response.accessToken);
-      router.replace("/(tabs)");
+      if (response.role === "ADMIN") {
+        router.replace("/admin/menu");
+      } else {
+        router.replace("/(tabs)");
+      }
     } catch (error) {
       if (error instanceof ApiError) {
         setErrorMessage(getLoginErrorMessage(error));

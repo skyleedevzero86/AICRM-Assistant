@@ -27,11 +27,23 @@ export function PageShell({ title, description, children }: PageShellProps) {
             <Link className="hover:text-zinc-900" href={"/customer/inquiry" as Route}>
               고객 문의
             </Link>
-            {role !== "ADMIN" ? (
+            {role === "ADMIN" ? (
+              <>
+                <Link className="hover:text-zinc-900" href={"/admin/users/agents" as Route}>
+                  상담사 회원 관리
+                </Link>
+                <Link className="hover:text-zinc-900" href={"/admin/users/customers" as Route}>
+                  고객 회원 관리
+                </Link>
+                <Link className="hover:text-zinc-900" href={"/admin/attendance" as Route}>
+                  근태 관리
+                </Link>
+              </>
+            ) : (
               <Link className="hover:text-zinc-900" href={"/agent/tickets" as Route}>
                 상담원 티켓
               </Link>
-            ) : null}
+            )}
           </nav>
           <h1 className="text-2xl font-semibold">{title}</h1>
           {description ? <p className="mt-1 text-sm text-zinc-500">{description}</p> : null}

@@ -34,6 +34,26 @@ export type MeResponse = {
   role: UserRole;
 };
 
+export type AdminCustomerUser = {
+  userId: number;
+  name: string;
+  email: string;
+  phone: string;
+  withdrawnYn: "Y" | "N";
+  suspendedYn: "Y" | "N";
+};
+
+export type AdminAgentUser = {
+  userId: number;
+  agentId: number;
+  name: string;
+  email: string;
+  approvalStatus: "PENDING" | "ACTIVE";
+  grade: "ADMIN" | "COUNSELOR" | "TEAM_LEAD";
+  withdrawnYn: "Y" | "N";
+  suspendedYn: "Y" | "N";
+};
+
 export type ConsultationCategoryTreeNode = {
   id: number;
   code: string;
