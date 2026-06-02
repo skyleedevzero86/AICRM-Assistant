@@ -8,20 +8,23 @@ import { AlertBanner } from "@/components/alert-banner";
 import { PageShell } from "@/components/page-shell";
 import { login } from "@/lib/api/auth";
 import { ApiError } from "@/lib/api/client";
-import { setAccessToken } from "@/lib/auth-storage";
+import { clearAccessToken, setAccessToken } from "@/lib/auth-storage";
 
 function getLoginErrorMessage(error: ApiError): string {
   if (error.code === "AUTH_FAILED") {
     return "이메일 또는 비밀번호가 올바르지 않습니다.";
   }
   if (error.code === "AGENT_APPROVAL_REQUIRED") {
-    return "상담원 계정 승인이 필요합니다.";
+    return "상담원 계정은 관리자 승인 후 로그인할 수 있습니다.";
   }
   if (error.code === "ACCOUNT_SUSPENDED") {
-    return "정지된 계정입니다. 관리자에게 문의하세요.";
+    return "정지된 계정입니다. 관리자에게 문의해 주세요.";
   }
   if (error.code === "ACCOUNT_WITHDRAWN") {
     return "탈퇴 처리된 계정입니다.";
+  }
+  if (error.code === "UNAUTHORIZED") {
+    return "로그인 정보가 만료되었습니다. 다시 로그인해 주세요.";
   }
   return error.message;
 }
@@ -36,9 +39,17 @@ export default function LoginPage() {
   async function handleSubmit(event: React.FormEvent) {
     event.preventDefault();
     setErrorMessage(null);
+
+    const normalizedEmail = email.trim().toLowerCase();
+    if (!normalizedEmail || !password) {
+      setErrorMessage("이메일과 비밀번호를 입력해 주세요.");
+      return;
+    }
+
     setPending(true);
     try {
-      const response = await login({ email: email.trim(), password });
+      clearAccessToken();
+      const response = await login({ email: normalizedEmail, password });
       setAccessToken(response.accessToken);
       if (response.role === "ADMIN") {
         router.push("/admin/users/agents" as Route);
@@ -62,11 +73,15 @@ export default function LoginPage() {
     <PageShell title="로그인" description="이메일과 비밀번호로 로그인하세요.">
       <div className="max-w-lg space-y-4">
         {errorMessage ? <AlertBanner message={errorMessage} variant="error" /> : null}
+
         <form className="space-y-4 rounded-lg border border-zinc-200 bg-white p-6" onSubmit={handleSubmit}>
           <div className="space-y-1">
-            <label className="text-sm font-medium text-zinc-700" htmlFor="email">이메일</label>
+            <label className="text-sm font-medium text-zinc-700" htmlFor="email">
+              이메일
+            </label>
             <input
-              className="w-full rounded-md border border-zinc-300 px-3 py-2 text-sm"
+              autoComplete="email"
+              className="w-full rounded-md border border-zinc-300 px-3 py-2 text-sm outline-none focus:border-teal-600 focus:ring-1 focus:ring-teal-600"
               id="email"
               onChange={(event) => setEmail(event.target.value)}
               type="email"
@@ -74,9 +89,12 @@ export default function LoginPage() {
             />
           </div>
           <div className="space-y-1">
-            <label className="text-sm font-medium text-zinc-700" htmlFor="password">비밀번호</label>
+            <label className="text-sm font-medium text-zinc-700" htmlFor="password">
+              비밀번호
+            </label>
             <input
-              className="w-full rounded-md border border-zinc-300 px-3 py-2 text-sm"
+              autoComplete="current-password"
+              className="w-full rounded-md border border-zinc-300 px-3 py-2 text-sm outline-none focus:border-teal-600 focus:ring-1 focus:ring-teal-600"
               id="password"
               onChange={(event) => setPassword(event.target.value)}
               type="password"
@@ -91,9 +109,14 @@ export default function LoginPage() {
             {pending ? "로그인 중..." : "로그인"}
           </button>
         </form>
+
         <div className="flex gap-4 text-sm">
-          <Link className="text-teal-700 hover:underline" href={"/auth/signup/customer" as Route}>고객 회원가입</Link>
-          <Link className="text-teal-700 hover:underline" href={"/auth/signup/agent" as Route}>상담원 회원가입</Link>
+          <Link className="text-teal-700 hover:underline" href={"/auth/signup/customer" as Route}>
+            고객 회원가입
+          </Link>
+          <Link className="text-teal-700 hover:underline" href={"/auth/signup/agent" as Route}>
+            상담원 회원가입
+          </Link>
         </div>
       </div>
     </PageShell>
