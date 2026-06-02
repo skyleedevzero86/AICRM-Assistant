@@ -26,7 +26,7 @@ export default function CustomerSignupPage() {
       await signupCustomer({ name: name.trim(), email: email.trim(), password });
       const loginResponse = await login({ email: email.trim(), password });
       setAccessToken(loginResponse.accessToken);
-      router.push("/customer/inquiry" as Route);
+      router.push("/" as Route);
     } catch (error) {
       setErrorMessage(resolveApiError(error, "auth.signupFailed"));
     } finally {

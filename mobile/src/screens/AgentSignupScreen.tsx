@@ -1,19 +1,18 @@
 import { useState } from "react";
-import { Link } from "expo-router";
+import { Link, useRouter } from "expo-router";
 import { StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
 import { signupAgent } from "@/api/auth";
 import { Screen } from "@/components/Screen";
 import { msg, resolveApiError } from "@/messages";
 
 export function AgentSignupScreen() {
+  const router = useRouter();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [employeeNo, setEmployeeNo] = useState("");
   const [password, setPassword] = useState("");
   const [pending, setPending] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [done, setDone] = useState(false);
-
   async function submit() {
     setPending(true);
     setErrorMessage(null);
@@ -24,7 +23,7 @@ export function AgentSignupScreen() {
         password,
         employeeNo: employeeNo.trim()
       });
-      setDone(true);
+      router.replace("/");
     } catch (error) {
       setErrorMessage(resolveApiError(error, "auth.signupFailed"));
     } finally {
@@ -49,7 +48,6 @@ export function AgentSignupScreen() {
         <Text style={styles.hint}>{msg.ui("auth.employeeNoHintMobile")}</Text>
         <TextInput autoCapitalize="none" onChangeText={setEmail} placeholder={msg.ui("common.email")} style={styles.input} value={email} />
         <TextInput onChangeText={setPassword} placeholder={msg.ui("common.passwordMin")} secureTextEntry style={styles.input} value={password} />
-        {done ? <Text style={styles.success}>{msg.ui("auth.signupAgentSuccess")}</Text> : null}
         {errorMessage ? <Text style={styles.error}>{errorMessage}</Text> : null}
         <TouchableOpacity disabled={pending} onPress={submit} style={styles.button}>
           <Text style={styles.buttonText}>{pending ? msg.ui("auth.signupSubmitting") : msg.ui("auth.agentSignupSubmit")}</Text>
@@ -68,7 +66,6 @@ const styles = StyleSheet.create({
   description: { color: "#52525b", fontSize: 13 },
   hint: { color: "#71717a", fontSize: 12 },
   input: { borderWidth: 1, borderColor: "#d4d4d8", borderRadius: 8, minHeight: 44, paddingHorizontal: 12 },
-  success: { color: "#0f766e", fontSize: 13 },
   error: { color: "#dc2626", fontSize: 13 },
   button: { backgroundColor: "#09090b", borderRadius: 8, minHeight: 46, alignItems: "center", justifyContent: "center" },
   buttonText: { color: "#fff", fontWeight: "800" },

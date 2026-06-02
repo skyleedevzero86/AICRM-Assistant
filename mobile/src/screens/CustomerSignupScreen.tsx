@@ -21,7 +21,7 @@ export function CustomerSignupScreen() {
       await signupCustomer({ name: name.trim(), email: email.trim(), password });
       const response = await login({ email: email.trim(), password });
       await setAccessToken(response.accessToken);
-      router.replace("/(tabs)");
+      router.replace("/");
     } catch (error) {
       setErrorMessage(resolveApiError(error, "auth.signupFailed"));
     } finally {

@@ -2,6 +2,7 @@
 
 import type { Route } from "next";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { AlertBanner } from "@/components/alert-banner";
 import { PageShell } from "@/components/page-shell";
@@ -9,14 +10,13 @@ import { signupAgent } from "@/lib/api/auth";
 import { msg, resolveApiError } from "@/lib/messages";
 
 export default function AgentSignupPage() {
+  const router = useRouter();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [employeeNo, setEmployeeNo] = useState("");
   const [password, setPassword] = useState("");
   const [pending, setPending] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [done, setDone] = useState(false);
-
   async function submit(event: React.FormEvent) {
     event.preventDefault();
     setErrorMessage(null);
@@ -28,7 +28,7 @@ export default function AgentSignupPage() {
         password,
         employeeNo: employeeNo.trim()
       });
-      setDone(true);
+      router.push("/" as Route);
     } catch (error) {
       setErrorMessage(resolveApiError(error, "auth.signupFailed"));
     } finally {
@@ -40,7 +40,6 @@ export default function AgentSignupPage() {
     <PageShell title={msg.ui("auth.agentSignupTitle")} description={msg.ui("auth.agentSignupDescription")}>
       <div className="max-w-lg space-y-4">
         {errorMessage ? <AlertBanner message={errorMessage} variant="error" /> : null}
-        {done ? <AlertBanner message={msg.ui("auth.signupAgentPageSuccess")} variant="success" /> : null}
         <form className="space-y-4 rounded-lg border border-zinc-200 bg-white p-6" onSubmit={submit}>
           <input
             className="w-full rounded-md border border-zinc-300 px-3 py-2 text-sm"
