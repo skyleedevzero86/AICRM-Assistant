@@ -81,11 +81,14 @@
       "phone": "연락처",
       "title": "제목",
       "content": "문의 내용",
+      "cancel": "취소",
       "save": "저장",
       "saving": "저장 중...",
       "approve": "승인",
       "previousPage": "이전 페이지",
       "withdraw": "회원탈퇴",
+      "logout": "로그아웃",
+      "comingSoon": "준비 중",
       "requiredFields": "필수 항목을 모두 입력해 주세요.",
       "selectLeafCategory": "소분류까지 선택해 주세요."
     },
@@ -151,6 +154,8 @@
       "agentName": "상담사"
     },
     "agent": {
+      "homeTitle": "상담원",
+      "homeDescription": "티켓 처리·근태 등 상담원 업무는 웹(CallMind)에서 진행해 주세요.",
       "ticketsTitle": "상담원 대기 티켓",
       "ticketsDescription": "접수된 문의 티켓을 확인하고 수락할 수 있습니다.",
       "roleRequired": "상담원 권한이 필요합니다.",
@@ -182,7 +187,17 @@
     },
     "nav": {
       "adminUsers": "관리자 회원 관리",
-      "agentTickets": "상담 티켓"
+      "agentTickets": "상담 티켓",
+      "home": "홈",
+      "account": "내 정보"
+    },
+    "account": {
+      "title": "내 정보",
+      "description": "이름·비밀번호·연락처를 수정하거나 탈퇴할 수 있습니다.",
+      "saved": "저장되었습니다.",
+      "saveFailed": "저장에 실패했습니다.",
+      "passwordOptional": "변경 시에만 입력",
+      "withdrawConfirm": "탈퇴 후에는 로그인할 수 없습니다. 계속하시겠습니까?"
     },
     "mobile": {
       "loadTicketsFailed": "문의 목록을 불러오지 못했습니다.",

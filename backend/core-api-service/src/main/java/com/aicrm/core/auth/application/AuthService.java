@@ -10,6 +10,7 @@ import com.aicrm.core.auth.dto.MeResponse;
 import com.aicrm.core.auth.dto.AgentSignUpRequest;
 import com.aicrm.core.auth.dto.SignUpRequest;
 import com.aicrm.core.auth.dto.SignUpResponse;
+import com.aicrm.core.auth.dto.UpdateMeRequest;
 import com.aicrm.core.auth.domain.AgentGrade;
 import com.aicrm.core.attendance.application.AgentAttendanceService;
 import com.aicrm.core.auth.infrastructure.AgentAccountRepository;
@@ -123,8 +124,48 @@ public class AuthService {
 
     @Transactional(readOnly = true)
     public MeResponse me() {
-        AuthenticatedUser user = currentUserProvider.require();
-        return new MeResponse(user.userId(), user.email(), user.name(), user.role());
+        AuthenticatedUser current = currentUserProvider.require();
+        UserAccount account = userAccountRepository.findById(current.userId())
+                .orElseThrow(() -> new BusinessException(ErrorCode.NOT_FOUND, "USER_NOT_FOUND", current.userId()));
+        return toMeResponse(account);
+    }
+
+    @Transactional
+    public MeResponse updateCurrentUser(UpdateMeRequest request) {
+        AuthenticatedUser current = currentUserProvider.require();
+        UserAccount account = userAccountRepository.findById(current.userId())
+                .orElseThrow(() -> new BusinessException(ErrorCode.NOT_FOUND, "USER_NOT_FOUND", current.userId()));
+        String name = request.name().trim();
+        account.updateName(name);
+        if (request.password() != null && !request.password().isBlank()) {
+            account.updatePasswordHash(passwordEncoder.encode(request.password()));
+        }
+        userAccountRepository.save(account);
+
+        if (account.getRole() == UserRole.CUSTOMER) {
+            Customer customer = customerRepository.findByUserId(account.getId())
+                    .orElseThrow(() -> new BusinessException(ErrorCode.NOT_FOUND, "CUSTOMER_NOT_FOUND", account.getId()));
+            String phone = request.phone() == null ? "" : request.phone().trim();
+            customer.updateAccount(name, phone);
+            customerRepository.save(customer);
+        } else if (account.getRole() == UserRole.AGENT) {
+            AgentAccount agent = agentAccountRepository.findByUserId(account.getId())
+                    .orElseThrow(() -> new BusinessException(ErrorCode.NOT_FOUND, "AGENT_NOT_FOUND", account.getId()));
+            agent.updateName(name);
+            agentAccountRepository.save(agent);
+        }
+
+        return toMeResponse(account);
+    }
+
+    private MeResponse toMeResponse(UserAccount account) {
+        String phone = "";
+        if (account.getRole() == UserRole.CUSTOMER) {
+            phone = customerRepository.findByUserId(account.getId())
+                    .map(customer -> customer.getPhone() == null ? "" : customer.getPhone())
+                    .orElse("");
+        }
+        return new MeResponse(account.getId(), account.getEmail(), account.getName(), account.getRole(), phone);
     }
 
     @Transactional

@@ -1,6 +1,7 @@
 import type { Route } from "next";
 import Link from "next/link";
 import { Bot, MessageSquareText, ShieldCheck, Ticket } from "lucide-react";
+import { HomeSidebar } from "@/components/home-sidebar";
 
 const tickets = [
   { id: "T-1042", customer: "김민서", topic: "배송 지연", priority: "높음", status: "진행" },
@@ -17,41 +18,7 @@ export default function Home() {
             <Bot className="h-5 w-5 text-teal-600" />
             CallMind AI
           </div>
-          <nav className="space-y-1 text-sm">
-            <Link
-              className="flex w-full items-center rounded-md px-3 py-2 text-zinc-700 hover:bg-zinc-100"
-              href={"/agent/tickets" as Route}
-            >
-              상담 티켓
-            </Link>
-            <Link
-              className="flex w-full items-center rounded-md px-3 py-2 text-zinc-700 hover:bg-zinc-100"
-              href={"/customer/inquiry" as Route}
-            >
-              고객 문의
-            </Link>
-            <Link
-              className="flex w-full items-center rounded-md px-3 py-2 text-zinc-700 hover:bg-zinc-100"
-              href={"/auth/login" as Route}
-            >
-              로그인
-            </Link>
-            <Link
-              className="flex w-full items-center rounded-md px-3 py-2 text-zinc-700 hover:bg-zinc-100"
-              href={"/admin/users/agents" as Route}
-            >
-              관리자 회원 관리
-            </Link>
-            {["지식 문서", "CRM 액션"].map((item) => (
-              <span
-                className="flex w-full cursor-not-allowed items-center rounded-md px-3 py-2 text-zinc-400"
-                key={item}
-                title="준비 중"
-              >
-                {item}
-              </span>
-            ))}
-          </nav>
+          <HomeSidebar />
         </aside>
 
         <section className="p-6">

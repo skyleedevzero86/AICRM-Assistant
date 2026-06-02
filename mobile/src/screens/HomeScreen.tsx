@@ -1,8 +1,8 @@
 import { useCallback, useState } from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { useFocusEffect, useRouter } from "expo-router";
-import { withdrawMe } from "@/api/auth";
 import { Screen } from "@/components/Screen";
+import { msg } from "@/messages";
 import { EmptyState } from "@/components/EmptyState";
 import { TicketCard } from "@/components/TicketCard";
 import type { StoredTicket } from "@/storage/ticketStorage";
@@ -25,8 +25,7 @@ export function HomeScreen() {
     }, [])
   );
 
-  async function withdrawAccount() {
-    await withdrawMe();
+  async function logout() {
     await clearAccessToken();
     router.replace("/auth/login");
   }
@@ -39,9 +38,14 @@ export function HomeScreen() {
         <TouchableOpacity onPress={() => router.push("/(tabs)/inquiry")} style={styles.heroButton}>
           <Text style={styles.heroButtonText}>빠른 문의하기</Text>
         </TouchableOpacity>
-          <TouchableOpacity onPress={withdrawAccount} style={styles.withdrawButton}>
-            <Text style={styles.withdrawButtonText}>회원탈퇴</Text>
+        <View style={styles.heroActions}>
+          <TouchableOpacity onPress={() => router.push("/(tabs)/account")} style={styles.secondaryHeroButton}>
+            <Text style={styles.secondaryHeroButtonText}>{msg.ui("nav.account")}</Text>
           </TouchableOpacity>
+          <TouchableOpacity onPress={() => void logout()} style={styles.secondaryHeroButton}>
+            <Text style={styles.secondaryHeroButtonText}>{msg.ui("common.logout")}</Text>
+          </TouchableOpacity>
+        </View>
       </View>
 
       <View style={styles.section}>
@@ -110,18 +114,22 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: "800"
   },
-  withdrawButton: {
+  heroActions: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 8,
+    marginTop: 12
+  },
+  secondaryHeroButton: {
     alignItems: "center",
-    alignSelf: "flex-start",
-    backgroundColor: "#fee2e2",
+    backgroundColor: "#27272a",
     borderRadius: 8,
-    marginTop: 10,
     minHeight: 36,
     paddingHorizontal: 12,
     justifyContent: "center"
   },
-  withdrawButtonText: {
-    color: "#b91c1c",
+  secondaryHeroButtonText: {
+    color: "#fafafa",
     fontSize: 13,
     fontWeight: "800"
   },

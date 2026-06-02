@@ -36,6 +36,13 @@ export type MeResponse = {
   email: string;
   name: string;
   role: UserRole;
+  phone: string;
+};
+
+export type UpdateMeRequest = {
+  name: string;
+  password?: string;
+  phone?: string;
 };
 
 export type AdminCustomerUser = {

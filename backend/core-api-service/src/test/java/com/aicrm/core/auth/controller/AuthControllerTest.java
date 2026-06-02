@@ -3,6 +3,7 @@ package com.aicrm.core.auth.controller;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -108,7 +109,8 @@ class AuthControllerTest {
                 1L,
                 "agent@test.com",
                 "상담원",
-                UserRole.AGENT
+                UserRole.AGENT,
+                ""
         ));
 
         mockMvc.perform(get("/api/auth/me"))
@@ -135,6 +137,27 @@ class AuthControllerTest {
                                 """))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true));
+    }
+
+    @Test
+    void updateMeReturnsOk() throws Exception {
+        when(authService.updateCurrentUser(any())).thenReturn(new MeResponse(
+                1L,
+                "agent@test.com",
+                "변경된 이름",
+                UserRole.AGENT,
+                ""
+        ));
+
+        mockMvc.perform(patch("/api/auth/me")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "name": "변경된 이름"
+                                }
+                                """))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.name").value("변경된 이름"));
     }
 
     @Test

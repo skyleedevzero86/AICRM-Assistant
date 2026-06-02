@@ -14,6 +14,9 @@ export function AdminMenuScreen() {
         <Link href="/admin/customers" style={styles.menuLink}>
           {msg.ui("admin.customersLink")}
         </Link>
+        <Link href="/account" style={styles.menuLink}>
+          {msg.ui("nav.account")}
+        </Link>
       </View>
     </Screen>
   );

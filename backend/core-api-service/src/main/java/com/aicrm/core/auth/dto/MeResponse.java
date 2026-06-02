@@ -6,6 +6,7 @@ public record MeResponse(
         Long userId,
         String email,
         String name,
-        UserRole role
+        UserRole role,
+        String phone
 ) {
 }

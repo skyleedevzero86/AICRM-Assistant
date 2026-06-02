@@ -2,7 +2,11 @@
 
 import type { Route } from "next";
 import Link from "next/link";
+import { clearAccessToken } from "@/lib/auth-storage";
+import { msg } from "@/lib/messages";
+import { useAuthSession } from "@/lib/use-auth-session";
 import { useAccessTokenRole } from "@/lib/use-access-token-role";
+import { useRouter } from "next/navigation";
 
 type PageShellProps = {
   title: string;
@@ -11,7 +15,14 @@ type PageShellProps = {
 };
 
 export function PageShell({ title, description, children }: PageShellProps) {
+  const router = useRouter();
   const role = useAccessTokenRole();
+  const { isLoggedIn } = useAuthSession();
+
+  function logout() {
+    clearAccessToken();
+    router.push("/auth/login" as Route);
+  }
 
   return (
     <main className="min-h-screen p-6">
@@ -39,9 +50,24 @@ export function PageShell({ title, description, children }: PageShellProps) {
                   근태 관리
                 </Link>
               </>
-            ) : (
+            ) : null}
+            {role === "AGENT" ? (
               <Link className="hover:text-zinc-900" href={"/agent/tickets" as Route}>
                 상담원 티켓
+              </Link>
+            ) : null}
+            {isLoggedIn ? (
+              <>
+                <Link className="hover:text-zinc-900" href={"/account" as Route}>
+                  {msg.ui("nav.account")}
+                </Link>
+                <button className="hover:text-zinc-900" onClick={logout} type="button">
+                  {msg.ui("common.logout")}
+                </button>
+              </>
+            ) : (
+              <Link className="hover:text-zinc-900" href={"/auth/login" as Route}>
+                {msg.ui("common.login")}
               </Link>
             )}
           </nav>

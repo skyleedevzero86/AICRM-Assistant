@@ -85,4 +85,13 @@ public class Customer {
         this.email = email.trim();
         this.updatedAt = Instant.now();
     }
+
+    public void updateAccount(String name, String phone) {
+        if (name == null || name.isBlank()) {
+            throw new BusinessException(ErrorCode.INVALID_REQUEST, "NAME_REQUIRED");
+        }
+        this.name = name.trim();
+        this.phone = phone == null ? "" : phone.trim();
+        this.updatedAt = Instant.now();
+    }
 }

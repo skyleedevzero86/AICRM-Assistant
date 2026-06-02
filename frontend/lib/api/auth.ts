@@ -5,7 +5,8 @@ import type {
   MeResponse,
   AgentSignUpRequest,
   SignUpRequest,
-  SignUpResponse
+  SignUpResponse,
+  UpdateMeRequest
 } from "./types";
 
 export function login(request: LoginRequest): Promise<LoginResponse> {
@@ -31,6 +32,13 @@ export function signupAgent(request: AgentSignUpRequest): Promise<SignUpResponse
 
 export function fetchMe(): Promise<MeResponse> {
   return apiRequest<MeResponse>("/api/auth/me");
+}
+
+export function updateMe(request: UpdateMeRequest): Promise<MeResponse> {
+  return apiRequest<MeResponse>("/api/auth/me", {
+    method: "PATCH",
+    body: request
+  });
 }
 
 export function withdrawMe(): Promise<void> {

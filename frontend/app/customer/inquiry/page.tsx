@@ -9,9 +9,7 @@ import { FormField } from "@/components/form-field";
 import { PageShell } from "@/components/page-shell";
 import { fetchConsultationCategoryTree } from "@/lib/api/categories";
 import { createCustomerInquiry } from "@/lib/api/customer";
-import { withdrawMe } from "@/lib/api/auth";
 import { ApiError } from "@/lib/api/client";
-import { clearAccessToken } from "@/lib/auth-storage";
 import { collectLeafCategoryOptions } from "@/lib/category-utils";
 import { formatTicketStatus } from "@/lib/format";
 import {
@@ -56,14 +54,6 @@ export default function CustomerInquiryPage() {
         submittedAt: new Date().toISOString()
       });
       setRecentInquiries(record);
-    }
-  });
-
-  const withdrawMutation = useMutation({
-    mutationFn: withdrawMe,
-    onSuccess: () => {
-      clearAccessToken();
-      router.push("/auth/login" as Route);
     }
   });
 
@@ -234,13 +224,6 @@ export default function CustomerInquiryPage() {
               type="button"
             >
               입력 초기화
-            </button>
-            <button
-              className="rounded-md border border-red-300 bg-red-50 px-4 py-2 text-sm font-medium text-red-700 hover:bg-red-100"
-              onClick={() => withdrawMutation.mutate()}
-              type="button"
-            >
-              회원탈퇴
             </button>
           </div>
         </form>

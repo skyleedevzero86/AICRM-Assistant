@@ -21,6 +21,8 @@ export function LoginScreen() {
       await setAccessToken(response.accessToken);
       if (response.role === "ADMIN") {
         router.replace("/admin/menu");
+      } else if (response.role === "AGENT") {
+        router.replace("/agent-home");
       } else {
         router.replace("/(tabs)");
       }

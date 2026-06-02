@@ -37,6 +37,13 @@ export default function TabLayout() {
           tabBarIcon: ({ color, size }) => <Ionicons color={color} name="list-outline" size={size} />
         }}
       />
+      <Tabs.Screen
+        name="account"
+        options={{
+          title: "내 정보",
+          tabBarIcon: ({ color, size }) => <Ionicons color={color} name="person-outline" size={size} />
+        }}
+      />
     </Tabs>
   );
 }

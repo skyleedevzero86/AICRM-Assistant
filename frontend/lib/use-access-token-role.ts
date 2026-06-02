@@ -1,15 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import type { UserRole } from "./api/types";
-import { getAccessTokenRole } from "./auth-storage";
+import { useAuthSession } from "./use-auth-session";
 
-export function useAccessTokenRole(): UserRole | null {
-  const [role, setRole] = useState<UserRole | null>(null);
-
-  useEffect(() => {
-    setRole(getAccessTokenRole());
-  }, []);
-
+export function useAccessTokenRole() {
+  const { role } = useAuthSession();
   return role;
 }

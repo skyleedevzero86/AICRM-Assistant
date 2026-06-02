@@ -106,4 +106,14 @@ public class UserAccount {
         this.withdrawnYn = withdrawnYn;
         this.updatedAt = Instant.now();
     }
+
+    public void updateName(String name) {
+        this.name = name;
+        this.updatedAt = Instant.now();
+    }
+
+    public void updatePasswordHash(String passwordHash) {
+        this.passwordHash = passwordHash;
+        this.updatedAt = Instant.now();
+    }
 }

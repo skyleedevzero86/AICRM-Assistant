@@ -26,7 +26,12 @@ function redirectToLoginForProtectedPage(): void {
     return;
   }
   const { pathname, search } = window.location;
-  if (!pathname.startsWith("/admin") && !pathname.startsWith("/agent") && !pathname.startsWith("/customer")) {
+  if (
+    !pathname.startsWith("/admin") &&
+    !pathname.startsWith("/agent") &&
+    !pathname.startsWith("/customer") &&
+    !pathname.startsWith("/account")
+  ) {
     return;
   }
   const returnUrl = encodeURIComponent(`${pathname}${search}`);

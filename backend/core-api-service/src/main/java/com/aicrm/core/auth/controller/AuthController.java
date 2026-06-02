@@ -7,10 +7,12 @@ import com.aicrm.core.auth.dto.LoginResponse;
 import com.aicrm.core.auth.dto.MeResponse;
 import com.aicrm.core.auth.dto.SignUpRequest;
 import com.aicrm.core.auth.dto.SignUpResponse;
+import com.aicrm.core.auth.dto.UpdateMeRequest;
 import com.aicrm.core.global.response.ApiResponse;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -47,6 +49,11 @@ public class AuthController {
     @GetMapping("/me")
     public ApiResponse<MeResponse> me() {
         return ApiResponse.ok(authService.me());
+    }
+
+    @PatchMapping("/me")
+    public ApiResponse<MeResponse> updateMe(@Valid @RequestBody UpdateMeRequest request) {
+        return ApiResponse.ok(authService.updateCurrentUser(request));
     }
 
     @PostMapping("/withdraw")

@@ -85,4 +85,9 @@ public class AgentAccount {
         this.grade = grade;
         this.updatedAt = Instant.now();
     }
+
+    public void updateName(String name) {
+        this.name = name;
+        this.updatedAt = Instant.now();
+    }
 }
