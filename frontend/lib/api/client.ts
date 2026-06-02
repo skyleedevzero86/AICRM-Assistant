@@ -61,6 +61,9 @@ export async function apiRequest<T>(path: string, options: RequestOptions = {}):
   try {
     payload = (await response.json()) as ApiResponse<T>;
   } catch {
+    if (!response.ok) {
+      throw new ApiError(msg.client("BACKEND_UNAVAILABLE"), "BACKEND_UNAVAILABLE");
+    }
     throw new ApiError(msg.client("REQUEST_FAILED"), "INVALID_RESPONSE");
   }
 
@@ -76,6 +79,9 @@ export async function apiRequest<T>(path: string, options: RequestOptions = {}):
   }
 
   if (!response.ok || !payload.success) {
+    if (response.status >= 500) {
+      throw new ApiError(msg.client("BACKEND_UNAVAILABLE"), "BACKEND_UNAVAILABLE");
+    }
     const message = payload.error?.message ?? msg.client("REQUEST_FAILED");
     throw new ApiError(message, payload.error?.code);
   }

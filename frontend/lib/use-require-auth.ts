@@ -7,16 +7,9 @@ import { getAccessToken } from "./auth-storage";
 
 type AuthStatus = "checking" | "allowed" | "redirecting";
 
-function resolveInitialStatus(): AuthStatus {
-  if (typeof window === "undefined") {
-    return "checking";
-  }
-  return getAccessToken() ? "allowed" : "checking";
-}
-
 export function useRequireAuth(): { status: AuthStatus } {
   const router = useRouter();
-  const [status, setStatus] = useState<AuthStatus>(resolveInitialStatus);
+  const [status, setStatus] = useState<AuthStatus>("checking");
 
   useEffect(() => {
     if (status === "allowed") {

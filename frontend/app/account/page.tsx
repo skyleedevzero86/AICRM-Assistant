@@ -81,20 +81,27 @@ export default function AccountPage() {
     }
   }
 
-  if (status !== "allowed") {
-    return null;
-  }
-
   const isCustomer = meQuery.data?.role === "CUSTOMER";
+  const showForm = status === "allowed";
 
   return (
     <PageShell description={msg.ui("account.description")} title={msg.ui("account.title")}>
       <div className="space-y-4">
         {notice ? <AlertBanner message={notice} variant="success" /> : null}
         {error ? <AlertBanner message={error} variant="error" /> : null}
-        {meQuery.isLoading ? <p className="text-sm text-zinc-500">{msg.ui("common.loading")}</p> : null}
+        {showForm && meQuery.isError ? (
+          <AlertBanner
+            message={
+              meQuery.error instanceof ApiError ? meQuery.error.message : msg.ui("account.saveFailed")
+            }
+            variant="error"
+          />
+        ) : null}
+        {!showForm || meQuery.isLoading ? (
+          <p className="text-sm text-zinc-500">{msg.ui("common.loading")}</p>
+        ) : null}
 
-        {meQuery.data ? (
+        {showForm && meQuery.data ? (
           <form
             className="space-y-4 rounded-lg border border-zinc-200 bg-white p-6"
             onSubmit={(event) => {

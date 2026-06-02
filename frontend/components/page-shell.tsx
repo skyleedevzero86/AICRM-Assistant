@@ -6,6 +6,7 @@ import { clearAccessToken } from "@/lib/auth-storage";
 import { msg } from "@/lib/messages";
 import { useAuthSession } from "@/lib/use-auth-session";
 import { useAccessTokenRole } from "@/lib/use-access-token-role";
+import { useMounted } from "@/lib/use-mounted";
 import { useRouter } from "next/navigation";
 
 type PageShellProps = {
@@ -16,6 +17,7 @@ type PageShellProps = {
 
 export function PageShell({ title, description, children }: PageShellProps) {
   const router = useRouter();
+  const mounted = useMounted();
   const role = useAccessTokenRole();
   const { isLoggedIn } = useAuthSession();
 
@@ -38,7 +40,7 @@ export function PageShell({ title, description, children }: PageShellProps) {
             <Link className="hover:text-zinc-900" href={"/customer/inquiry" as Route}>
               고객 문의
             </Link>
-            {role === "ADMIN" ? (
+            {mounted && role === "ADMIN" ? (
               <>
                 <Link className="hover:text-zinc-900" href={"/admin/users/agents" as Route}>
                   상담사 회원 관리
@@ -51,25 +53,27 @@ export function PageShell({ title, description, children }: PageShellProps) {
                 </Link>
               </>
             ) : null}
-            {role === "AGENT" ? (
+            {mounted && role === "AGENT" ? (
               <Link className="hover:text-zinc-900" href={"/agent/tickets" as Route}>
                 상담원 티켓
               </Link>
             ) : null}
-            {isLoggedIn ? (
-              <>
-                <Link className="hover:text-zinc-900" href={"/account" as Route}>
-                  {msg.ui("nav.account")}
+            {mounted ? (
+              isLoggedIn ? (
+                <>
+                  <Link className="hover:text-zinc-900" href={"/account" as Route}>
+                    {msg.ui("nav.account")}
+                  </Link>
+                  <button className="hover:text-zinc-900" onClick={logout} type="button">
+                    {msg.ui("common.logout")}
+                  </button>
+                </>
+              ) : (
+                <Link className="hover:text-zinc-900" href={"/auth/login" as Route}>
+                  {msg.ui("common.login")}
                 </Link>
-                <button className="hover:text-zinc-900" onClick={logout} type="button">
-                  {msg.ui("common.logout")}
-                </button>
-              </>
-            ) : (
-              <Link className="hover:text-zinc-900" href={"/auth/login" as Route}>
-                {msg.ui("common.login")}
-              </Link>
-            )}
+              )
+            ) : null}
           </nav>
           <h1 className="text-2xl font-semibold">{title}</h1>
           {description ? <p className="mt-1 text-sm text-zinc-500">{description}</p> : null}

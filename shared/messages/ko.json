@@ -40,6 +40,7 @@
   "client": {
     "AUTH_REQUIRED": "로그인이 필요합니다",
     "REQUEST_FAILED": "요청 처리 중 오류가 발생했습니다",
+    "BACKEND_UNAVAILABLE": "API 서버에 연결할 수 없습니다. 백엔드를 실행한 뒤 다시 시도해 주세요.",
     "CONNECTION_FAILED": "서버에 연결할 수 없습니다. ({0})",
     "RESPONSE_PARSE_FAILED": "서버 응답을 해석할 수 없습니다. ({0})",
     "CONNECTION_FAILED_TRIED": "서버에 연결할 수 없습니다. 시도한 주소: {0}",

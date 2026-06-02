@@ -7,18 +7,9 @@ import { getAccessToken, getAccessTokenRole } from "./auth-storage";
 
 type AdminAuthStatus = "checking" | "allowed" | "redirecting";
 
-function resolveInitialStatus(): AdminAuthStatus {
-  if (typeof window === "undefined") {
-    return "checking";
-  }
-  const token = getAccessToken();
-  const role = getAccessTokenRole();
-  return token && role === "ADMIN" ? "allowed" : "checking";
-}
-
 export function useRequireAdmin(): { status: AdminAuthStatus } {
   const router = useRouter();
-  const [status, setStatus] = useState<AdminAuthStatus>(resolveInitialStatus);
+  const [status, setStatus] = useState<AdminAuthStatus>("checking");
 
   useEffect(() => {
     if (status === "allowed") {
