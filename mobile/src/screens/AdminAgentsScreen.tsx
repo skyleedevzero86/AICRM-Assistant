@@ -19,7 +19,7 @@ export function AdminAgentsScreen() {
   return (
     <Screen>
       <View style={styles.searchRow}>
-        <TextInput onChangeText={setKeyword} placeholder="상담사 검색" style={styles.input} value={keyword} />
+        <TextInput onChangeText={setKeyword} placeholder="이름/이메일/사원번호" style={styles.input} value={keyword} />
         <TouchableOpacity onPress={() => setQuery(keyword)} style={styles.button}>
           <Text style={styles.buttonText}>검색</Text>
         </TouchableOpacity>
@@ -27,6 +27,7 @@ export function AdminAgentsScreen() {
       {items.map((item) => (
         <View key={item.agentId} style={styles.card}>
           <Text style={styles.name}>{item.name}</Text>
+          <Text style={styles.meta}>사원번호: {item.employeeNo}</Text>
           <Text style={styles.meta}>{item.email}</Text>
           <Text style={styles.meta}>승인: {item.approvalStatus}</Text>
           <Text style={styles.meta}>직급: {item.grade}</Text>

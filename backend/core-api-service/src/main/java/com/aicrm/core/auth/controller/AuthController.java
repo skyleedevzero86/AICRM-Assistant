@@ -1,6 +1,7 @@
 package com.aicrm.core.auth.controller;
 
 import com.aicrm.core.auth.application.AuthService;
+import com.aicrm.core.auth.dto.AgentSignUpRequest;
 import com.aicrm.core.auth.dto.LoginRequest;
 import com.aicrm.core.auth.dto.LoginResponse;
 import com.aicrm.core.auth.dto.MeResponse;
@@ -39,7 +40,7 @@ public class AuthController {
 
     @PostMapping("/signup/agent")
     @ResponseStatus(HttpStatus.CREATED)
-    public ApiResponse<SignUpResponse> signupAgent(@Valid @RequestBody SignUpRequest request) {
+    public ApiResponse<SignUpResponse> signupAgent(@Valid @RequestBody AgentSignUpRequest request) {
         return ApiResponse.ok(authService.signupAgent(request));
     }
 

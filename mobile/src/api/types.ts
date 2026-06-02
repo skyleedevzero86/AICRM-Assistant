@@ -20,6 +20,10 @@ export type SignUpRequest = {
   password: string;
 };
 
+export type AgentSignUpRequest = SignUpRequest & {
+  employeeNo: string;
+};
+
 export type SignUpResponse = {
   userId: number;
   email: string;
@@ -46,6 +50,7 @@ export type AdminCustomerUser = {
 export type AdminAgentUser = {
   userId: number;
   agentId: number;
+  employeeNo: string;
   name: string;
   email: string;
   approvalStatus: "PENDING" | "ACTIVE";

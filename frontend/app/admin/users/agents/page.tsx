@@ -60,7 +60,7 @@ export default function AdminAgentsPage() {
   return (
     <PageShell title="관리자 - 상담사 회원 관리" description="상담사 승인, 등급 조회, 검색, 정지, 탈퇴 상태를 관리합니다.">
       <div className="mb-4 flex gap-2">
-        <input className="rounded border px-3 py-2 text-sm" onChange={(e) => setKeyword(e.target.value)} placeholder="이름/이메일 검색" value={keyword} />
+        <input className="rounded border px-3 py-2 text-sm" onChange={(e) => setKeyword(e.target.value)} placeholder="이름/이메일/사원번호 검색" value={keyword} />
         <button className="rounded bg-zinc-900 px-3 py-2 text-sm text-white" onClick={() => setSubmittedKeyword(keyword)} type="button">검색</button>
         <Link className="rounded border px-3 py-2 text-sm" href={"/admin/users/customers" as Route}>고객 관리</Link>
         <Link className="rounded border px-3 py-2 text-sm" href={"/admin/attendance" as Route}>근태 관리</Link>
@@ -69,6 +69,7 @@ export default function AdminAgentsPage() {
       <table className="min-w-full divide-y divide-zinc-200 rounded border bg-white text-sm">
         <thead className="bg-zinc-50">
           <tr>
+            <th className="px-3 py-2 text-left">사원번호</th>
             <th className="px-3 py-2 text-left">이름</th>
             <th className="px-3 py-2 text-left">이메일</th>
             <th className="px-3 py-2 text-left">승인상태</th>
@@ -81,6 +82,7 @@ export default function AdminAgentsPage() {
         <tbody className="divide-y divide-zinc-100">
           {agentsQuery.data?.map((item) => (
             <tr key={item.agentId}>
+              <td className="px-3 py-2">{item.employeeNo}</td>
               <td className="px-3 py-2">{item.name}</td>
               <td className="px-3 py-2">{item.email}</td>
               <td className="px-3 py-2">{item.approvalStatus}</td>

@@ -7,6 +7,7 @@ import com.aicrm.core.auth.domain.UserRole;
 import com.aicrm.core.auth.dto.LoginRequest;
 import com.aicrm.core.auth.dto.LoginResponse;
 import com.aicrm.core.auth.dto.MeResponse;
+import com.aicrm.core.auth.dto.AgentSignUpRequest;
 import com.aicrm.core.auth.dto.SignUpRequest;
 import com.aicrm.core.auth.dto.SignUpResponse;
 import com.aicrm.core.auth.domain.AgentGrade;
@@ -42,8 +43,7 @@ public class AuthService {
             PasswordEncoder passwordEncoder,
             JwtTokenProvider jwtTokenProvider,
             CurrentUserProvider currentUserProvider,
-            AgentAttendanceService agentAttendanceService
-    ) {
+            AgentAttendanceService agentAttendanceService) {
         this.userAccountRepository = userAccountRepository;
         this.agentAccountRepository = agentAccountRepository;
         this.customerRepository = customerRepository;
@@ -80,8 +80,7 @@ public class AuthService {
                 account.getId(),
                 account.getEmail(),
                 account.getName(),
-                account.getRole()
-        );
+                account.getRole());
         String token = jwtTokenProvider.generateToken(user);
         if (user.role() == UserRole.AGENT) {
             agentAttendanceService.markAgentLogin(user.userId());
@@ -98,25 +97,26 @@ public class AuthService {
                 email,
                 passwordEncoder.encode(request.password()),
                 request.name().trim(),
-                UserRole.CUSTOMER
-        ));
+                UserRole.CUSTOMER));
         customerRepository.save(Customer.create(request.name().trim(), "", email, account.getId()));
 
         return new SignUpResponse(account.getId(), account.getEmail(), account.getRole(), "ACTIVE");
     }
 
     @Transactional
-    public SignUpResponse signupAgent(SignUpRequest request) {
+    public SignUpResponse signupAgent(AgentSignUpRequest request) {
         String email = request.email().trim().toLowerCase();
+        String employeeNo = AgentEmployeeNoValidator.normalize(request.employeeNo());
+        AgentEmployeeNoValidator.validate(employeeNo);
         ensureEmailAvailable(email);
+        ensureEmployeeNoAvailable(employeeNo);
 
         UserAccount account = userAccountRepository.save(UserAccount.create(
                 email,
                 passwordEncoder.encode(request.password()),
                 request.name().trim(),
-                UserRole.AGENT
-        ));
-        agentAccountRepository.save(AgentAccount.createPending(account.getId(), account.getName()));
+                UserRole.AGENT));
+        agentAccountRepository.save(AgentAccount.createPending(account.getId(), account.getName(), employeeNo));
 
         return new SignUpResponse(account.getId(), account.getEmail(), account.getRole(), "PENDING");
     }
@@ -155,6 +155,12 @@ public class AuthService {
     private void ensureEmailAvailable(String email) {
         if (userAccountRepository.existsByEmail(email)) {
             throw new BusinessException(ErrorCode.DUPLICATE_EMAIL);
+        }
+    }
+
+    private void ensureEmployeeNoAvailable(String employeeNo) {
+        if (agentAccountRepository.existsByEmployeeNo(employeeNo)) {
+            throw new BusinessException(ErrorCode.DUPLICATE_EMPLOYEE_NO);
         }
     }
 }

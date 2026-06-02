@@ -94,7 +94,8 @@ class AuthControllerTest {
                                 {
                                   "name": "신규 상담원",
                                   "email": "agent-new@test.com",
-                                  "password": "password1234"
+                                  "password": "password1234",
+                                  "employeeNo": "2026060207120101"
                                 }
                                 """))
                 .andExpect(status().isCreated())

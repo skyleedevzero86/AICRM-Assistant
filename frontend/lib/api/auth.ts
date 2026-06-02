@@ -3,6 +3,7 @@ import type {
   LoginRequest,
   LoginResponse,
   MeResponse,
+  AgentSignUpRequest,
   SignUpRequest,
   SignUpResponse
 } from "./types";
@@ -21,7 +22,7 @@ export function signupCustomer(request: SignUpRequest): Promise<SignUpResponse> 
   });
 }
 
-export function signupAgent(request: SignUpRequest): Promise<SignUpResponse> {
+export function signupAgent(request: AgentSignUpRequest): Promise<SignUpResponse> {
   return apiRequest<SignUpResponse>("/api/auth/signup/agent", {
     method: "POST",
     body: request

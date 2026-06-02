@@ -23,6 +23,8 @@ public enum ErrorCode {
     UNAUTHORIZED("UNAUTHORIZED", HttpStatus.UNAUTHORIZED, "인증이 필요합니다"),
     FORBIDDEN("FORBIDDEN", HttpStatus.FORBIDDEN, "접근 권한이 없습니다"),
     DUPLICATE_EMAIL("DUPLICATE_EMAIL", HttpStatus.CONFLICT, "이미 사용 중인 이메일입니다"),
+    DUPLICATE_EMPLOYEE_NO("DUPLICATE_EMPLOYEE_NO", HttpStatus.CONFLICT, "이미 사용 중인 사원번호입니다"),
+    INVALID_EMPLOYEE_NO("INVALID_EMPLOYEE_NO", HttpStatus.BAD_REQUEST, "사원번호 형식이 올바르지 않습니다"),
     AGENT_APPROVAL_REQUIRED("AGENT_APPROVAL_REQUIRED", HttpStatus.FORBIDDEN, "상담원 계정 승인이 필요합니다"),
     ACCOUNT_WITHDRAWN("ACCOUNT_WITHDRAWN", HttpStatus.FORBIDDEN, "탈퇴 처리된 계정입니다"),
     ACCOUNT_SUSPENDED("ACCOUNT_SUSPENDED", HttpStatus.FORBIDDEN, "정지된 계정입니다"),

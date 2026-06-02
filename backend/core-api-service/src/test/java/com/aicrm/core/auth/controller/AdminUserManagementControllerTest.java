@@ -49,7 +49,7 @@ class AdminUserManagementControllerTest {
     void agentsReturnsList() throws Exception {
         when(adminUserManagementService.getAgentUsers(nullable(String.class), org.mockito.ArgumentMatchers.any(), org.mockito.ArgumentMatchers.any()))
                 .thenReturn(List.of(new AdminAgentUserResponse(
-                        2L, 5L, "상담원", "a@test.com", AgentAccountStatus.PENDING, AgentGrade.COUNSELOR, "N", "N"
+                        2L, 5L, "2026060207120101", "상담원", "a@test.com", AgentAccountStatus.PENDING, AgentGrade.COUNSELOR, "N", "N"
                 )));
 
         mockMvc.perform(get("/api/admin/users/agents"))

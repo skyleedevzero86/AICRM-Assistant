@@ -31,8 +31,7 @@ public class AdminUserManagementService {
     public AdminUserManagementService(
             UserAccountRepository userAccountRepository,
             AgentAccountRepository agentAccountRepository,
-            CustomerRepository customerRepository
-    ) {
+            CustomerRepository customerRepository) {
         this.userAccountRepository = userAccountRepository;
         this.agentAccountRepository = agentAccountRepository;
         this.customerRepository = customerRepository;
@@ -55,8 +54,7 @@ public class AdminUserManagementService {
                             user.getEmail(),
                             customer != null ? customer.getPhone() : "",
                             user.getWithdrawnYn(),
-                            user.getSuspendedYn()
-                    );
+                            user.getSuspendedYn());
                 })
                 .toList();
     }
@@ -65,14 +63,13 @@ public class AdminUserManagementService {
     public List<AdminAgentUserResponse> getAgentUsers(
             String keyword,
             AgentAccountStatus approvalStatus,
-            AgentGrade grade
-    ) {
+            AgentGrade grade) {
         String normalized = normalize(keyword);
         Map<Long, AgentAccount> agentByUserId = agentAccountRepository.findAll().stream()
                 .collect(Collectors.toMap(AgentAccount::getUserId, agent -> agent));
 
         return userAccountRepository.findAllByRole(UserRole.AGENT).stream()
-                .filter(byKeyword(normalized))
+                .filter(user -> matchesAgentKeyword(user, agentByUserId.get(user.getId()), normalized))
                 .map(user -> {
                     AgentAccount agent = agentByUserId.get(user.getId());
                     if (agent == null) {
@@ -81,13 +78,13 @@ public class AdminUserManagementService {
                     return new AdminAgentUserResponse(
                             user.getId(),
                             agent.getId(),
+                            agent.getEmployeeNo(),
                             user.getName(),
                             user.getEmail(),
                             agent.getStatus(),
                             agent.getGrade(),
                             user.getWithdrawnYn(),
-                            user.getSuspendedYn()
-                    );
+                            user.getSuspendedYn());
                 })
                 .filter(response -> response != null)
                 .filter(response -> approvalStatus == null || response.approvalStatus() == approvalStatus)
@@ -121,5 +118,16 @@ public class AdminUserManagementService {
 
     private String normalize(String keyword) {
         return keyword == null ? "" : keyword.trim().toLowerCase(Locale.ROOT);
+    }
+
+    private boolean matchesAgentKeyword(UserAccount user, AgentAccount agent, String keyword) {
+        if (keyword.isBlank()) {
+            return true;
+        }
+        if (user.getName().toLowerCase(Locale.ROOT).contains(keyword)
+                || user.getEmail().toLowerCase(Locale.ROOT).contains(keyword)) {
+            return true;
+        }
+        return agent != null && agent.getEmployeeNo().contains(keyword);
     }
 }

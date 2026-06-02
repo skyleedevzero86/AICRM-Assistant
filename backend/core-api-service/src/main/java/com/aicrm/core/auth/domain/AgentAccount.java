@@ -24,6 +24,9 @@ public class AgentAccount {
     @Column(nullable = false, length = 100)
     private String name;
 
+    @Column(name = "employee_no", nullable = false, unique = true, length = 16)
+    private String employeeNo;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 40)
     private AgentAccountStatus status;
@@ -41,10 +44,11 @@ public class AgentAccount {
     protected AgentAccount() {
     }
 
-    public static AgentAccount createPending(Long userId, String name) {
+    public static AgentAccount createPending(Long userId, String name, String employeeNo) {
         AgentAccount agent = new AgentAccount();
         agent.userId = userId;
         agent.name = name;
+        agent.employeeNo = employeeNo;
         agent.status = AgentAccountStatus.PENDING;
         agent.grade = AgentGrade.COUNSELOR;
         agent.createdAt = Instant.now();
@@ -63,6 +67,10 @@ public class AgentAccount {
 
     public Long getUserId() {
         return userId;
+    }
+
+    public String getEmployeeNo() {
+        return employeeNo;
     }
 
     public AgentAccountStatus getStatus() {
