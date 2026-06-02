@@ -6,6 +6,22 @@ import { ApiError } from "@/api/client";
 import { Screen } from "@/components/Screen";
 import { setAccessToken } from "@/storage/authStorage";
 
+function getLoginErrorMessage(error: ApiError): string {
+  if (error.code === "AUTH_FAILED") {
+    return "이메일 또는 비밀번호가 올바르지 않습니다.";
+  }
+  if (error.code === "AGENT_APPROVAL_REQUIRED") {
+    return "상담원 계정 승인이 필요합니다.";
+  }
+  if (error.code === "ACCOUNT_SUSPENDED") {
+    return "정지된 계정입니다. 관리자에게 문의하세요.";
+  }
+  if (error.code === "ACCOUNT_WITHDRAWN") {
+    return "탈퇴 처리된 계정입니다.";
+  }
+  return error.message;
+}
+
 export function LoginScreen() {
   const router = useRouter();
   const [email, setEmail] = useState("");
@@ -22,11 +38,7 @@ export function LoginScreen() {
       router.replace("/(tabs)");
     } catch (error) {
       if (error instanceof ApiError) {
-        if (error.code === "AUTH_FAILED" && email.trim().toLowerCase() === "admin@aicrm.local") {
-          setErrorMessage("관리자 로그인 실패: 시드 계정 비밀번호는 password 입니다. 백엔드를 재시작해 최신 마이그레이션을 반영한 뒤 다시 시도하세요.");
-        } else {
-          setErrorMessage(error.message);
-        }
+        setErrorMessage(getLoginErrorMessage(error));
       } else {
         setErrorMessage("로그인에 실패했습니다.");
       }
