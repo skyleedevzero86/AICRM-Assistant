@@ -2,7 +2,7 @@
 
 import type { Route } from "next";
 import Link from "next/link";
-import { getAccessTokenRole } from "@/lib/auth-storage";
+import { useAccessTokenRole } from "@/lib/use-access-token-role";
 
 type PageShellProps = {
   title: string;
@@ -11,7 +11,7 @@ type PageShellProps = {
 };
 
 export function PageShell({ title, description, children }: PageShellProps) {
-  const role = getAccessTokenRole();
+  const role = useAccessTokenRole();
 
   return (
     <main className="min-h-screen p-6">

@@ -10,14 +10,15 @@ import { PageShell } from "@/components/page-shell";
 import { acceptTicket, fetchWaitingTickets } from "@/lib/api/agent";
 import { withdrawMe } from "@/lib/api/auth";
 import { ApiError } from "@/lib/api/client";
-import { clearAccessToken, getAccessTokenRole } from "@/lib/auth-storage";
+import { clearAccessToken } from "@/lib/auth-storage";
 import { formatDateTime } from "@/lib/format";
+import { useAccessTokenRole } from "@/lib/use-access-token-role";
 
 export default function AgentTicketsPage() {
   const router = useRouter();
   const queryClient = useQueryClient();
   const [actionError, setActionError] = useState<string | null>(null);
-  const role = getAccessTokenRole();
+  const role = useAccessTokenRole();
   const canAccessAgentTickets = role === "AGENT";
 
   const ticketsQuery = useQuery({
