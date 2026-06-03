@@ -13,6 +13,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import com.aicrm.core.agent.application.AcceptTicketService;
 import com.aicrm.core.agent.application.CloseTicketService;
 import com.aicrm.core.agent.application.GetAgentTicketDetailService;
+import com.aicrm.core.agent.application.GetAgentTicketsService;
 import com.aicrm.core.agent.application.GetWaitingTicketsService;
 import com.aicrm.core.agent.dto.AcceptTicketResponse;
 import com.aicrm.core.agent.dto.AgentTicketDetailResponse;
@@ -22,6 +23,7 @@ import com.aicrm.core.global.exception.BusinessException;
 import com.aicrm.core.global.exception.ErrorCode;
 import com.aicrm.core.global.exception.GlobalExceptionHandler;
 import com.aicrm.core.global.response.ApiResponse;
+import com.aicrm.core.support.MessagesInitializer;
 import com.aicrm.core.ticket.domain.ChannelType;
 import com.aicrm.core.ticket.domain.TicketStatus;
 import java.time.Instant;
@@ -41,6 +43,9 @@ class AgentTicketControllerTest {
     private GetWaitingTicketsService getWaitingTicketsService;
 
     @Mock
+    private GetAgentTicketsService getAgentTicketsService;
+
+    @Mock
     private GetAgentTicketDetailService getAgentTicketDetailService;
 
     @Mock
@@ -53,8 +58,10 @@ class AgentTicketControllerTest {
 
     @BeforeEach
     void setUp() {
+        MessagesInitializer.init();
         mockMvc = MockMvcBuilders.standaloneSetup(new AgentTicketController(
                         getWaitingTicketsService,
+                        getAgentTicketsService,
                         getAgentTicketDetailService,
                         acceptTicketService,
                         closeTicketService
@@ -90,24 +97,11 @@ class AgentTicketControllerTest {
     @Test
     void getTicketDelegatesToApplicationService() {
         // given
-        when(getAgentTicketDetailService.getDetail(1L)).thenReturn(new AgentTicketDetailResponse(
-                1L,
-                "TICKET-20260531-0001",
-                TicketStatus.WAITING,
-                "로그인 문의",
-                ChannelType.WEB_INQUIRY,
-                Instant.parse("2026-05-31T10:00:00Z"),
-                "김고객",
-                "010-1234-5678",
-                "customer@test.com",
-                3L,
-                "배송 지연",
-                "로그인이 되지 않습니다."
-        ));
+        when(getAgentTicketDetailService.getDetail(1L)).thenReturn(ticketDetail());
 
-        // when
         ApiResponse<AgentTicketDetailResponse> response = new AgentTicketController(
                 getWaitingTicketsService,
+                getAgentTicketsService,
                 getAgentTicketDetailService,
                 acceptTicketService,
                 closeTicketService
@@ -122,20 +116,7 @@ class AgentTicketControllerTest {
     @Test
     void getTicketReturnsDetail() throws Exception {
         // given
-        when(getAgentTicketDetailService.getDetail(anyLong())).thenReturn(new AgentTicketDetailResponse(
-                1L,
-                "TICKET-20260531-0001",
-                TicketStatus.WAITING,
-                "로그인 문의",
-                ChannelType.WEB_INQUIRY,
-                Instant.parse("2026-05-31T10:00:00Z"),
-                "김고객",
-                "010-1234-5678",
-                "customer@test.com",
-                3L,
-                "배송 지연",
-                "로그인이 되지 않습니다."
-        ));
+        when(getAgentTicketDetailService.getDetail(anyLong())).thenReturn(ticketDetail());
 
         // when & then
         mockMvc.perform(get("/api/agent/tickets/{ticketId}", 1L))
@@ -176,7 +157,8 @@ class AgentTicketControllerTest {
         // when & then
         mockMvc.perform(post("/api/agent/tickets/{ticketId}/accept", 1L))
                 .andExpect(status().isConflict())
-                .andExpect(jsonPath("$.error.code").value("TICKET_ALREADY_ASSIGNED"));
+                .andExpect(jsonPath("$.error.code").value("TICKET_ALREADY_ASSIGNED"))
+                .andExpect(jsonPath("$.error.message").value("이미 배정된 티켓입니다"));
     }
 
     @Test
@@ -224,7 +206,8 @@ class AgentTicketControllerTest {
                                 }
                                 """))
                 .andExpect(status().isForbidden())
-                .andExpect(jsonPath("$.error.code").value("NOT_ASSIGNED_AGENT"));
+                .andExpect(jsonPath("$.error.code").value("NOT_ASSIGNED_AGENT"))
+                .andExpect(jsonPath("$.error.message").value("이 티켓에 배정된 상담원이 아닙니다"));
     }
 
     @Test
@@ -239,5 +222,25 @@ class AgentTicketControllerTest {
                                 """))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.error.code").value("INVALID_REQUEST"));
+    }
+
+    private AgentTicketDetailResponse ticketDetail() {
+        return new AgentTicketDetailResponse(
+                1L,
+                "TICKET-20260531-0001",
+                TicketStatus.WAITING,
+                "로그인 문의",
+                ChannelType.WEB_INQUIRY,
+                Instant.parse("2026-05-31T10:00:00Z"),
+                "김고객",
+                "010-1234-5678",
+                "customer@test.com",
+                3L,
+                "배송 지연",
+                "로그인이 되지 않습니다.",
+                null,
+                null,
+                null
+        );
     }
 }

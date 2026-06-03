@@ -1,0 +1,19 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5433/aicrm
+    username: aicrm
+    password: aicrm
+  jpa:
+    hibernate:
+      ddl-auto: validate
+  flyway:
+    enabled: true
+
+aicrm:
+  storage:
+    type: memory
+
+security:
+  jwt:
+    secret: AICRM-TEST-SECRET-KEY-FOR-INTEGRATION-TESTS-32
+    expiration-seconds: 3600

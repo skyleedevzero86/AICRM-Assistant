@@ -1,12 +1,12 @@
 import type { ChannelType, SenderType, TicketStatus } from "./api/types";
 
 const TICKET_STATUS_LABELS: Record<TicketStatus, string> = {
-  WAITING: "대기",
+  WAITING: "접수",
   ASSIGNED: "배정됨",
-  IN_PROGRESS: "진행 중",
-  RESOLVED: "해결됨",
+  IN_PROGRESS: "상담 진행중",
+  RESOLVED: "처리완료",
   CLOSED: "종료",
-  ESCALATED: "에스컬레이션"
+  ESCALATED: "상위 상담 이관"
 };
 
 const SENDER_TYPE_LABELS: Record<SenderType, string> = {

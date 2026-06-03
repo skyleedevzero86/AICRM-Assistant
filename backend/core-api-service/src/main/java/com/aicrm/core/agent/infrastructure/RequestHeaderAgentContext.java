@@ -1,33 +1,38 @@
 package com.aicrm.core.agent.infrastructure;
 
 import com.aicrm.core.agent.application.AgentContext;
+import com.aicrm.core.auth.domain.AgentAccountStatus;
+import com.aicrm.core.auth.domain.UserRole;
+import com.aicrm.core.auth.infrastructure.AgentAccountRepository;
+import com.aicrm.core.auth.security.AuthenticatedUser;
+import com.aicrm.core.auth.security.CurrentUserProvider;
 import com.aicrm.core.global.exception.BusinessException;
 import com.aicrm.core.global.exception.ErrorCode;
 import org.springframework.stereotype.Component;
-import org.springframework.web.context.request.RequestContextHolder;
-import org.springframework.web.context.request.ServletRequestAttributes;
 
 @Component
 public class RequestHeaderAgentContext implements AgentContext {
 
-    public static final String AGENT_ID_HEADER = "X-Agent-Id";
+    private final CurrentUserProvider currentUserProvider;
+    private final AgentAccountRepository agentAccountRepository;
+
+    public RequestHeaderAgentContext(
+            CurrentUserProvider currentUserProvider,
+            AgentAccountRepository agentAccountRepository
+    ) {
+        this.currentUserProvider = currentUserProvider;
+        this.agentAccountRepository = agentAccountRepository;
+    }
 
     @Override
     public Long requireAgentId() {
-        ServletRequestAttributes attributes = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
-        if (attributes == null) {
-            throw new BusinessException(ErrorCode.AGENT_ID_REQUIRED);
+        AuthenticatedUser user = currentUserProvider.require();
+        if (user.role() != UserRole.AGENT) {
+            throw new BusinessException(ErrorCode.FORBIDDEN);
         }
-
-        String headerValue = attributes.getRequest().getHeader(AGENT_ID_HEADER);
-        if (headerValue == null || headerValue.isBlank()) {
-            throw new BusinessException(ErrorCode.AGENT_ID_REQUIRED);
-        }
-
-        try {
-            return Long.parseLong(headerValue.trim());
-        } catch (NumberFormatException exception) {
-            throw new BusinessException(ErrorCode.INVALID_REQUEST, "X-Agent-Id 헤더 값이 올바르지 않습니다");
-        }
+        return agentAccountRepository.findByUserId(user.userId())
+                .filter(agent -> agent.getStatus() == AgentAccountStatus.ACTIVE)
+                .map(agent -> agent.getId())
+                .orElseThrow(() -> new BusinessException(ErrorCode.AGENT_APPROVAL_REQUIRED));
     }
 }

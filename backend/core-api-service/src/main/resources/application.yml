@@ -1,5 +1,6 @@
 server:
   port: 8080
+  address: 0.0.0.0
 
 spring:
   application:
@@ -8,6 +9,10 @@ spring:
     active: local
   config:
     import: optional:classpath:application-local.yml
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 10MB
   autoconfigure:
     exclude:
       - org.springframework.ai.autoconfigure.openai.OpenAiAutoConfiguration
@@ -32,3 +37,23 @@ management:
   health:
     db:
       enabled: true
+
+security:
+  jwt:
+    secret: AICRM-DEMO-SECRET-KEY-CHANGE-ME-AT-LEAST-32-CHARS
+    expiration-seconds: 3600
+
+aicrm:
+  attachment:
+    max-file-size-bytes: 10485760
+    allowed-extensions: jpg,jpeg,png,gif,pdf,doc,docx,xls,xlsx,txt,zip
+
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    operations-sorter: method
+    tags-sorter: alpha
+  default-consumes-media-type: application/json
+  default-produces-media-type: application/json

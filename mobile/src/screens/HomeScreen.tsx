@@ -2,20 +2,22 @@ import { useCallback, useState } from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { useFocusEffect, useRouter } from "expo-router";
 import { Screen } from "@/components/Screen";
+import { msg } from "@/messages";
 import { EmptyState } from "@/components/EmptyState";
 import { TicketCard } from "@/components/TicketCard";
-import { loadAndRefreshTickets } from "@/storage/ticketStorage";
-import type { StoredTicket } from "@/storage/ticketStorage";
-import { refreshStoredTickets } from "@/utils/ticket-sync";
+import type { CustomerTicketSummary } from "@/api/types";
+import { clearAccessToken } from "@/storage/authStorage";
+import { clearStoredTickets } from "@/storage/ticketStorage";
+import { loadCustomerTickets } from "@/utils/ticket-sync";
 
 export function HomeScreen() {
   const router = useRouter();
-  const [tickets, setTickets] = useState<StoredTicket[]>([]);
+  const [tickets, setTickets] = useState<CustomerTicketSummary[]>([]);
 
   useFocusEffect(
     useCallback(() => {
       let active = true;
-      loadAndRefreshTickets(refreshStoredTickets).then((next) => {
+      loadCustomerTickets().then((next) => {
         if (active) setTickets(next.slice(0, 3));
       });
       return () => {
@@ -23,6 +25,12 @@ export function HomeScreen() {
       };
     }, [])
   );
+
+  async function logout() {
+    await clearAccessToken();
+    await clearStoredTickets();
+    router.replace("/auth/login");
+  }
 
   return (
     <Screen>
@@ -32,6 +40,14 @@ export function HomeScreen() {
         <TouchableOpacity onPress={() => router.push("/(tabs)/inquiry")} style={styles.heroButton}>
           <Text style={styles.heroButtonText}>빠른 문의하기</Text>
         </TouchableOpacity>
+        <View style={styles.heroActions}>
+          <TouchableOpacity onPress={() => router.push("/(tabs)/account")} style={styles.secondaryHeroButton}>
+            <Text style={styles.secondaryHeroButtonText}>{msg.ui("nav.account")}</Text>
+          </TouchableOpacity>
+          <TouchableOpacity onPress={() => void logout()} style={styles.secondaryHeroButton}>
+            <Text style={styles.secondaryHeroButtonText}>{msg.ui("common.logout")}</Text>
+          </TouchableOpacity>
+        </View>
       </View>
 
       <View style={styles.section}>
@@ -98,6 +114,25 @@ const styles = StyleSheet.create({
   heroButtonText: {
     color: "#09090b",
     fontSize: 14,
+    fontWeight: "800"
+  },
+  heroActions: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 8,
+    marginTop: 12
+  },
+  secondaryHeroButton: {
+    alignItems: "center",
+    backgroundColor: "#27272a",
+    borderRadius: 8,
+    minHeight: 36,
+    paddingHorizontal: 12,
+    justifyContent: "center"
+  },
+  secondaryHeroButtonText: {
+    color: "#fafafa",
+    fontSize: 13,
     fontWeight: "800"
   },
   section: {

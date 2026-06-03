@@ -26,24 +26,34 @@ public class JpaTicketRepository implements TicketRepository {
     @Override
     public Ticket getById(Long ticketId) {
         return springDataJpaRepository.findById(ticketId)
-                .orElseThrow(() -> new BusinessException(
-                        ErrorCode.TICKET_NOT_FOUND,
-                        "티켓을 찾을 수 없습니다: " + ticketId
-                ));
+                .orElseThrow(() -> new BusinessException(ErrorCode.TICKET_NOT_FOUND, "TICKET_NOT_FOUND", ticketId));
     }
 
     @Override
     public Ticket getByIdForUpdate(Long ticketId) {
         return springDataJpaRepository.findByIdForUpdate(ticketId)
-                .orElseThrow(() -> new BusinessException(
-                        ErrorCode.TICKET_NOT_FOUND,
-                        "티켓을 찾을 수 없습니다: " + ticketId
-                ));
+                .orElseThrow(() -> new BusinessException(ErrorCode.TICKET_NOT_FOUND, "TICKET_NOT_FOUND", ticketId));
     }
 
     @Override
     public List<Ticket> findAllOrderByCreatedAtDesc() {
         return springDataJpaRepository.findAllByOrderByCreatedAtDesc();
+    }
+
+    @Override
+    public List<Ticket> findAllByCustomerIdOrderByCreatedAtDesc(Long customerId) {
+        return springDataJpaRepository.findAllByCustomerIdOrderByCreatedAtDesc(customerId);
+    }
+
+    @Override
+    public List<Ticket> findAllByAgentIdOrderByCreatedAtDesc(Long agentId) {
+        return springDataJpaRepository.findAllByAgentIdOrderByCreatedAtDesc(agentId);
+    }
+
+    @Override
+    public Ticket getByIdAndCustomerId(Long ticketId, Long customerId) {
+        return springDataJpaRepository.findByIdAndCustomerId(ticketId, customerId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.TICKET_NOT_FOUND, "TICKET_NOT_FOUND", ticketId));
     }
 
     @Override

@@ -1,11 +1,18 @@
 package com.aicrm.app;
 
+import static com.aicrm.app.support.IntegrationKoreanErrors.INVALID_CATEGORY_DEPTH;
+import static com.aicrm.app.support.IntegrationTestSupport.SEED_CUSTOMER_EMAIL;
+import static com.aicrm.app.support.IntegrationTestSupport.SEED_PASSWORD;
+import static com.aicrm.app.support.IntegrationTestSupport.bearer;
+import static com.aicrm.app.support.IntegrationTestSupport.findNodeByCode;
+import static com.aicrm.app.support.IntegrationTestSupport.login;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.aicrm.app.support.PostgresIntegrationTestSupport;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.nio.charset.StandardCharsets;
@@ -14,14 +21,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
-import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 
 @SpringBootTest
 @AutoConfigureMockMvc
-@ActiveProfiles("local")
-class ConsultationCategoryApiIntegrationTest {
+class ConsultationCategoryApiIntegrationTest extends PostgresIntegrationTestSupport {
 
     @Autowired
     private MockMvc mockMvc;
@@ -31,8 +36,12 @@ class ConsultationCategoryApiIntegrationTest {
 
     @Test
     void getConsultationCategoryTreeReturnsSevenRootCategories() throws Exception {
+        // given
+        String customerToken = login(mockMvc, objectMapper, SEED_CUSTOMER_EMAIL, SEED_PASSWORD);
+
         // when
-        MvcResult result = mockMvc.perform(get("/api/categories/consultation/tree"))
+        MvcResult result = mockMvc.perform(get("/api/categories/consultation/tree")
+                        .header("Authorization", bearer(customerToken)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.data.length()").value(7))
@@ -60,7 +69,9 @@ class ConsultationCategoryApiIntegrationTest {
     @Test
     void createInquiryAcceptsDepthThreeCategory() throws Exception {
         // given
-        MvcResult treeResult = mockMvc.perform(get("/api/categories/consultation/tree"))
+        String customerToken = login(mockMvc, objectMapper, SEED_CUSTOMER_EMAIL, SEED_PASSWORD);
+        MvcResult treeResult = mockMvc.perform(get("/api/categories/consultation/tree")
+                        .header("Authorization", bearer(customerToken)))
                 .andExpect(status().isOk())
                 .andReturn();
 
@@ -70,6 +81,7 @@ class ConsultationCategoryApiIntegrationTest {
 
         // when & then
         mockMvc.perform(post("/api/customer/inquiries")
+                        .header("Authorization", bearer(customerToken))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                                 {
@@ -91,7 +103,9 @@ class ConsultationCategoryApiIntegrationTest {
     @Test
     void createInquiryRejectsDepthOneCategory() throws Exception {
         // given
-        MvcResult treeResult = mockMvc.perform(get("/api/categories/consultation/tree"))
+        String customerToken = login(mockMvc, objectMapper, SEED_CUSTOMER_EMAIL, SEED_PASSWORD);
+        MvcResult treeResult = mockMvc.perform(get("/api/categories/consultation/tree")
+                        .header("Authorization", bearer(customerToken)))
                 .andExpect(status().isOk())
                 .andReturn();
 
@@ -101,6 +115,7 @@ class ConsultationCategoryApiIntegrationTest {
 
         // when & then
         mockMvc.perform(post("/api/customer/inquiries")
+                        .header("Authorization", bearer(customerToken))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                                 {
@@ -114,19 +129,7 @@ class ConsultationCategoryApiIntegrationTest {
                                 """.formatted(rootCategoryId)))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.success").value(false))
-                .andExpect(jsonPath("$.error.code").value("INVALID_CATEGORY_DEPTH"));
-    }
-
-    private JsonNode findNodeByCode(JsonNode nodes, String code) {
-        for (JsonNode node : nodes) {
-            if (code.equals(node.path("code").asText())) {
-                return node;
-            }
-            JsonNode childMatch = findNodeByCode(node.path("children"), code);
-            if (childMatch != null) {
-                return childMatch;
-            }
-        }
-        return null;
+                .andExpect(jsonPath("$.error.code").value("INVALID_CATEGORY_DEPTH"))
+                .andExpect(jsonPath("$.error.message").value(org.hamcrest.Matchers.containsString(INVALID_CATEGORY_DEPTH)));
     }
 }

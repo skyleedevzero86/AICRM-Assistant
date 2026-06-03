@@ -10,4 +10,6 @@ public interface MessageRepository {
     Optional<Message> findFirstCustomerMessageByConversationId(Long conversationId);
 
     List<Message> findAllByConversationIdOrderByCreatedAtAsc(Long conversationId);
+
+    Message getById(Long messageId);
 }

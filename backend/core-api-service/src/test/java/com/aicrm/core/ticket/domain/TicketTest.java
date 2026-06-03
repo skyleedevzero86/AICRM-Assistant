@@ -7,9 +7,16 @@ import com.aicrm.core.category.domain.ConsultationCategory;
 import com.aicrm.core.customer.domain.Customer;
 import com.aicrm.core.global.exception.BusinessException;
 import com.aicrm.core.global.exception.ErrorCode;
+import com.aicrm.core.support.MessagesInitializer;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 class TicketTest {
+
+    @BeforeAll
+    static void setUpMessages() {
+        MessagesInitializer.init();
+    }
 
     @Test
     void createWaitingInitializesWaitingTicket() {

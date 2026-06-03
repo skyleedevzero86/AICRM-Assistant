@@ -13,6 +13,12 @@ public interface TicketRepository {
 
     List<Ticket> findAllOrderByCreatedAtDesc();
 
+    List<Ticket> findAllByCustomerIdOrderByCreatedAtDesc(Long customerId);
+
+    List<Ticket> findAllByAgentIdOrderByCreatedAtDesc(Long agentId);
+
+    Ticket getByIdAndCustomerId(Long ticketId, Long customerId);
+
     List<Ticket> findAllByStatusOrderByCreatedAtAsc(TicketStatus status);
 
     long countByCreatedAtBetween(Instant start, Instant end);

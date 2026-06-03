@@ -6,6 +6,8 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import com.aicrm.core.global.exception.BusinessException;
+import com.aicrm.core.global.exception.ErrorCode;
 import java.time.Instant;
 
 @Entity
@@ -38,7 +40,12 @@ public class Customer {
     }
 
     public static Customer create(String name, String phone, String email) {
+        return create(name, phone, email, null);
+    }
+
+    public static Customer create(String name, String phone, String email, Long userId) {
         Customer customer = new Customer();
+        customer.userId = userId;
         customer.name = name;
         customer.phone = phone;
         customer.email = email;
@@ -61,5 +68,35 @@ public class Customer {
 
     public String getEmail() {
         return email;
+    }
+
+    public Long getUserId() {
+        return userId;
+    }
+
+    public void updateProfile(String name, String email) {
+        if (name == null || name.isBlank()) {
+            throw new BusinessException(ErrorCode.INVALID_REQUEST, "NAME_REQUIRED");
+        }
+        if (email == null || email.isBlank()) {
+            throw new BusinessException(ErrorCode.INVALID_REQUEST, "EMAIL_REQUIRED");
+        }
+        this.name = name.trim();
+        this.email = email.trim();
+        this.updatedAt = Instant.now();
+    }
+
+    public void updateAccount(String name, String phone) {
+        if (name == null || name.isBlank()) {
+            throw new BusinessException(ErrorCode.INVALID_REQUEST, "NAME_REQUIRED");
+        }
+        this.name = name.trim();
+        this.phone = phone == null ? "" : phone.trim();
+        this.updatedAt = Instant.now();
+    }
+
+    public void updatePhone(String phone) {
+        this.phone = phone == null ? "" : phone.trim();
+        this.updatedAt = Instant.now();
     }
 }

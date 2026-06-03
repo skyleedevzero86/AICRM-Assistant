@@ -6,7 +6,8 @@ import type {
   CustomerTicketSummary,
   Message,
   SaveMessageRequest,
-  SaveMessageResponse
+  SaveMessageResponse,
+  UpdateCustomerInquiryRequest
 } from "./types";
 
 export function createCustomerInquiry(
@@ -36,6 +37,16 @@ export function createCustomerTicketMessage(
 ): Promise<SaveMessageResponse> {
   return apiRequest<SaveMessageResponse>(`/api/customer/tickets/${ticketId}/messages`, {
     method: "POST",
+    body: JSON.stringify(request)
+  });
+}
+
+export function updateCustomerInquiry(
+  ticketId: number,
+  request: UpdateCustomerInquiryRequest
+): Promise<CustomerTicketDetail> {
+  return apiRequest<CustomerTicketDetail>(`/api/customer/tickets/${ticketId}`, {
+    method: "PUT",
     body: JSON.stringify(request)
   });
 }

@@ -2,6 +2,7 @@ package com.aicrm.core.message.application;
 
 import com.aicrm.core.conversation.domain.Conversation;
 import com.aicrm.core.conversation.domain.ConversationRepository;
+import com.aicrm.core.customer.application.CurrentCustomerService;
 import com.aicrm.core.global.exception.BusinessException;
 import com.aicrm.core.global.exception.ErrorCode;
 import com.aicrm.core.message.domain.Message;
@@ -19,20 +20,24 @@ public class SaveCustomerTicketMessageService {
     private final TicketRepository ticketRepository;
     private final ConversationRepository conversationRepository;
     private final MessageRepository messageRepository;
+    private final CurrentCustomerService currentCustomerService;
 
     public SaveCustomerTicketMessageService(
             TicketRepository ticketRepository,
             ConversationRepository conversationRepository,
-            MessageRepository messageRepository
+            MessageRepository messageRepository,
+            CurrentCustomerService currentCustomerService
     ) {
         this.ticketRepository = ticketRepository;
         this.conversationRepository = conversationRepository;
         this.messageRepository = messageRepository;
+        this.currentCustomerService = currentCustomerService;
     }
 
     @Transactional
     public SaveMessageResponse save(Long ticketId, SaveMessageRequest request) {
-        Ticket ticket = ticketRepository.getById(ticketId);
+        Long customerId = currentCustomerService.requireCustomerId();
+        Ticket ticket = ticketRepository.getByIdAndCustomerId(ticketId, customerId);
         ensureTicketAcceptsMessage(ticket);
         Conversation conversation = conversationRepository.getByTicketId(ticketId);
         Message message = Message.customerText(

@@ -19,18 +19,12 @@ public class JpaConsultationCategoryRepository implements ConsultationCategoryRe
     @Override
     public ConsultationCategory getEnabledLeafCategory(Long categoryId) {
         ConsultationCategory category = springDataJpaRepository.findByIdAndActiveTrue(categoryId)
-                .orElseThrow(() -> new BusinessException(
-                        ErrorCode.CATEGORY_NOT_FOUND,
-                        "상담 카테고리를 찾을 수 없습니다: " + categoryId
-                ));
+                .orElseThrow(() -> new BusinessException(ErrorCode.CATEGORY_NOT_FOUND, "CATEGORY_NOT_FOUND", categoryId));
 
         category.ensureLeafCategory();
 
         if (existsActiveChild(categoryId)) {
-            throw new BusinessException(
-                    ErrorCode.INVALID_CATEGORY_DEPTH,
-                    "상담 카테고리는 3단계 리프 카테고리여야 합니다: " + categoryId
-            );
+            throw new BusinessException(ErrorCode.INVALID_CATEGORY_DEPTH, "INVALID_CATEGORY_DEPTH", categoryId);
         }
 
         return category;

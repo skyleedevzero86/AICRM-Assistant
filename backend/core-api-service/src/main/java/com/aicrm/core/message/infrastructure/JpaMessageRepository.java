@@ -1,5 +1,7 @@
 package com.aicrm.core.message.infrastructure;
 
+import com.aicrm.core.global.exception.BusinessException;
+import com.aicrm.core.global.exception.ErrorCode;
 import com.aicrm.core.message.domain.Message;
 import com.aicrm.core.message.domain.MessageRepository;
 import com.aicrm.core.message.domain.SenderType;
@@ -32,5 +34,11 @@ public class JpaMessageRepository implements MessageRepository {
     @Override
     public List<Message> findAllByConversationIdOrderByCreatedAtAsc(Long conversationId) {
         return springDataJpaRepository.findAllByConversation_IdOrderByCreatedAtAsc(conversationId);
+    }
+
+    @Override
+    public Message getById(Long messageId) {
+        return springDataJpaRepository.findById(messageId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.MESSAGE_NOT_FOUND, "MESSAGE_NOT_FOUND", messageId));
     }
 }

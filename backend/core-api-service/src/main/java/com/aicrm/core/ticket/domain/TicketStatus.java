@@ -8,6 +8,10 @@ public enum TicketStatus {
     CLOSED,
     ESCALATED;
 
+    public boolean canUpdate() {
+        return this == WAITING;
+    }
+
     public boolean canAccept() {
         return this == WAITING || this == ASSIGNED;
     }

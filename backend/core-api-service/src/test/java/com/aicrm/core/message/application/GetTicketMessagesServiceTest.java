@@ -4,9 +4,13 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.aicrm.core.auth.domain.UserRole;
+import com.aicrm.core.auth.security.AuthenticatedUser;
+import com.aicrm.core.auth.security.CurrentUserProvider;
 import com.aicrm.core.category.domain.ConsultationCategory;
 import com.aicrm.core.conversation.domain.Conversation;
 import com.aicrm.core.conversation.domain.ConversationRepository;
+import com.aicrm.core.customer.application.CurrentCustomerService;
 import com.aicrm.core.customer.domain.Customer;
 import com.aicrm.core.message.domain.Message;
 import com.aicrm.core.message.domain.MessageRepository;
@@ -35,6 +39,12 @@ class GetTicketMessagesServiceTest {
     @Mock
     private MessageRepository messageRepository;
 
+    @Mock
+    private CurrentUserProvider currentUserProvider;
+
+    @Mock
+    private CurrentCustomerService currentCustomerService;
+
     @InjectMocks
     private GetTicketMessagesService getTicketMessagesService;
 
@@ -54,6 +64,7 @@ class GetTicketMessagesServiceTest {
                 Instant.parse("2026-05-31T10:05:00Z")
         );
 
+        when(currentUserProvider.require()).thenReturn(new AuthenticatedUser(1L, "agent@test.com", "상담원", UserRole.AGENT));
         when(ticketRepository.getById(10L)).thenReturn(ticket);
         when(conversationRepository.getByTicketId(10L)).thenReturn(conversation);
         when(messageRepository.findAllByConversationIdOrderByCreatedAtAsc(20L)).thenReturn(List.of(first, second));
@@ -68,6 +79,31 @@ class GetTicketMessagesServiceTest {
         assertThat(responses.get(1).messageId()).isEqualTo(2L);
         assertThat(responses.get(1).content()).isEqualTo("답변");
         verify(messageRepository).findAllByConversationIdOrderByCreatedAtAsc(20L);
+    }
+
+    @Test
+    void getMessagesUsesCustomerOwnershipForCustomerRole() {
+        // given
+        Ticket ticket = ticketWithId(10L);
+        Conversation conversation = conversationWithId(ticket, 20L);
+        Message first = messageWithId(
+                Message.customerText(conversation, 1L, "고객 문의"),
+                1L,
+                java.time.Instant.parse("2026-05-31T10:00:00Z")
+        );
+
+        when(currentUserProvider.require()).thenReturn(new AuthenticatedUser(100L, "customer@test.com", "김고객", UserRole.CUSTOMER));
+        when(currentCustomerService.requireCustomerId()).thenReturn(1L);
+        when(ticketRepository.getByIdAndCustomerId(10L, 1L)).thenReturn(ticket);
+        when(conversationRepository.getByTicketId(10L)).thenReturn(conversation);
+        when(messageRepository.findAllByConversationIdOrderByCreatedAtAsc(20L)).thenReturn(List.of(first));
+
+        // when
+        List<MessageResponse> responses = getTicketMessagesService.getMessages(10L);
+
+        // then
+        assertThat(responses).hasSize(1);
+        verify(ticketRepository).getByIdAndCustomerId(10L, 1L);
     }
 
     private Ticket ticketWithId(Long id) {

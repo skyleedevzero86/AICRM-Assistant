@@ -17,6 +17,12 @@ public interface TicketSpringDataJpaRepository extends JpaRepository<Ticket, Lon
 
     List<Ticket> findAllByOrderByCreatedAtDesc();
 
+    List<Ticket> findAllByCustomerIdOrderByCreatedAtDesc(Long customerId);
+
+    List<Ticket> findAllByAgentIdOrderByCreatedAtDesc(Long agentId);
+
+    Optional<Ticket> findByIdAndCustomerId(Long ticketId, Long customerId);
+
     List<Ticket> findAllByStatusOrderByCreatedAtAsc(TicketStatus status);
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)

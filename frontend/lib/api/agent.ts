@@ -1,8 +1,8 @@
-import { DEFAULT_AGENT_ID } from "../constants";
 import { apiRequest } from "./client";
 import type {
   AcceptTicketResponse,
   AgentTicketDetail,
+  AgentTicketSummary,
   CloseTicketRequest,
   CloseTicketResponse,
   SaveMessageRequest,
@@ -11,34 +11,26 @@ import type {
 } from "./types";
 import type { Message } from "./types";
 
-function agentHeaders(): Record<string, string> {
-  return { "X-Agent-Id": DEFAULT_AGENT_ID };
+export function fetchWaitingTickets(): Promise<WaitingTicket[]> {
+  return apiRequest<WaitingTicket[]>("/api/agent/tickets/waiting");
 }
 
-export function fetchWaitingTickets(): Promise<WaitingTicket[]> {
-  return apiRequest<WaitingTicket[]>("/api/agent/tickets/waiting", {
-    headers: agentHeaders()
-  });
+export function fetchAgentTickets(): Promise<AgentTicketSummary[]> {
+  return apiRequest<AgentTicketSummary[]>("/api/agent/tickets");
 }
 
 export function fetchAgentTicketDetail(ticketId: number): Promise<AgentTicketDetail> {
-  return apiRequest<AgentTicketDetail>(`/api/agent/tickets/${ticketId}`, {
-    headers: agentHeaders()
-  });
+  return apiRequest<AgentTicketDetail>(`/api/agent/tickets/${ticketId}`);
 }
 
 export function acceptTicket(ticketId: number): Promise<AcceptTicketResponse> {
-  return apiRequest<AcceptTicketResponse>(`/api/agent/tickets/${ticketId}/accept`, {
-    method: "POST",
-    headers: agentHeaders()
-  });
+  return apiRequest<AcceptTicketResponse>(`/api/agent/tickets/${ticketId}/accept`, { method: "POST" });
 }
 
 export function closeTicket(ticketId: number, request: CloseTicketRequest): Promise<CloseTicketResponse> {
   return apiRequest<CloseTicketResponse>(`/api/agent/tickets/${ticketId}/close`, {
     method: "POST",
-    body: request,
-    headers: agentHeaders()
+    body: request
   });
 }
 
@@ -48,8 +40,7 @@ export function saveAgentMessage(
 ): Promise<SaveMessageResponse> {
   return apiRequest<SaveMessageResponse>(`/api/agent/tickets/${ticketId}/messages`, {
     method: "POST",
-    body: request,
-    headers: agentHeaders()
+    body: request
   });
 }
 

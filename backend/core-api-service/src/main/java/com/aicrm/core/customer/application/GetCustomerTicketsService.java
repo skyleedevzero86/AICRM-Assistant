@@ -17,25 +17,31 @@ public class GetCustomerTicketsService {
 
     private final TicketRepository ticketRepository;
     private final GetTicketMessagesService getTicketMessagesService;
+    private final CurrentCustomerService currentCustomerService;
 
     public GetCustomerTicketsService(
             TicketRepository ticketRepository,
-            GetTicketMessagesService getTicketMessagesService
+            GetTicketMessagesService getTicketMessagesService,
+            CurrentCustomerService currentCustomerService
     ) {
         this.ticketRepository = ticketRepository;
         this.getTicketMessagesService = getTicketMessagesService;
+        this.currentCustomerService = currentCustomerService;
     }
 
     @Transactional(readOnly = true)
     public List<CustomerTicketSummaryResponse> getTickets() {
-        return ticketRepository.findAllOrderByCreatedAtDesc().stream()
-                .map(this::toSummary)
-                .toList();
+        return currentCustomerService.resolveCustomerId()
+                .map(customerId -> ticketRepository.findAllByCustomerIdOrderByCreatedAtDesc(customerId).stream()
+                        .map(this::toSummary)
+                        .toList())
+                .orElseGet(List::of);
     }
 
     @Transactional(readOnly = true)
     public CustomerTicketDetailResponse getTicket(Long ticketId) {
-        Ticket ticket = ticketRepository.getById(ticketId);
+        Long customerId = currentCustomerService.requireCustomerId();
+        Ticket ticket = ticketRepository.getByIdAndCustomerId(ticketId, customerId);
         String inquiryContent = getTicketMessagesService.getMessages(ticketId).stream()
                 .filter(message -> message.senderType() == SenderType.CUSTOMER)
                 .min(Comparator.comparing(MessageResponse::createdAt))
@@ -47,6 +53,7 @@ public class GetCustomerTicketsService {
                 ticket.getTicketNo(),
                 ticket.getStatus(),
                 ticket.getSubject(),
+                ticket.getCategory().getId(),
                 ticket.getCategory().getName(),
                 ticket.getCreatedAt(),
                 ticket.getCustomer().getName(),

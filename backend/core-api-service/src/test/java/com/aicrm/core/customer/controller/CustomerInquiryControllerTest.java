@@ -11,7 +11,9 @@ import com.aicrm.core.customer.dto.CreateCustomerInquiryResponse;
 import com.aicrm.core.global.exception.BusinessException;
 import com.aicrm.core.global.exception.ErrorCode;
 import com.aicrm.core.global.exception.GlobalExceptionHandler;
+import com.aicrm.core.support.MessagesInitializer;
 import com.aicrm.core.ticket.domain.TicketStatus;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -31,6 +33,11 @@ class CustomerInquiryControllerTest {
 
     @MockBean
     private CreateCustomerInquiryService createCustomerInquiryService;
+
+    @BeforeEach
+    void setUp() {
+        MessagesInitializer.init();
+    }
 
     @Test
     void createReturnsCreatedResponse() throws Exception {
@@ -65,10 +72,7 @@ class CustomerInquiryControllerTest {
     void createReturnsBadRequestWhenCategoryDepthIsInvalid() throws Exception {
         // given
         when(createCustomerInquiryService.create(any()))
-                .thenThrow(new BusinessException(
-                        ErrorCode.INVALID_CATEGORY_DEPTH,
-                        "상담 카테고리는 3단계 리프 카테고리여야 합니다: 1"
-                ));
+                .thenThrow(new BusinessException(ErrorCode.INVALID_CATEGORY_DEPTH, "INVALID_CATEGORY_DEPTH", 1L));
 
         // when & then
         mockMvc.perform(post("/api/customer/inquiries")
@@ -84,6 +88,7 @@ class CustomerInquiryControllerTest {
                                 }
                                 """))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.error.code").value("INVALID_CATEGORY_DEPTH"));
+                .andExpect(jsonPath("$.error.code").value("INVALID_CATEGORY_DEPTH"))
+                .andExpect(jsonPath("$.error.message").value(org.hamcrest.Matchers.containsString("상담 카테고리는 3단계 리프 카테고리여야 합니다")));
     }
 }

@@ -4,6 +4,9 @@ import com.aicrm.core.category.domain.ConsultationCategory;
 import com.aicrm.core.category.domain.ConsultationCategoryRepository;
 import com.aicrm.core.conversation.domain.Conversation;
 import com.aicrm.core.conversation.domain.ConversationRepository;
+import com.aicrm.core.auth.domain.UserRole;
+import com.aicrm.core.auth.security.AuthenticatedUser;
+import com.aicrm.core.auth.security.CurrentUserProvider;
 import com.aicrm.core.customer.domain.Customer;
 import com.aicrm.core.customer.domain.CustomerRepository;
 import com.aicrm.core.customer.dto.CreateCustomerInquiryRequest;
@@ -14,6 +17,8 @@ import com.aicrm.core.ticket.application.TicketNoGenerator;
 import com.aicrm.core.ticket.domain.ChannelType;
 import com.aicrm.core.ticket.domain.Ticket;
 import com.aicrm.core.ticket.domain.TicketRepository;
+import com.aicrm.core.global.exception.BusinessException;
+import com.aicrm.core.global.exception.ErrorCode;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -26,6 +31,7 @@ public class CreateCustomerInquiryService {
     private final TicketNoGenerator ticketNoGenerator;
     private final ConversationRepository conversationRepository;
     private final MessageRepository messageRepository;
+    private final CurrentUserProvider currentUserProvider;
 
     public CreateCustomerInquiryService(
             CustomerRepository customerRepository,
@@ -33,7 +39,8 @@ public class CreateCustomerInquiryService {
             TicketRepository ticketRepository,
             TicketNoGenerator ticketNoGenerator,
             ConversationRepository conversationRepository,
-            MessageRepository messageRepository
+            MessageRepository messageRepository,
+            CurrentUserProvider currentUserProvider
     ) {
         this.customerRepository = customerRepository;
         this.consultationCategoryRepository = consultationCategoryRepository;
@@ -41,6 +48,7 @@ public class CreateCustomerInquiryService {
         this.ticketNoGenerator = ticketNoGenerator;
         this.conversationRepository = conversationRepository;
         this.messageRepository = messageRepository;
+        this.currentUserProvider = currentUserProvider;
     }
 
     @Transactional
@@ -71,11 +79,16 @@ public class CreateCustomerInquiryService {
     }
 
     private Customer resolveCustomer(CreateCustomerInquiryRequest request) {
-        return customerRepository.findByPhone(request.phone())
+        AuthenticatedUser user = currentUserProvider.require();
+        if (user.role() != UserRole.CUSTOMER) {
+            throw new BusinessException(ErrorCode.FORBIDDEN);
+        }
+        return customerRepository.findByUserId(user.userId())
                 .orElseGet(() -> customerRepository.save(Customer.create(
                         request.customerName(),
                         request.phone(),
-                        request.email()
+                        request.email(),
+                        user.userId()
                 )));
     }
 }

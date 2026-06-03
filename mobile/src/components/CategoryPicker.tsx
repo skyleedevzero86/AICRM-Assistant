@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { fetchConsultationCategoryTree } from "@/api/categories";
-import { ApiError } from "@/api/client";
+import { ApiError, getApiBaseUrl } from "@/api/client";
 import type { ConsultationCategoryTreeNode } from "@/api/types";
 import { ErrorMessage } from "@/components/ErrorMessage";
 import { LoadingView } from "@/components/LoadingView";
@@ -31,7 +31,12 @@ export function CategoryPicker({ value, onChange, error }: CategoryPickerProps) 
       })
       .catch((err) => {
         if (!active) return;
-        setLoadError(err instanceof ApiError ? err.message : "상담 구분 목록을 불러오지 못했습니다.");
+        const base = getApiBaseUrl();
+        setLoadError(
+          err instanceof ApiError
+            ? `${err.message} (API: ${base})`
+            : `상담 구분 목록을 불러오지 못했습니다. (API: ${base})`
+        );
       })
       .finally(() => {
         if (active) setLoading(false);
@@ -100,8 +105,42 @@ export function CategoryPicker({ value, onChange, error }: CategoryPickerProps) 
     return <LoadingView label="상담 구분을 불러오는 중..." />;
   }
 
+  function reload() {
+    setLoading(true);
+    setLoadError(null);
+    fetchConsultationCategoryTree()
+      .then((data) => setTree(data))
+      .catch((err) => {
+        const base = getApiBaseUrl();
+        setLoadError(
+          err instanceof ApiError
+            ? `${err.message} (API: ${base})`
+            : `상담 구분 목록을 불러오지 못했습니다. (API: ${base})`
+        );
+      })
+      .finally(() => setLoading(false));
+  }
+
   if (loadError) {
-    return <ErrorMessage message={loadError} />;
+    return (
+      <View style={styles.wrapper}>
+        <ErrorMessage message={loadError} />
+        <TouchableOpacity onPress={reload} style={styles.retryButton}>
+          <Text style={styles.retryText}>다시 시도</Text>
+        </TouchableOpacity>
+      </View>
+    );
+  }
+
+  if (tree.length === 0) {
+    return (
+      <View style={styles.wrapper}>
+        <Text style={styles.hint}>등록된 상담 구분이 없습니다. 백엔드 DB 마이그레이션을 확인해 주세요.</Text>
+        <TouchableOpacity onPress={reload} style={styles.retryButton}>
+          <Text style={styles.retryText}>다시 불러오기</Text>
+        </TouchableOpacity>
+      </View>
+    );
   }
 
   return (
@@ -208,5 +247,19 @@ const styles = StyleSheet.create({
   error: {
     color: "#b91c1c",
     fontSize: 13
+  },
+  retryButton: {
+    alignSelf: "flex-start",
+    backgroundColor: "#ffffff",
+    borderColor: "#d4d4d8",
+    borderRadius: 8,
+    borderWidth: 1,
+    paddingHorizontal: 12,
+    paddingVertical: 8
+  },
+  retryText: {
+    color: "#27272a",
+    fontSize: 13,
+    fontWeight: "800"
   }
 });

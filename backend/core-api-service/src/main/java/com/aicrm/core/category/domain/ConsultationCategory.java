@@ -110,10 +110,7 @@ public class ConsultationCategory {
 
     public void ensureLeafCategory() {
         if (!isLeaf()) {
-            throw new BusinessException(
-                    ErrorCode.INVALID_CATEGORY_DEPTH,
-                    "상담 카테고리는 3단계 리프 카테고리여야 합니다: " + id
-            );
+            throw new BusinessException(ErrorCode.INVALID_CATEGORY_DEPTH, "INVALID_CATEGORY_DEPTH", id);
         }
     }
 }
