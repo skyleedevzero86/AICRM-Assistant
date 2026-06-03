@@ -8,6 +8,7 @@ import { CategoryPicker } from "@/components/CategoryPicker";
 import { ErrorMessage } from "@/components/ErrorMessage";
 import { Screen } from "@/components/Screen";
 import { TicketStatusBadge } from "@/components/TicketStatusBadge";
+import { TicketAttachmentSection } from "@/components/TicketAttachmentSection";
 import { loadCustomerTickets } from "@/utils/ticket-sync";
 
 export function InquiryScreen() {
@@ -95,6 +96,7 @@ export function InquiryScreen() {
               <Text style={styles.secondaryButtonText}>새 문의 작성</Text>
             </TouchableOpacity>
           </View>
+          <TicketAttachmentSection canUpload ticketId={success.ticketId} />
         </View>
       </Screen>
     );

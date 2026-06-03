@@ -144,3 +144,19 @@ export type SaveMessageResponse = {
   content: string;
   createdAt: string;
 };
+
+export type Attachment = {
+  attachmentId: number;
+  ticketId: number;
+  messageId: number | null;
+  originalFilename: string;
+  contentType: string;
+  fileSize: number;
+  uploadedAt: string;
+};
+
+export type AttachmentDownloadUrl = {
+  attachmentId: number;
+  downloadUrl: string;
+  expiresAt: string;
+};

@@ -13,6 +13,7 @@ import { ErrorMessage } from "@/components/ErrorMessage";
 import { LoadingView } from "@/components/LoadingView";
 import { Screen } from "@/components/Screen";
 import { TicketStatusBadge } from "@/components/TicketStatusBadge";
+import { TicketAttachmentSection } from "@/components/TicketAttachmentSection";
 import { loadCustomerTickets } from "@/utils/ticket-sync";
 import { formatDateTime, formatSenderType } from "@/utils/format";
 
@@ -134,6 +135,7 @@ export function TicketDetailScreen({ ticketId }: { ticketId: number }) {
   }
 
   const canEdit = ticket.status === "WAITING";
+  const canUploadAttachment = ticket.status !== "CLOSED" && ticket.status !== "RESOLVED";
 
   return (
     <Screen>
@@ -177,6 +179,8 @@ export function TicketDetailScreen({ ticketId }: { ticketId: number }) {
             <Text style={styles.sectionTitle}>문의 내용</Text>
             <Text style={styles.body}>{ticket.inquiryContent || "문의 내용이 없습니다."}</Text>
           </View>
+
+          <TicketAttachmentSection canUpload={canUploadAttachment} ticketId={ticket.ticketId} />
 
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>상담 메시지</Text>

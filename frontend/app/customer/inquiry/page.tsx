@@ -7,12 +7,14 @@ import { useState } from "react";
 import { AlertBanner } from "@/components/alert-banner";
 import { FormField } from "@/components/form-field";
 import { PageShell } from "@/components/page-shell";
+import { TicketAttachmentPanel } from "@/components/ticket-attachment-panel";
 import { fetchConsultationCategoryTree } from "@/lib/api/categories";
 import { createCustomerInquiry, fetchCustomerTickets } from "@/lib/api/customer";
 import { ApiError } from "@/lib/api/client";
 import { collectLeafCategoryOptions } from "@/lib/category-utils";
 import { formatDateTime, formatTicketStatus } from "@/lib/format";
 import { useRequireRole } from "@/lib/use-require-role";
+import { msg } from "@/lib/messages";
 
 const inputClassName =
   "w-full rounded-md border border-zinc-300 bg-white px-3 py-2 text-sm outline-none focus:border-teal-600 focus:ring-1 focus:ring-teal-600";
@@ -112,10 +114,20 @@ export default function CustomerInquiryPage() {
     <PageShell title="고객 문의" description="문의 내용을 작성하면 상담원이 확인 후 답변을 드립니다.">
       <div className="space-y-4">
         {submitMutation.isSuccess && submitMutation.data ? (
-          <AlertBanner
-            message={`문의가 접수되었습니다. 티켓 번호: ${submitMutation.data.ticketNo} (상태: ${formatTicketStatus(submitMutation.data.status)})`}
-            variant="success"
-          />
+          <>
+            <AlertBanner
+              message={`문의가 접수되었습니다. 티켓 번호: ${submitMutation.data.ticketNo} (상태: ${formatTicketStatus(submitMutation.data.status)})`}
+              variant="success"
+            />
+            <TicketAttachmentPanel
+              canUpload
+              downloadErrorMessage={msg.ui("customer.downloadAttachmentFailed")}
+              loadErrorMessage={msg.ui("customer.loadAttachmentsFailed")}
+              role="CUSTOMER"
+              ticketId={submitMutation.data.ticketId}
+              uploadErrorMessage={msg.ui("customer.uploadAttachmentFailed")}
+            />
+          </>
         ) : null}
         {errorMessage ? <AlertBanner message={errorMessage} variant="error" /> : null}
         {categoryQuery.isError ? <AlertBanner message="상담 구분 목록을 불러오지 못했습니다." variant="error" /> : null}

@@ -9,6 +9,10 @@ spring:
     active: local
   config:
     import: optional:classpath:application-local.yml
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 10MB
   autoconfigure:
     exclude:
       - org.springframework.ai.autoconfigure.openai.OpenAiAutoConfiguration
@@ -38,3 +42,8 @@ security:
   jwt:
     secret: AICRM-DEMO-SECRET-KEY-CHANGE-ME-AT-LEAST-32-CHARS
     expiration-seconds: 3600
+
+aicrm:
+  attachment:
+    max-file-size-bytes: 10485760
+    allowed-extensions: jpg,jpeg,png,gif,pdf,doc,docx,xls,xlsx,txt,zip

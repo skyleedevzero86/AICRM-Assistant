@@ -1,0 +1,14 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5433/aicrm
+    username: aicrm
+    password: aicrm
+  data:
+    redis:
+      host: localhost
+      port: 9379
+      password: 123456
+
+aicrm:
+  storage:
+    type: memory

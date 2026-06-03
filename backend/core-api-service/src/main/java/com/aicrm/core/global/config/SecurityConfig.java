@@ -60,6 +60,8 @@ public class SecurityConfig {
                         .requestMatchers("/api/agent/**").hasRole("AGENT")
                         .requestMatchers("/api/customer/**").hasRole("CUSTOMER")
                         .requestMatchers("/api/tickets/*/messages").authenticated()
+                        .requestMatchers("/api/tickets/*/attachments").authenticated()
+                        .requestMatchers("/api/attachments/**").authenticated()
                         .anyRequest().authenticated()
                 )
                 .exceptionHandling(ex -> ex
