@@ -90,7 +90,7 @@ export default function AgentTicketDetailPage() {
   const detail = detailQuery.data;
   const status = detail?.status;
   const canAccept = status === "WAITING" || status === "ASSIGNED";
-  const canReply = status !== "CLOSED" && status !== undefined;
+  const canReply = status === "IN_PROGRESS" || status === "RESOLVED" || status === "ASSIGNED";
   const canClose = status === "IN_PROGRESS" || status === "RESOLVED";
 
   function handleSendMessage(event: React.FormEvent) {
@@ -201,14 +201,11 @@ export default function AgentTicketDetailPage() {
                   </FormField>
                   <button
                     className="rounded-md bg-teal-700 px-4 py-2 text-sm font-medium text-white hover:bg-teal-800 disabled:opacity-50"
-                    disabled={messageMutation.isPending || status === "WAITING"}
+                    disabled={messageMutation.isPending}
                     type="submit"
                   >
                     {messageMutation.isPending ? "전송 중..." : "메시지 전송"}
                   </button>
-                  {status === "WAITING" ? (
-                    <p className="text-sm text-zinc-500">티켓을 수락해야 답변을 전송할 수 있습니다.</p>
-                  ) : null}
                 </form>
               </section>
             ) : null}

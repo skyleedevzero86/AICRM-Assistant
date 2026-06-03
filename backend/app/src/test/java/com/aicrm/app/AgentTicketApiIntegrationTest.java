@@ -89,6 +89,29 @@ class AgentTicketApiIntegrationTest {
         mockMvc.perform(get("/api/agent/tickets/waiting").header("Authorization", bearer(agentToken)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data[?(@.ticketId == " + ticketId + ")]").doesNotExist());
+
+        mockMvc.perform(post("/api/agent/tickets/{ticketId}/close", ticketId)
+                        .header("Authorization", bearer(agent2Token))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "resolution": "다른 상담원 종료 시도"
+                                }
+                                """))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.error.code").value("NOT_ASSIGNED_AGENT"));
+
+        mockMvc.perform(post("/api/agent/tickets/{ticketId}/close", ticketId)
+                        .header("Authorization", bearer(agentToken))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "resolution": "배송 지연 안내 후 종료"
+                                }
+                                """))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.status").value("CLOSED"))
+                .andExpect(jsonPath("$.data.resolution").value("배송 지연 안내 후 종료"));
     }
 
     private JsonNode findNodeByCode(JsonNode nodes, String code) {
