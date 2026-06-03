@@ -1,7 +1,6 @@
 <img width="1221" height="668" alt="image" src="https://github.com/user-attachments/assets/3a4e0c63-a169-44f9-a402-f11c778cd424" />
 <br/>
 
-
 # AICRM-Assistant
 
 AI 기반 콜센터 상담원 Copilot + CRM 자동화 + RAG/GraphRAG 상담 지식 시스템 프로젝트입니다.
@@ -57,6 +56,10 @@ AI 기반 콜센터 상담원 Copilot + CRM 자동화 + RAG/GraphRAG 상담 지�
 ```
 
 ## 서비스 구성
+
+<br/><br/>
+<img width="1035" height="686" alt="image" src="https://github.com/user-attachments/assets/ab22ac1d-6128-4c52-b1be-20ba16ce6e3c" />
+<br/><br/>
 
 ### 1. Frontend
 
@@ -129,12 +132,66 @@ docker compose up -d
 
 ### 2. Backend 실행
 
+인프라(PostgreSQL, Redis)를 먼저 실행합니다.
+
 ```bash
-./gradlew :backend:core-api-service:bootRun
-./gradlew :backend:chat-ai-service:bootRun
+docker compose up -d postgres redis
 ```
 
-`chat-ai-service`는 `OPENAI_API_KEY`, `OPENAI_CHAT_MODEL` 환경 변수를 사용합니다.
+| Service    | Host Port | Credentials                                   |
+| ---------- | --------- | --------------------------------------------- |
+| PostgreSQL | 5433      | db: `aicrm`, user: `aicrm`, password: `aicrm` |
+| Redis      | 9379      | password: `123456`                            |
+
+로컬 설정 파일 생성:
+
+```bash
+cp backend/core-api-service/src/main/resources/application-local.yml.example backend/core-api-service/src/main/resources/application-local.yml
+cp backend/chat-ai-service/src/main/resources/application-local.yml.example backend/chat-ai-service/src/main/resources/application-local.yml
+```
+
+`application-local.yml` 파일에 DB·Redis·OpenAI API 키를 입력합니다. 해당 파일은 git에 커밋되지 않습니다.
+
+백엔드 실행:
+
+```bash
+./gradlew :backend:app:bootRun
+```
+
+Health check:
+
+```bash
+curl http://localhost:8080/actuator/health
+```
+
+chat-ai-service는 OPENAI_API_KEY, OPENAI_CHAT_MODEL 환경 변수를 사용합니다.
+
+기본 인증 API:
+
+- `POST /api/auth/login`
+- `GET /api/auth/me`
+- `POST /api/auth/signup/customer`
+- `POST /api/auth/signup/agent`
+- `POST /api/admin/agents/{agentId}/approve`
+- `POST /api/auth/withdraw`
+- `GET /api/admin/users/customers`
+- `GET /api/admin/users/agents`
+- `POST /api/admin/users/{userId}/suspension`
+- `POST /api/admin/users/{userId}/withdrawal`
+- `GET /api/admin/attendance/agents`
+
+관리자 페이지:
+
+- `frontend/app/admin/users/customers/page.tsx`
+- `frontend/app/admin/users/agents/page.tsx`
+- `frontend/app/admin/attendance/page.tsx`
+
+테스트 계정:
+
+- 관리자: `admin@aicrm.local` / `password`
+- 상담원(활성): `agent1@aicrm.local` / `password`
+- 상담원(대기): `agent-pending@aicrm.local` / `password`
+- 고객: `customer@example.com` / `password`
 
 ### 3. Frontend 실행
 
@@ -144,7 +201,23 @@ npm install
 npm run dev
 ```
 
-### 4. AI Worker 실행
+### 4. Mobile App
+
+고객용 모바일 앱은 `mobile` 디렉터리에 있으며 Expo 기반 React Native 앱입니다.
+
+```bash
+cd mobile
+npm install
+npm run start
+```
+
+Expo Go 앱으로 QR 코드를 스캔하여 실행할 수 있습니다.
+
+API 주소는 `mobile/app.json`의 `expo.extra.apiBaseUrl`에서 변경할 수 있습니다. 실기기(Expo Go)에서는 `localhost` 대신 PC의 LAN IP(예: `http://192.168.0.10:8080`)를 사용해야 하며, 백엔드가 먼저 실행되어 있어야 합니다.
+
+자세한 내용은 [mobile/README.md](mobile/README.md)를 참고하세요.
+
+### 5. AI Worker 실행
 
 ```bash
 cd ai-worker

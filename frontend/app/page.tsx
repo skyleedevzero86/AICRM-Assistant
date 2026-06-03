@@ -1,4 +1,7 @@
+import type { Route } from "next";
+import Link from "next/link";
 import { Bot, MessageSquareText, ShieldCheck, Ticket } from "lucide-react";
+import { HomeSidebar } from "@/components/home-sidebar";
 
 const tickets = [
   { id: "T-1042", customer: "김민서", topic: "배송 지연", priority: "높음", status: "진행" },
@@ -15,16 +18,7 @@ export default function Home() {
             <Bot className="h-5 w-5 text-teal-600" />
             CallMind AI
           </div>
-          <nav className="space-y-1 text-sm">
-            {["상담 티켓", "고객", "지식 문서", "CRM 액션", "관리자 대시보드"].map((item) => (
-              <button
-                className="flex w-full items-center rounded-md px-3 py-2 text-left text-zinc-700 hover:bg-zinc-100"
-                key={item}
-              >
-                {item}
-              </button>
-            ))}
-          </nav>
+          <HomeSidebar />
         </aside>
 
         <section className="p-6">
@@ -33,7 +27,20 @@ export default function Home() {
               <h1 className="text-2xl font-semibold">상담원 Copilot</h1>
               <p className="text-sm text-zinc-500">티켓, 상담 메시지, RAG 답변 초안을 한 화면에서 처리합니다.</p>
             </div>
-            <button className="rounded-md bg-zinc-900 px-4 py-2 text-sm font-medium text-white">새 티켓</button>
+            <div className="flex gap-2">
+              <Link
+                className="rounded-md border border-zinc-300 bg-white px-4 py-2 text-sm font-medium text-zinc-800 hover:bg-zinc-50"
+                href={"/customer/inquiry" as Route}
+              >
+                고객 문의
+              </Link>
+              <Link
+                className="rounded-md bg-zinc-900 px-4 py-2 text-sm font-medium text-white hover:bg-zinc-800"
+                href={"/agent/tickets" as Route}
+              >
+                대기 티켓
+              </Link>
+            </div>
           </div>
 
           <div className="grid grid-cols-3 gap-3">
