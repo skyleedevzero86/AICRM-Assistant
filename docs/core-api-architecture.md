@@ -124,3 +124,11 @@ Core API는 springdoc-openapi 기반 Swagger UI를 제공합니다.
 | 첨부파일 | 업로드, 목록 조회, 다운로드 URL |
 
 설정 클래스: `global/config/OpenApiConfig.java`
+
+## 테스트
+
+백엔드 테스트 실행 방법과 MVP API 검증 범위는 [backend-testing.md](./backend-testing.md)를 참고합니다.
+
+- 단위·MockMvc: `backend/core-api-service/src/test/java`
+- API 통합(Testcontainers): `backend/app/src/test/java`
+- 오류 메시지: `shared/messages/ko.json`과 동일한 한국어 문구 검증

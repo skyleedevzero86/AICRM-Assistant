@@ -75,6 +75,7 @@ class CustomerTicketAttachmentControllerTest {
         // when & then
         mockMvc.perform(multipart("/api/customer/tickets/{ticketId}/attachments", 10L).file(file))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.error.code").value("FILE_EXTENSION_NOT_ALLOWED"));
+                .andExpect(jsonPath("$.error.code").value("FILE_EXTENSION_NOT_ALLOWED"))
+                .andExpect(jsonPath("$.error.message").value("허용되지 않은 파일 확장자입니다"));
     }
 }

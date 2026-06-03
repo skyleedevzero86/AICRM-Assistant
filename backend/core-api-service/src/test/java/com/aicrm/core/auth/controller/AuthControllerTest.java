@@ -14,6 +14,8 @@ import com.aicrm.core.auth.dto.LoginResponse;
 import com.aicrm.core.auth.dto.MeResponse;
 import com.aicrm.core.auth.dto.SignUpResponse;
 import com.aicrm.core.global.exception.GlobalExceptionHandler;
+import com.aicrm.core.support.MessagesInitializer;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -34,8 +36,14 @@ class AuthControllerTest {
     @MockBean
     private AuthService authService;
 
+    @BeforeEach
+    void setUp() {
+        MessagesInitializer.init();
+    }
+
     @Test
     void loginReturnsTokenResponse() throws Exception {
+        // given
         when(authService.login(any())).thenReturn(new LoginResponse(
                 "jwt-token",
                 "Bearer",
@@ -44,6 +52,7 @@ class AuthControllerTest {
                 UserRole.AGENT
         ));
 
+        // when & then
         mockMvc.perform(post("/api/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
@@ -60,6 +69,7 @@ class AuthControllerTest {
 
     @Test
     void signupCustomerReturnsCreatedResponse() throws Exception {
+        // given
         when(authService.signupCustomer(any())).thenReturn(new SignUpResponse(
                 3L,
                 "customer@test.com",
@@ -67,6 +77,7 @@ class AuthControllerTest {
                 "ACTIVE"
         ));
 
+        // when & then
         mockMvc.perform(post("/api/auth/signup/customer")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
@@ -82,6 +93,7 @@ class AuthControllerTest {
 
     @Test
     void signupAgentReturnsPendingResponse() throws Exception {
+        // given
         when(authService.signupAgent(any())).thenReturn(new SignUpResponse(
                 10L,
                 "agent-new@test.com",
@@ -89,6 +101,7 @@ class AuthControllerTest {
                 "PENDING"
         ));
 
+        // when & then
         mockMvc.perform(post("/api/auth/signup/agent")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
@@ -105,6 +118,7 @@ class AuthControllerTest {
 
     @Test
     void meReturnsCurrentUser() throws Exception {
+        // given
         when(authService.me()).thenReturn(new MeResponse(
                 1L,
                 "agent@test.com",
@@ -114,6 +128,7 @@ class AuthControllerTest {
                 "2026060207120101"
         ));
 
+        // when & then
         mockMvc.perform(get("/api/auth/me"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.userId").value(1))
@@ -122,6 +137,7 @@ class AuthControllerTest {
 
     @Test
     void approveAgentReturnsOk() throws Exception {
+        // when & then
         mockMvc.perform(post("/api/admin/agents/{agentId}/approve", 99L))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true));
@@ -129,6 +145,7 @@ class AuthControllerTest {
 
     @Test
     void updateAgentGradeReturnsOk() throws Exception {
+        // when & then
         mockMvc.perform(post("/api/admin/agents/{agentId}/grade", 99L)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
@@ -142,6 +159,7 @@ class AuthControllerTest {
 
     @Test
     void updateMeReturnsOk() throws Exception {
+        // given
         when(authService.updateCurrentUser(any())).thenReturn(new MeResponse(
                 1L,
                 "agent@test.com",
@@ -151,6 +169,7 @@ class AuthControllerTest {
                 "2026060207120101"
         ));
 
+        // when & then
         mockMvc.perform(patch("/api/auth/me")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
@@ -164,6 +183,7 @@ class AuthControllerTest {
 
     @Test
     void withdrawReturnsOk() throws Exception {
+        // when & then
         mockMvc.perform(post("/api/auth/withdraw"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true));

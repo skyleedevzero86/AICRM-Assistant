@@ -1,14 +1,19 @@
 package com.aicrm.app;
 
-import static com.aicrm.app.IntegrationTestAuth.bearer;
-import static com.aicrm.app.IntegrationTestAuth.login;
+import static com.aicrm.app.support.IntegrationKoreanErrors.FILE_EXTENSION_NOT_ALLOWED;
+import static com.aicrm.app.support.IntegrationTestSupport.SEED_AGENT1_EMAIL;
+import static com.aicrm.app.support.IntegrationTestSupport.SEED_CUSTOMER_EMAIL;
+import static com.aicrm.app.support.IntegrationTestSupport.SEED_PASSWORD;
+import static com.aicrm.app.support.IntegrationTestSupport.bearer;
+import static com.aicrm.app.support.IntegrationTestSupport.findLeafCategoryIdByCode;
+import static com.aicrm.app.support.IntegrationTestSupport.login;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import com.fasterxml.jackson.databind.JsonNode;
+import com.aicrm.app.support.PostgresIntegrationTestSupport;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.nio.charset.StandardCharsets;
 import org.junit.jupiter.api.Test;
@@ -17,14 +22,12 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockMultipartFile;
-import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 
 @SpringBootTest
 @AutoConfigureMockMvc
-@ActiveProfiles("local")
-class AttachmentApiIntegrationTest {
+class AttachmentApiIntegrationTest extends PostgresIntegrationTestSupport {
 
     @Autowired
     private MockMvc mockMvc;
@@ -35,15 +38,9 @@ class AttachmentApiIntegrationTest {
     @Test
     void customerAndAgentAttachmentFlow() throws Exception {
         // given
-        String customerToken = login(mockMvc, objectMapper, "customer@example.com", "password");
-        String agentToken = login(mockMvc, objectMapper, "agent1@aicrm.local", "password");
-
-        MvcResult treeResult = mockMvc.perform(get("/api/categories/consultation/tree"))
-                .andExpect(status().isOk())
-                .andReturn();
-
-        JsonNode rootNodes = objectMapper.readTree(treeResult.getResponse().getContentAsString(StandardCharsets.UTF_8)).path("data");
-        long leafCategoryId = findNodeByCode(rootNodes, "DELIVERY_DELAY").path("id").asLong();
+        String customerToken = login(mockMvc, objectMapper, SEED_CUSTOMER_EMAIL, SEED_PASSWORD);
+        String agentToken = login(mockMvc, objectMapper, SEED_AGENT1_EMAIL, SEED_PASSWORD);
+        long leafCategoryId = findLeafCategoryIdByCode(mockMvc, objectMapper, bearer(customerToken), "DELIVERY_DELAY");
 
         MvcResult inquiryResult = mockMvc.perform(post("/api/customer/inquiries")
                         .header("Authorization", bearer(customerToken))
@@ -127,19 +124,7 @@ class AttachmentApiIntegrationTest {
                         .file(invalidFile)
                         .header("Authorization", bearer(customerToken)))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.error.code").value("FILE_EXTENSION_NOT_ALLOWED"));
-    }
-
-    private JsonNode findNodeByCode(JsonNode nodes, String code) {
-        for (JsonNode node : nodes) {
-            if (code.equals(node.path("code").asText())) {
-                return node;
-            }
-            JsonNode childMatch = findNodeByCode(node.path("children"), code);
-            if (childMatch != null) {
-                return childMatch;
-            }
-        }
-        return null;
+                .andExpect(jsonPath("$.error.code").value("FILE_EXTENSION_NOT_ALLOWED"))
+                .andExpect(jsonPath("$.error.message").value(FILE_EXTENSION_NOT_ALLOWED));
     }
 }
