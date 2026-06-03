@@ -192,10 +192,14 @@ export type AgentTicketSummary = {
 
 export type AdminTicketSummary = AgentTicketSummary & {
   agentId: number | null;
+  agentName: string | null;
+  agentEmployeeNo: string | null;
 };
 
 export type AdminTicketDetail = AgentTicketDetail & {
   agentId: number | null;
+  agentName: string | null;
+  agentEmployeeNo: string | null;
 };
 
 export type AcceptTicketResponse = {

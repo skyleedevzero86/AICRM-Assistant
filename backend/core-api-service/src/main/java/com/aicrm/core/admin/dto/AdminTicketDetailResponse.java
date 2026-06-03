@@ -18,6 +18,8 @@ public record AdminTicketDetailResponse(
         String categoryName,
         String inquiryContent,
         Long agentId,
+        String agentName,
+        String agentEmployeeNo,
         String resolution,
         Instant closedAt
 ) {

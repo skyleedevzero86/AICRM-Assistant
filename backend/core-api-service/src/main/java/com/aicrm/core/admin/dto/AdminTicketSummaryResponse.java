@@ -13,6 +13,8 @@ public record AdminTicketSummaryResponse(
         String categoryName,
         ChannelType channel,
         Long agentId,
+        String agentName,
+        String agentEmployeeNo,
         Instant createdAt,
         Instant closedAt
 ) {

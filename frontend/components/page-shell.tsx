@@ -37,13 +37,15 @@ export function PageShell({ title, description, children }: PageShellProps) {
             <span className="text-zinc-300" aria-hidden>
               |
             </span>
-            <Link className="hover:text-zinc-900" href={"/customer/inquiry" as Route}>
-              고객 문의
-            </Link>
             {mounted && role === "CUSTOMER" ? (
-              <Link className="hover:text-zinc-900" href={"/customer/tickets" as Route}>
-                내 문의
-              </Link>
+              <>
+                <Link className="hover:text-zinc-900" href={"/customer/inquiry" as Route}>
+                  고객 문의
+                </Link>
+                <Link className="hover:text-zinc-900" href={"/customer/tickets" as Route}>
+                  내 문의
+                </Link>
+              </>
             ) : null}
             {mounted && role === "ADMIN" ? (
               <>

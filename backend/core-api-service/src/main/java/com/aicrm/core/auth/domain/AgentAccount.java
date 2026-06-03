@@ -73,6 +73,10 @@ public class AgentAccount {
         return employeeNo;
     }
 
+    public String getName() {
+        return name;
+    }
+
     public AgentAccountStatus getStatus() {
         return status;
     }

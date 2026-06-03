@@ -12,7 +12,7 @@ import { createCustomerInquiry, fetchCustomerTickets } from "@/lib/api/customer"
 import { ApiError } from "@/lib/api/client";
 import { collectLeafCategoryOptions } from "@/lib/category-utils";
 import { formatDateTime, formatTicketStatus } from "@/lib/format";
-import { useRequireAuth } from "@/lib/use-require-auth";
+import { useRequireRole } from "@/lib/use-require-role";
 
 const inputClassName =
   "w-full rounded-md border border-zinc-300 bg-white px-3 py-2 text-sm outline-none focus:border-teal-600 focus:ring-1 focus:ring-teal-600";
@@ -25,11 +25,12 @@ export default function CustomerInquiryPage() {
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
-  const { status: authStatus } = useRequireAuth();
+  const { status: authStatus } = useRequireRole(["CUSTOMER"]);
 
   const categoryQuery = useQuery({
     queryKey: ["consultation-category-tree"],
-    queryFn: fetchConsultationCategoryTree
+    queryFn: fetchConsultationCategoryTree,
+    enabled: authStatus === "allowed"
   });
 
   const categoryOptions = collectLeafCategoryOptions(categoryQuery.data ?? []);
@@ -48,8 +49,19 @@ export default function CustomerInquiryPage() {
     }
   });
 
-  if (authStatus !== "allowed") {
+  if (authStatus === "checking" || authStatus === "redirecting") {
     return null;
+  }
+
+  if (authStatus === "forbidden") {
+    return (
+      <PageShell title="고객 문의">
+        <AlertBanner message="고객 문의 작성은 고객 계정만 사용할 수 있습니다. 관리자는 관리자 상담 이력에서 전체 상담을 확인해 주세요." variant="error" />
+        <Link className="mt-4 inline-block text-sm text-teal-700 hover:underline" href={"/admin/tickets" as Route}>
+          관리자 상담 이력으로 이동
+        </Link>
+      </PageShell>
+    );
   }
 
   function resetForm() {
@@ -97,10 +109,7 @@ export default function CustomerInquiryPage() {
         : null;
 
   return (
-    <PageShell
-      title="고객 문의"
-      description="문의 내용을 작성하시면 상담원이 확인 후 답변드립니다."
-    >
+    <PageShell title="고객 문의" description="문의 내용을 작성하면 상담원이 확인 후 답변을 드립니다.">
       <div className="space-y-4">
         {submitMutation.isSuccess && submitMutation.data ? (
           <AlertBanner
@@ -109,9 +118,7 @@ export default function CustomerInquiryPage() {
           />
         ) : null}
         {errorMessage ? <AlertBanner message={errorMessage} variant="error" /> : null}
-        {categoryQuery.isError ? (
-          <AlertBanner message="상담 구분 목록을 불러오지 못했습니다." variant="error" />
-        ) : null}
+        {categoryQuery.isError ? <AlertBanner message="상담 구분 목록을 불러오지 못했습니다." variant="error" /> : null}
 
         {ticketsQuery.data && ticketsQuery.data.length > 0 ? (
           <section className="rounded-lg border border-zinc-200 bg-white p-4">
@@ -134,44 +141,21 @@ export default function CustomerInquiryPage() {
                 </li>
               ))}
             </ul>
-            <p className="mt-2 text-xs text-zinc-500">
-              최근 접수: {formatDateTime(ticketsQuery.data[0]?.createdAt ?? "")}
-            </p>
+            <p className="mt-2 text-xs text-zinc-500">최근 접수: {formatDateTime(ticketsQuery.data[0]?.createdAt ?? "")}</p>
           </section>
         ) : null}
 
-        <form
-          className="space-y-4 rounded-lg border border-zinc-200 bg-white p-6"
-          onSubmit={handleSubmit}
-        >
+        <form className="space-y-4 rounded-lg border border-zinc-200 bg-white p-6" onSubmit={handleSubmit}>
           <FormField error={fieldErrors.customerName} htmlFor="customerName" label="이름" required>
-            <input
-              className={inputClassName}
-              id="customerName"
-              onChange={(event) => setCustomerName(event.target.value)}
-              type="text"
-              value={customerName}
-            />
+            <input className={inputClassName} id="customerName" onChange={(event) => setCustomerName(event.target.value)} type="text" value={customerName} />
           </FormField>
 
           <FormField error={fieldErrors.phone} htmlFor="phone" label="연락처" required>
-            <input
-              className={inputClassName}
-              id="phone"
-              onChange={(event) => setPhone(event.target.value)}
-              type="tel"
-              value={phone}
-            />
+            <input className={inputClassName} id="phone" onChange={(event) => setPhone(event.target.value)} type="tel" value={phone} />
           </FormField>
 
           <FormField error={fieldErrors.email} htmlFor="email" label="이메일" required>
-            <input
-              className={inputClassName}
-              id="email"
-              onChange={(event) => setEmail(event.target.value)}
-              type="email"
-              value={email}
-            />
+            <input className={inputClassName} id="email" onChange={(event) => setEmail(event.target.value)} type="email" value={email} />
           </FormField>
 
           <FormField error={fieldErrors.categoryId} htmlFor="categoryId" label="문의 구분" required>
@@ -182,9 +166,7 @@ export default function CustomerInquiryPage() {
               onChange={(event) => setCategoryId(event.target.value)}
               value={categoryId}
             >
-              <option value="">
-                {categoryQuery.isLoading ? "불러오는 중..." : "문의 구분을 선택하세요"}
-              </option>
+              <option value="">{categoryQuery.isLoading ? "불러오는 중..." : "문의 구분을 선택하세요"}</option>
               {categoryOptions.map((option) => (
                 <option key={option.id} value={option.id}>
                   {option.label}
@@ -194,37 +176,18 @@ export default function CustomerInquiryPage() {
           </FormField>
 
           <FormField error={fieldErrors.title} htmlFor="title" label="제목" required>
-            <input
-              className={inputClassName}
-              id="title"
-              onChange={(event) => setTitle(event.target.value)}
-              type="text"
-              value={title}
-            />
+            <input className={inputClassName} id="title" onChange={(event) => setTitle(event.target.value)} type="text" value={title} />
           </FormField>
 
           <FormField error={fieldErrors.content} htmlFor="content" label="문의 내용" required>
-            <textarea
-              className={`${inputClassName} min-h-[160px] resize-y`}
-              id="content"
-              onChange={(event) => setContent(event.target.value)}
-              value={content}
-            />
+            <textarea className={`${inputClassName} min-h-[160px] resize-y`} id="content" onChange={(event) => setContent(event.target.value)} value={content} />
           </FormField>
 
           <div className="flex flex-wrap gap-2">
-            <button
-              className="rounded-md bg-teal-700 px-4 py-2 text-sm font-medium text-white hover:bg-teal-800 disabled:opacity-50"
-              disabled={submitMutation.isPending}
-              type="submit"
-            >
+            <button className="rounded-md bg-teal-700 px-4 py-2 text-sm font-medium text-white hover:bg-teal-800 disabled:opacity-50" disabled={submitMutation.isPending} type="submit">
               {submitMutation.isPending ? "접수 중..." : "접수하기"}
             </button>
-            <button
-              className="rounded-md border border-zinc-300 bg-white px-4 py-2 text-sm font-medium text-zinc-700 hover:bg-zinc-50"
-              onClick={resetForm}
-              type="button"
-            >
+            <button className="rounded-md border border-zinc-300 bg-white px-4 py-2 text-sm font-medium text-zinc-700 hover:bg-zinc-50" onClick={resetForm} type="button">
               입력 초기화
             </button>
           </div>

@@ -9,7 +9,15 @@ import { PageShell } from "@/components/page-shell";
 import { fetchAdminTicket } from "@/lib/api/admin";
 import { fetchTicketMessages } from "@/lib/api/agent";
 import { ApiError } from "@/lib/api/client";
+import type { AdminTicketDetail } from "@/lib/api/types";
 import { formatChannelType, formatDateTime, formatSenderType, formatTicketStatus } from "@/lib/format";
+
+function formatAssignedAgent(ticket: AdminTicketDetail): string {
+  if (!ticket.agentName) {
+    return "미배정";
+  }
+  return ticket.agentEmployeeNo ? `${ticket.agentName} (${ticket.agentEmployeeNo})` : ticket.agentName;
+}
 
 export default function AdminTicketDetailPage() {
   const params = useParams<{ ticketId: string }>();
@@ -68,7 +76,7 @@ export default function AdminTicketDetailPage() {
                 <InfoItem label="고객명" value={detail.customerName} />
                 <InfoItem label="연락처" value={detail.customerPhone || "-"} />
                 <InfoItem label="이메일" value={detail.customerEmail || "-"} />
-                <InfoItem label="상담원" value={detail.agentId ? `#${detail.agentId}` : "미배정"} />
+                <InfoItem label="담당 상담원" value={formatAssignedAgent(detail)} />
                 <InfoItem label="접수 시간" value={formatDateTime(detail.createdAt)} />
                 <InfoItem label="종료 시간" value={detail.closedAt ? formatDateTime(detail.closedAt) : "-"} />
               </dl>

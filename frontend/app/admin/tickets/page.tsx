@@ -8,7 +8,7 @@ import { AlertBanner } from "@/components/alert-banner";
 import { PageShell } from "@/components/page-shell";
 import { fetchAdminTickets } from "@/lib/api/admin";
 import { ApiError } from "@/lib/api/client";
-import type { TicketStatus } from "@/lib/api/types";
+import type { AdminTicketSummary, TicketStatus } from "@/lib/api/types";
 import { formatChannelType, formatDateTime, formatTicketStatus } from "@/lib/format";
 
 const FILTERS: Array<{ label: string; value?: TicketStatus }> = [
@@ -17,6 +17,13 @@ const FILTERS: Array<{ label: string; value?: TicketStatus }> = [
   { label: "진행중", value: "IN_PROGRESS" },
   { label: "종료", value: "CLOSED" }
 ];
+
+function formatAssignedAgent(ticket: AdminTicketSummary): string {
+  if (!ticket.agentName) {
+    return "미배정";
+  }
+  return ticket.agentEmployeeNo ? `${ticket.agentName} (${ticket.agentEmployeeNo})` : ticket.agentName;
+}
 
 export default function AdminTicketsPage() {
   const [status, setStatus] = useState<TicketStatus | undefined>();
@@ -64,7 +71,7 @@ export default function AdminTicketsPage() {
                   <th className="px-4 py-3 font-medium">고객명</th>
                   <th className="px-4 py-3 font-medium">제목</th>
                   <th className="px-4 py-3 font-medium">채널</th>
-                  <th className="px-4 py-3 font-medium">상담원</th>
+                  <th className="px-4 py-3 font-medium">담당 상담원</th>
                   <th className="px-4 py-3 font-medium">접수 시간</th>
                 </tr>
               </thead>
@@ -94,7 +101,7 @@ export default function AdminTicketsPage() {
                       <div className="text-xs text-zinc-500">{ticket.ticketNo} · {ticket.categoryName}</div>
                     </td>
                     <td className="px-4 py-3">{formatChannelType(ticket.channel)}</td>
-                    <td className="px-4 py-3">{ticket.agentId ? `#${ticket.agentId}` : "미배정"}</td>
+                    <td className="px-4 py-3">{formatAssignedAgent(ticket)}</td>
                     <td className="px-4 py-3">{formatDateTime(ticket.createdAt)}</td>
                   </tr>
                 ))}

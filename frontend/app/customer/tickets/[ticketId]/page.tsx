@@ -9,10 +9,10 @@ import { PageShell } from "@/components/page-shell";
 import { fetchCustomerTicket, fetchCustomerTicketMessages } from "@/lib/api/customer";
 import { ApiError } from "@/lib/api/client";
 import { formatDateTime, formatSenderType, formatTicketStatus } from "@/lib/format";
-import { useRequireAuth } from "@/lib/use-require-auth";
+import { useRequireRole } from "@/lib/use-require-role";
 
 export default function CustomerTicketDetailPage() {
-  const { status: authStatus } = useRequireAuth();
+  const { status: authStatus } = useRequireRole(["CUSTOMER"]);
   const params = useParams<{ ticketId: string }>();
   const ticketId = Number(params.ticketId);
 
@@ -29,8 +29,19 @@ export default function CustomerTicketDetailPage() {
     refetchInterval: detailQuery.data?.status === "CLOSED" ? false : 10_000
   });
 
-  if (authStatus !== "allowed") {
+  if (authStatus === "checking" || authStatus === "redirecting") {
     return null;
+  }
+
+  if (authStatus === "forbidden") {
+    return (
+      <PageShell title="문의 상세">
+        <AlertBanner message="고객 문의 상세는 해당 고객 계정만 확인할 수 있습니다. 관리자는 관리자 상담 이력에서 확인해 주세요." variant="error" />
+        <Link className="mt-4 inline-block text-sm text-teal-700 hover:underline" href={"/admin/tickets" as Route}>
+          관리자 상담 이력으로 이동
+        </Link>
+      </PageShell>
+    );
   }
 
   const detail = detailQuery.data;

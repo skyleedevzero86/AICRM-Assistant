@@ -10,7 +10,7 @@ import { fetchCustomerTickets } from "@/lib/api/customer";
 import { ApiError } from "@/lib/api/client";
 import type { TicketStatus } from "@/lib/api/types";
 import { formatDateTime, formatTicketStatus } from "@/lib/format";
-import { useRequireAuth } from "@/lib/use-require-auth";
+import { useRequireRole } from "@/lib/use-require-role";
 
 const FILTERS: Array<{ label: string; value: "ALL" | TicketStatus }> = [
   { label: "전체", value: "ALL" },
@@ -24,7 +24,7 @@ function isClosed(status: TicketStatus): boolean {
 }
 
 export default function CustomerTicketsPage() {
-  const { status: authStatus } = useRequireAuth();
+  const { status: authStatus } = useRequireRole(["CUSTOMER"]);
   const [filter, setFilter] = useState<"ALL" | TicketStatus>("ALL");
 
   const ticketsQuery = useQuery({
@@ -39,8 +39,19 @@ export default function CustomerTicketsPage() {
     return items.filter((ticket) => ticket.status === filter);
   }, [filter, ticketsQuery.data]);
 
-  if (authStatus !== "allowed") {
+  if (authStatus === "checking" || authStatus === "redirecting") {
     return null;
+  }
+
+  if (authStatus === "forbidden") {
+    return (
+      <PageShell title="내 문의">
+        <AlertBanner message="내 문의는 고객 계정만 확인할 수 있습니다. 관리자는 관리자 상담 이력에서 확인해 주세요." variant="error" />
+        <Link className="mt-4 inline-block text-sm text-teal-700 hover:underline" href={"/admin/tickets" as Route}>
+          관리자 상담 이력으로 이동
+        </Link>
+      </PageShell>
+    );
   }
 
   const errorMessage =
