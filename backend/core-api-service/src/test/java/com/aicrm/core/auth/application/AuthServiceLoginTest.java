@@ -56,6 +56,7 @@ class AuthServiceLoginTest {
 
     @Test
     void loginRecordsAgentAttendanceInWritableTransaction() {
+        // given
         UserAccount account = UserAccount.create("agent1@aicrm.local", "hash", "Agent", UserRole.AGENT);
         AgentAccount agent = AgentAccount.createPending(1L, "Agent", "2026060207120101");
         agent.approve();
@@ -65,23 +66,29 @@ class AuthServiceLoginTest {
         when(agentAccountRepository.findByUserId(any())).thenReturn(Optional.of(agent));
         when(jwtTokenProvider.generateToken(any())).thenReturn("token");
 
+        // when
         authService.login(new LoginRequest("agent1@aicrm.local", "password"));
 
+        // then
         verify(agentAttendanceService).markAgentLogin(any());
     }
 
     @Test
     void loginRejectsSuspendedAccount() {
+        // given
         UserAccount account = UserAccount.create("user@test.com", "hash", "User", UserRole.CUSTOMER);
         account.setSuspendedYn("Y");
 
         when(userAccountRepository.findByEmail("user@test.com")).thenReturn(Optional.of(account));
         when(passwordEncoder.matches("password", "hash")).thenReturn(true);
 
+        // when
         BusinessException exception = assertThrows(
                 BusinessException.class,
                 () -> authService.login(new LoginRequest("user@test.com", "password")));
 
+        // then
         assertEquals(ErrorCode.ACCOUNT_SUSPENDED, exception.getErrorCode());
+        assertEquals("사용할 수 없는 계정입니다. 관리자에게 문의하세요.", exception.getMessage());
     }
 }

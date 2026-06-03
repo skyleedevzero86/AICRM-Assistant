@@ -64,6 +64,10 @@ JWT 인증이 필요한 API는 Swagger UI **Authorize** 버튼에서 `Bearer {ac
 
 Flyway runs migrations from `backend/core-api-service/src/main/resources/db/migration` on startup.
 
+## 테스트
+
+API 통합 테스트 및 실행 방법은 [backend-testing.md](./backend-testing.md)를 참고하세요.
+
 ## Module Layout
 
 ```text
