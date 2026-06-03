@@ -164,6 +164,18 @@ Health check:
 curl http://localhost:8080/actuator/health
 ```
 
+### API 문서 (Swagger)
+
+백엔드 실행 후 아래 URL에서 API 문서를 확인할 수 있습니다.
+
+```text
+http://localhost:8080/swagger-ui/index.html
+```
+
+- **Authorize** 버튼에서 `Bearer {JWT}` 형식으로 토큰 입력
+- 로그인(`POST /api/auth/login`) 응답의 `accessToken` 사용
+- 인증 / 고객 / 상담원 / 첨부파일 API 문서 제공
+
 chat-ai-service는 OPENAI_API_KEY, OPENAI_CHAT_MODEL 환경 변수를 사용합니다.
 
 기본 인증 API:
