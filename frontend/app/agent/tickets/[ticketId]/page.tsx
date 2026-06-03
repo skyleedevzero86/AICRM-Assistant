@@ -8,6 +8,7 @@ import { useState } from "react";
 import { AlertBanner } from "@/components/alert-banner";
 import { FormField } from "@/components/form-field";
 import { PageShell } from "@/components/page-shell";
+import { TicketAttachmentPanel } from "@/components/ticket-attachment-panel";
 import {
   acceptTicket,
   closeTicket,
@@ -17,6 +18,7 @@ import {
 } from "@/lib/api/agent";
 import { ApiError } from "@/lib/api/client";
 import { formatDateTime, formatSenderType, formatTicketStatus } from "@/lib/format";
+import { msg } from "@/lib/messages";
 
 const inputClassName =
   "w-full rounded-md border border-zinc-300 bg-white px-3 py-2 text-sm outline-none focus:border-teal-600 focus:ring-1 focus:ring-teal-600";
@@ -167,6 +169,15 @@ export default function AgentTicketDetailPage() {
               <p className="mb-2 text-sm font-medium">{detail.subject}</p>
               <p className="whitespace-pre-wrap text-sm text-zinc-700">{detail.inquiryContent || "문의 내용이 없습니다."}</p>
             </section>
+
+            <TicketAttachmentPanel
+              canUpload={canReply}
+              downloadErrorMessage={msg.ui("agent.downloadAttachmentFailed")}
+              loadErrorMessage={msg.ui("agent.loadAttachmentsFailed")}
+              role="AGENT"
+              ticketId={ticketId}
+              uploadErrorMessage={msg.ui("agent.uploadAttachmentFailed")}
+            />
 
             <section className="rounded-lg border border-zinc-200 bg-white p-6">
               <h2 className="mb-4 text-base font-semibold">상담 메시지 이력</h2>

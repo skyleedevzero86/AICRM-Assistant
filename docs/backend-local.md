@@ -35,7 +35,7 @@ Edit `application-local.yml` files with your credentials. These files are gitign
 
 | File | Contents |
 |------|----------|
-| `core-api-service/.../application-local.yml` | PostgreSQL, Redis |
+| `core-api-service/.../application-local.yml` | PostgreSQL, Redis, MinIO |
 | `chat-ai-service/.../application-local.yml` | OpenAI API key |
 
 ## Verify

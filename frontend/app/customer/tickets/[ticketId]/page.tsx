@@ -6,9 +6,11 @@ import { useParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { AlertBanner } from "@/components/alert-banner";
 import { PageShell } from "@/components/page-shell";
+import { TicketAttachmentPanel } from "@/components/ticket-attachment-panel";
 import { fetchCustomerTicket, fetchCustomerTicketMessages } from "@/lib/api/customer";
 import { ApiError } from "@/lib/api/client";
 import { formatDateTime, formatSenderType, formatTicketStatus } from "@/lib/format";
+import { msg } from "@/lib/messages";
 import { useRequireRole } from "@/lib/use-require-role";
 
 export default function CustomerTicketDetailPage() {
@@ -46,6 +48,7 @@ export default function CustomerTicketDetailPage() {
 
   const detail = detailQuery.data;
   const isClosed = detail?.status === "CLOSED" || detail?.status === "RESOLVED";
+  const canUploadAttachment = detail ? !isClosed : false;
   const errorMessage =
     detailQuery.error instanceof ApiError
       ? detailQuery.error.message
@@ -94,6 +97,15 @@ export default function CustomerTicketDetailPage() {
               <h2 className="mb-2 text-base font-semibold">내가 남긴 문의</h2>
               <p className="whitespace-pre-wrap text-sm text-zinc-700">{detail.inquiryContent || "문의 내용이 없습니다."}</p>
             </section>
+
+            <TicketAttachmentPanel
+              canUpload={canUploadAttachment}
+              downloadErrorMessage={msg.ui("customer.downloadAttachmentFailed")}
+              loadErrorMessage={msg.ui("customer.loadAttachmentsFailed")}
+              role="CUSTOMER"
+              ticketId={ticketId}
+              uploadErrorMessage={msg.ui("customer.uploadAttachmentFailed")}
+            />
 
             <section className="rounded-lg border border-zinc-200 bg-white p-5">
               <h2 className="mb-3 text-base font-semibold">상담 이력</h2>

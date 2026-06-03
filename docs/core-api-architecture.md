@@ -4,7 +4,7 @@ AICRM-Assistant `core-api-service` applies practical domain-centered design for 
 
 ## Scope
 
-Domains: `auth`, `attendance`, `customer`, `agent`, `ticket`, `conversation`, `message`, `category`
+Domains: `auth`, `attendance`, `customer`, `agent`, `ticket`, `conversation`, `message`, `category`, `attachment`
 
 MVP use cases:
 
@@ -18,6 +18,7 @@ MVP use cases:
 - Customer/agent sign-up flow split
 - Admin customer/agent user management
 - Agent daily attendance tracking
+- Ticket attachment upload and download URL
 
 ## Not in MVP
 
@@ -58,6 +59,7 @@ com.aicrm.core/
 ├── ticket/
 ├── conversation/
 ├── message/
+├── attachment/
 └── category/
 ```
 
