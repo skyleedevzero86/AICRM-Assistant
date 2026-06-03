@@ -47,3 +47,13 @@ aicrm:
   attachment:
     max-file-size-bytes: 10485760
     allowed-extensions: jpg,jpeg,png,gif,pdf,doc,docx,xls,xlsx,txt,zip
+
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    operations-sorter: method
+    tags-sorter: alpha
+  default-consumes-media-type: application/json
+  default-produces-media-type: application/json

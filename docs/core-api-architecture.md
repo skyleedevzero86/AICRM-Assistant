@@ -97,3 +97,30 @@ Application layer depends on `TicketRepository`, not Spring Data types.
 - Repository interface and JPA implementation separation
 - Shared exception handling
 - No Axon/CQRS/Event Sourcing in MVP
+
+## API 문서 (Swagger)
+
+Core API는 springdoc-openapi 기반 Swagger UI를 제공합니다.
+
+| 항목 | 경로 |
+|------|------|
+| Swagger UI | `http://localhost:8080/swagger-ui/index.html` |
+| OpenAPI JSON | `http://localhost:8080/v3/api-docs` |
+
+### JWT 인증
+
+1. `POST /api/auth/login`으로 로그인하여 `accessToken`을 발급받습니다.
+2. Swagger UI 상단 **Authorize** 버튼을 클릭합니다.
+3. `Bearer {accessToken}` 형식으로 토큰을 입력합니다.
+4. 인증이 필요한 API(고객/상담원/첨부파일)를 호출합니다.
+
+### API 태그
+
+| 태그 | 설명 |
+|------|------|
+| 인증 | 로그인, 회원가입, 내 정보 |
+| 고객 | 문의 등록, 티켓 조회/수정, 메시지 |
+| 상담원 | 대기 티켓, 접수, 종료, 메시지 |
+| 첨부파일 | 업로드, 목록 조회, 다운로드 URL |
+
+설정 클래스: `global/config/OpenApiConfig.java`
