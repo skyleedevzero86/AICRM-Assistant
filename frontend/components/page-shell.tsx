@@ -2,12 +2,12 @@
 
 import type { Route } from "next";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { clearAccessToken } from "@/lib/auth-storage";
 import { msg } from "@/lib/messages";
-import { useAuthSession } from "@/lib/use-auth-session";
 import { useAccessTokenRole } from "@/lib/use-access-token-role";
+import { useAuthSession } from "@/lib/use-auth-session";
 import { useMounted } from "@/lib/use-mounted";
-import { useRouter } from "next/navigation";
 
 type PageShellProps = {
   title: string;
@@ -40,13 +40,21 @@ export function PageShell({ title, description, children }: PageShellProps) {
             <Link className="hover:text-zinc-900" href={"/customer/inquiry" as Route}>
               고객 문의
             </Link>
+            {mounted && role === "CUSTOMER" ? (
+              <Link className="hover:text-zinc-900" href={"/customer/tickets" as Route}>
+                내 문의
+              </Link>
+            ) : null}
             {mounted && role === "ADMIN" ? (
               <>
                 <Link className="hover:text-zinc-900" href={"/admin/users/agents" as Route}>
-                  상담사 회원 관리
+                  상담원 회원 관리
                 </Link>
                 <Link className="hover:text-zinc-900" href={"/admin/users/customers" as Route}>
                   고객 회원 관리
+                </Link>
+                <Link className="hover:text-zinc-900" href={"/admin/tickets" as Route}>
+                  상담 이력
                 </Link>
                 <Link className="hover:text-zinc-900" href={"/admin/attendance" as Route}>
                   근태 관리

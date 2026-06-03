@@ -173,6 +173,29 @@ export type AgentTicketDetail = {
   categoryId: number;
   categoryName: string;
   inquiryContent: string;
+  agentId: number | null;
+  resolution: string | null;
+  closedAt: string | null;
+};
+
+export type AgentTicketSummary = {
+  ticketId: number;
+  ticketNo: string;
+  status: TicketStatus;
+  subject: string;
+  customerName: string;
+  categoryName: string;
+  channel: ChannelType;
+  createdAt: string;
+  closedAt: string | null;
+};
+
+export type AdminTicketSummary = AgentTicketSummary & {
+  agentId: number | null;
+};
+
+export type AdminTicketDetail = AgentTicketDetail & {
+  agentId: number | null;
 };
 
 export type AcceptTicketResponse = {

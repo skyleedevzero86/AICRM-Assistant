@@ -2,7 +2,7 @@ import type { ApiResponse } from "./types";
 import { buildApiUrl } from "./base-url";
 import { clearAccessToken, getAccessToken } from "../auth-storage";
 import { msg } from "../messages";
-import { resolvePublicAuthError } from "../../../shared/messages/index";
+import { resolveLoginError } from "../../../shared/messages/index";
 import { isPublicApiPath, requiresAuthToken } from "./requires-auth";
 
 export const AUTH_REQUIRED_CODE = "AUTH_REQUIRED";
@@ -49,7 +49,7 @@ function resolveFailureMessage(path: string, status: number, payload: ApiRespons
   }
 
   if (isPublicApiPath(path)) {
-    return resolvePublicAuthError(code, message);
+    return resolveLoginError(code, message);
   }
 
   if (status >= 500) {

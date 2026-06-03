@@ -4,6 +4,7 @@ import type {
   CreateCustomerInquiryResponse,
   CustomerTicketDetail,
   CustomerTicketSummary,
+  Message,
   UpdateCustomerInquiryRequest
 } from "./types";
 
@@ -32,4 +33,8 @@ export function updateCustomerInquiry(
     method: "PUT",
     body: request
   });
+}
+
+export function fetchCustomerTicketMessages(ticketId: number): Promise<Message[]> {
+  return apiRequest<Message[]>(`/api/tickets/${ticketId}/messages`);
 }

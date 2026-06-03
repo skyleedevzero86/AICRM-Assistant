@@ -1,6 +1,6 @@
 import { getCandidateApiBaseUrls, resolveApiBaseUrl } from "@/config/api-base-url";
 import { isPublicApiPath, requiresAuthToken } from "@/api/requires-auth";
-import { msg, resolvePublicAuthError } from "@/messages";
+import { msg, resolveLoginError } from "@/messages";
 import { clearAccessToken, getAccessToken } from "@/storage/authStorage";
 
 type ApiResponse<T> = {
@@ -75,7 +75,7 @@ async function apiRequestAt<T>(baseUrl: string, path: string, options: RequestIn
   if (!response.ok || !payload.success) {
     if (isPublicApiPath(path)) {
       throw new ApiError(
-        resolvePublicAuthError(payload.error?.code, payload.error?.message),
+        resolveLoginError(payload.error?.code, payload.error?.message),
         payload.error?.code ?? "REQUEST_FAILED"
       );
     }

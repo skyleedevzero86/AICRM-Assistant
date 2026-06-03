@@ -1,24 +1,19 @@
-package com.aicrm.core.agent.dto;
+package com.aicrm.core.admin.dto;
 
 import com.aicrm.core.ticket.domain.ChannelType;
 import com.aicrm.core.ticket.domain.TicketStatus;
 import java.time.Instant;
 
-public record AgentTicketDetailResponse(
+public record AdminTicketSummaryResponse(
         Long ticketId,
         String ticketNo,
         TicketStatus status,
         String subject,
-        ChannelType channel,
-        Instant createdAt,
         String customerName,
-        String customerPhone,
-        String customerEmail,
-        Long categoryId,
         String categoryName,
-        String inquiryContent,
+        ChannelType channel,
         Long agentId,
-        String resolution,
+        Instant createdAt,
         Instant closedAt
 ) {
 }

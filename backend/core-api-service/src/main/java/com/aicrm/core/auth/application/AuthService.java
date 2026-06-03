@@ -72,6 +72,9 @@ public class AuthService {
         if (account.getRole() == UserRole.AGENT) {
             AgentAccount agent = agentAccountRepository.findByUserId(account.getId())
                     .orElseThrow(() -> new BusinessException(ErrorCode.AUTH_FAILED));
+            if (agent.getStatus() == AgentAccountStatus.PENDING) {
+                throw new BusinessException(ErrorCode.AGENT_APPROVAL_REQUIRED);
+            }
             if (agent.getStatus() != AgentAccountStatus.ACTIVE) {
                 throw new BusinessException(ErrorCode.ACCOUNT_UNAVAILABLE);
             }
