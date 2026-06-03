@@ -63,7 +63,12 @@ export default function LoginPage() {
   return (
     <PageShell title={msg.ui("auth.loginTitle")} description={msg.ui("auth.loginDescription")}>
       <div className="max-w-lg space-y-4">
-        {errorMessage ? <AlertBanner message={errorMessage} variant="error" /> : null}
+        {errorMessage ? (
+          <AlertBanner
+            message={errorMessage}
+            variant="error"
+          />
+        ) : null}
 
         <form className="space-y-4 rounded-lg border border-zinc-200 bg-white p-6" onSubmit={handleSubmit}>
           <div className="space-y-1">

@@ -4,7 +4,8 @@ const coreApiOrigin = process.env.CORE_API_URL ?? "http://localhost:8080";
 
 const nextConfig: NextConfig = {
   experimental: {
-    typedRoutes: true
+    typedRoutes: true,
+    externalDir: true
   },
   async rewrites() {
     return [
