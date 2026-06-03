@@ -1,5 +1,14 @@
 import { apiRequest } from "./client";
-import type { AdminAgentAttendance, AdminAgentUser, AdminCustomerUser, AgentApprovalStatus, AgentGrade } from "./types";
+import type {
+  AdminAgentAttendance,
+  AdminAgentUser,
+  AdminCustomerUser,
+  AdminTicketDetail,
+  AdminTicketSummary,
+  AgentApprovalStatus,
+  AgentGrade,
+  TicketStatus
+} from "./types";
 
 export function fetchAdminCustomers(keyword: string): Promise<AdminCustomerUser[]> {
   const query = keyword ? `?keyword=${encodeURIComponent(keyword)}` : "";
@@ -49,6 +58,15 @@ export function updateAgentGrade(agentId: number, grade: "ADMIN" | "COUNSELOR" |
 export function fetchAdminAgentAttendance(keyword: string): Promise<AdminAgentAttendance[]> {
   const query = keyword ? `?keyword=${encodeURIComponent(keyword)}` : "";
   return apiRequest<AdminAgentAttendance[]>(`/api/admin/attendance/agents${query}`);
+}
+
+export function fetchAdminTickets(status?: TicketStatus): Promise<AdminTicketSummary[]> {
+  const query = status ? `?status=${status}` : "";
+  return apiRequest<AdminTicketSummary[]>(`/api/admin/tickets${query}`);
+}
+
+export function fetchAdminTicket(ticketId: number): Promise<AdminTicketDetail> {
+  return apiRequest<AdminTicketDetail>(`/api/admin/tickets/${ticketId}`);
 }
 
 export type AdminUpdateCustomerRequest = {

@@ -59,7 +59,7 @@ public class AuthService {
         UserAccount account = userAccountRepository.findByEmail(request.email().trim().toLowerCase())
                 .orElseThrow(() -> new BusinessException(ErrorCode.AUTH_FAILED));
 
-        if (!passwordEncoder.matches(request.password(), account.getPasswordHash())) {
+        if (!matchesPassword(request.password(), account.getPasswordHash())) {
             throw new BusinessException(ErrorCode.AUTH_FAILED);
         }
         if (account.isWithdrawn()) {
@@ -72,21 +72,36 @@ public class AuthService {
         if (account.getRole() == UserRole.AGENT) {
             AgentAccount agent = agentAccountRepository.findByUserId(account.getId())
                     .orElseThrow(() -> new BusinessException(ErrorCode.AUTH_FAILED));
+            if (agent.getStatus() == AgentAccountStatus.PENDING) {
+                throw new BusinessException(ErrorCode.AGENT_APPROVAL_REQUIRED);
+            }
             if (agent.getStatus() != AgentAccountStatus.ACTIVE) {
                 throw new BusinessException(ErrorCode.ACCOUNT_UNAVAILABLE);
             }
         }
 
+        UserRole role = account.getRole() == null ? UserRole.CUSTOMER : account.getRole();
         AuthenticatedUser user = new AuthenticatedUser(
                 account.getId(),
                 account.getEmail(),
                 account.getName(),
-                account.getRole());
+                role);
         String token = jwtTokenProvider.generateToken(user);
-        if (user.role() == UserRole.AGENT) {
+        if (role == UserRole.AGENT) {
             agentAttendanceService.markAgentLogin(user.userId());
         }
-        return new LoginResponse(token, "Bearer", user.userId(), user.email(), user.role());
+        return new LoginResponse(token, "Bearer", user.userId(), user.email(), role);
+    }
+
+    private boolean matchesPassword(String rawPassword, String passwordHash) {
+        if (passwordHash == null || passwordHash.isBlank()) {
+            return false;
+        }
+        try {
+            return passwordEncoder.matches(rawPassword, passwordHash);
+        } catch (IllegalArgumentException exception) {
+            return false;
+        }
     }
 
     @Transactional

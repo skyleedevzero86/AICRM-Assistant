@@ -2,8 +2,9 @@ import { useState } from "react";
 import { Link, useRouter } from "expo-router";
 import { StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
 import { login } from "@/api/auth";
+import { ApiError } from "@/api/client";
 import { Screen } from "@/components/Screen";
-import { msg, resolveApiError } from "@/messages";
+import { msg, resolveLoginError } from "@/messages";
 import { setAccessToken } from "@/storage/authStorage";
 
 export function LoginScreen() {
@@ -27,7 +28,11 @@ export function LoginScreen() {
         router.replace("/(tabs)");
       }
     } catch (error) {
-      setErrorMessage(resolveApiError(error, "auth.loginFailed"));
+      if (error instanceof ApiError) {
+        setErrorMessage(resolveLoginError(error.code, error.message));
+      } else {
+        setErrorMessage(msg.ui("auth.loginFailed"));
+      }
     } finally {
       setPending(false);
     }

@@ -31,13 +31,40 @@ describe("apiRequest", () => {
       "fetch",
       vi.fn().mockResolvedValue({
         ok: true,
-        json: async () => responseBody
+        status: 200,
+        text: async () => JSON.stringify(responseBody)
       })
     );
 
     const data = await apiRequest<{ ticketId: number }>("/api/agent/tickets/10");
 
     expect(data.ticketId).toBe(10);
+  });
+
+  it("maps login AUTH_FAILED to a user-facing message", async () => {
+    const responseBody = {
+      success: false,
+      data: null,
+      error: { code: "AUTH_FAILED", message: "이메일 또는 비밀번호가 올바르지 않습니다" }
+    };
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({
+        ok: false,
+        status: 400,
+        text: async () => JSON.stringify(responseBody)
+      })
+    );
+
+    await expect(
+      apiRequest("/api/auth/login", {
+        method: "POST",
+        body: { email: "customer@example.com", password: "wrong" }
+      })
+    ).rejects.toMatchObject({
+      code: "AUTH_FAILED",
+      message: "이메일 또는 비밀번호가 올바르지 않습니다"
+    });
   });
 
   it("throws ApiError when API responds with failure", async () => {
@@ -51,8 +78,9 @@ describe("apiRequest", () => {
     vi.stubGlobal(
       "fetch",
       vi.fn().mockResolvedValue({
-        ok: 404,
-        json: async () => responseBody
+        ok: false,
+        status: 404,
+        text: async () => JSON.stringify(responseBody)
       })
     );
 

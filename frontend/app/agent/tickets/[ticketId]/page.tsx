@@ -41,7 +41,7 @@ export default function AgentTicketDetailPage() {
     queryKey: ["ticket-messages", ticketId],
     queryFn: () => fetchTicketMessages(ticketId),
     enabled: Number.isFinite(ticketId),
-    refetchInterval: 10_000
+    refetchInterval: detailQuery.data?.status === "CLOSED" ? false : 10_000
   });
 
   const acceptMutation = useMutation({
@@ -51,6 +51,7 @@ export default function AgentTicketDetailPage() {
       setActionMessage("티켓을 수락했습니다.");
       queryClient.invalidateQueries({ queryKey: ["agent-ticket-detail", ticketId] });
       queryClient.invalidateQueries({ queryKey: ["waiting-tickets"] });
+      queryClient.invalidateQueries({ queryKey: ["agent-tickets"] });
     },
     onError: (error) => {
       setActionMessage(null);
@@ -76,23 +77,15 @@ export default function AgentTicketDetailPage() {
     mutationFn: (resolutionText: string) => closeTicket(ticketId, { resolution: resolutionText }),
     onSuccess: () => {
       setActionError(null);
-      setActionMessage("티켓을 종료했습니다.");
+      setActionMessage("상담을 종료했습니다.");
       queryClient.invalidateQueries({ queryKey: ["agent-ticket-detail", ticketId] });
-      queryClient.invalidateQueries({ queryKey: ["waiting-tickets"] });
+      queryClient.invalidateQueries({ queryKey: ["agent-tickets"] });
     },
     onError: (error) => {
       setActionMessage(null);
-      setActionError(error instanceof ApiError ? error.message : "티켓 종료에 실패했습니다.");
+      setActionError(error instanceof ApiError ? error.message : "상담 종료에 실패했습니다.");
     }
   });
-
-  if (!Number.isFinite(ticketId)) {
-    return (
-      <PageShell title="상담 상세">
-        <AlertBanner message="올바르지 않은 티켓 번호입니다." variant="error" />
-      </PageShell>
-    );
-  }
 
   const detail = detailQuery.data;
   const status = detail?.status;
@@ -114,7 +107,7 @@ export default function AgentTicketDetailPage() {
   function handleCloseTicket() {
     const trimmed = resolution.trim();
     if (!trimmed) {
-      setActionError("해결 내용을 입력해 주세요.");
+      setActionError("처리 결과를 입력해 주세요.");
       return;
     }
     setActionError(null);
@@ -135,7 +128,7 @@ export default function AgentTicketDetailPage() {
     >
       <div className="mb-4">
         <Link className="text-sm text-teal-700 hover:underline" href={"/agent/tickets" as Route}>
-          ← 대기 티켓 목록
+          상담원 티켓 목록
         </Link>
       </div>
 
@@ -143,10 +136,7 @@ export default function AgentTicketDetailPage() {
         {actionMessage ? <AlertBanner message={actionMessage} variant="success" /> : null}
         {actionError ? <AlertBanner message={actionError} variant="error" /> : null}
         {loadError ? <AlertBanner message={loadError} variant="error" /> : null}
-
-        {detailQuery.isLoading ? (
-          <p className="text-sm text-zinc-500">티켓 정보를 불러오는 중...</p>
-        ) : null}
+        {detailQuery.isLoading ? <p className="text-sm text-zinc-500">티켓 정보를 불러오는 중...</p> : null}
 
         {detail ? (
           <>
@@ -154,11 +144,11 @@ export default function AgentTicketDetailPage() {
               <h2 className="mb-4 text-base font-semibold">고객 정보</h2>
               <dl className="grid gap-3 text-sm sm:grid-cols-2">
                 <InfoItem label="고객명" value={detail.customerName} />
-                <InfoItem label="연락처" value={detail.customerPhone} />
-                <InfoItem label="이메일" value={detail.customerEmail} />
-                <InfoItem label="문의 유형" value={detail.categoryName} />
+                <InfoItem label="연락처" value={detail.customerPhone || "-"} />
+                <InfoItem label="이메일" value={detail.customerEmail || "-"} />
+                <InfoItem label="문의 유형" value={detail.categoryName || "-"} />
                 <InfoItem label="접수 시간" value={formatDateTime(detail.createdAt)} />
-                <InfoItem label="티켓 상태" value={formatTicketStatus(detail.status)} />
+                <InfoItem label="상태" value={formatTicketStatus(detail.status)} />
               </dl>
               {canAccept ? (
                 <button
@@ -175,23 +165,16 @@ export default function AgentTicketDetailPage() {
             <section className="rounded-lg border border-zinc-200 bg-white p-6">
               <h2 className="mb-2 text-base font-semibold">문의 내용</h2>
               <p className="mb-2 text-sm font-medium">{detail.subject}</p>
-              <p className="whitespace-pre-wrap text-sm text-zinc-700">{detail.inquiryContent}</p>
+              <p className="whitespace-pre-wrap text-sm text-zinc-700">{detail.inquiryContent || "문의 내용이 없습니다."}</p>
             </section>
 
             <section className="rounded-lg border border-zinc-200 bg-white p-6">
               <h2 className="mb-4 text-base font-semibold">상담 메시지 이력</h2>
-              {messagesQuery.isLoading ? (
-                <p className="text-sm text-zinc-500">메시지를 불러오는 중...</p>
-              ) : null}
-              {messagesQuery.isError ? (
-                <AlertBanner message="메시지 목록을 불러오지 못했습니다." variant="error" />
-              ) : null}
+              {messagesQuery.isLoading ? <p className="text-sm text-zinc-500">메시지를 불러오는 중...</p> : null}
+              {messagesQuery.isError ? <AlertBanner message="메시지 목록을 불러오지 못했습니다." variant="error" /> : null}
               <ul className="space-y-3">
                 {messagesQuery.data?.map((message) => (
-                  <li
-                    className="rounded-md border border-zinc-100 bg-zinc-50 px-4 py-3 text-sm"
-                    key={message.messageId}
-                  >
+                  <li className="rounded-md border border-zinc-100 bg-zinc-50 px-4 py-3 text-sm" key={message.messageId}>
                     <div className="mb-1 flex items-center justify-between gap-2 text-xs text-zinc-500">
                       <span>{formatSenderType(message.senderType)}</span>
                       <span>{formatDateTime(message.createdAt)}</span>
@@ -224,7 +207,7 @@ export default function AgentTicketDetailPage() {
                     {messageMutation.isPending ? "전송 중..." : "메시지 전송"}
                   </button>
                   {status === "WAITING" ? (
-                    <p className="text-sm text-zinc-500">티켓을 수락한 후 답변을 전송할 수 있습니다.</p>
+                    <p className="text-sm text-zinc-500">티켓을 수락해야 답변을 전송할 수 있습니다.</p>
                   ) : null}
                 </form>
               </section>
@@ -232,8 +215,8 @@ export default function AgentTicketDetailPage() {
 
             {canClose ? (
               <section className="rounded-lg border border-zinc-200 bg-white p-6">
-                <h2 className="mb-4 text-base font-semibold">티켓 종료</h2>
-                <FormField htmlFor="resolution" label="해결 내용" required>
+                <h2 className="mb-4 text-base font-semibold">상담 종료</h2>
+                <FormField htmlFor="resolution" label="처리 결과" required>
                   <textarea
                     className={`${inputClassName} min-h-[100px] resize-y`}
                     id="resolution"
@@ -247,13 +230,17 @@ export default function AgentTicketDetailPage() {
                   onClick={handleCloseTicket}
                   type="button"
                 >
-                  {closeMutation.isPending ? "종료 중..." : "티켓 종료"}
+                  {closeMutation.isPending ? "종료 중..." : "상담 종료"}
                 </button>
               </section>
             ) : null}
 
-            {status === "CLOSED" ? (
-              <AlertBanner message="종료된 티켓입니다." variant="info" />
+            {detail.resolution ? (
+              <section className="rounded-lg border border-teal-200 bg-teal-50 p-6">
+                <h2 className="mb-2 text-base font-semibold text-teal-900">처리 결과</h2>
+                <p className="whitespace-pre-wrap text-sm text-teal-900">{detail.resolution}</p>
+                {detail.closedAt ? <p className="mt-2 text-xs text-teal-800">종료 시간: {formatDateTime(detail.closedAt)}</p> : null}
+              </section>
             ) : null}
           </>
         ) : null}

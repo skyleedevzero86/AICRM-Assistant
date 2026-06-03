@@ -7,8 +7,12 @@ import com.aicrm.core.conversation.domain.ConversationRepository;
 import com.aicrm.core.customer.domain.Customer;
 import com.aicrm.core.message.domain.Message;
 import com.aicrm.core.message.domain.MessageRepository;
+import com.aicrm.core.global.exception.BusinessException;
+import com.aicrm.core.global.exception.ErrorCode;
 import com.aicrm.core.ticket.domain.Ticket;
 import com.aicrm.core.ticket.domain.TicketRepository;
+import com.aicrm.core.ticket.domain.TicketStatus;
+import java.util.Objects;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -18,20 +22,27 @@ public class GetAgentTicketDetailService {
     private final TicketRepository ticketRepository;
     private final ConversationRepository conversationRepository;
     private final MessageRepository messageRepository;
+    private final AgentContext agentContext;
 
     public GetAgentTicketDetailService(
             TicketRepository ticketRepository,
             ConversationRepository conversationRepository,
-            MessageRepository messageRepository
+            MessageRepository messageRepository,
+            AgentContext agentContext
     ) {
         this.ticketRepository = ticketRepository;
         this.conversationRepository = conversationRepository;
         this.messageRepository = messageRepository;
+        this.agentContext = agentContext;
     }
 
     @Transactional(readOnly = true)
     public AgentTicketDetailResponse getDetail(Long ticketId) {
         Ticket ticket = ticketRepository.getById(ticketId);
+        Long agentId = agentContext.requireAgentId();
+        if (ticket.getStatus() != TicketStatus.WAITING && !Objects.equals(ticket.getAgentId(), agentId)) {
+            throw new BusinessException(ErrorCode.FORBIDDEN);
+        }
         Conversation conversation = conversationRepository.getByTicketId(ticketId);
         String inquiryContent = messageRepository.findFirstCustomerMessageByConversationId(conversation.getId())
                 .map(Message::getContent)
@@ -51,7 +62,10 @@ public class GetAgentTicketDetailService {
                 customer.getEmail(),
                 category != null ? category.getId() : null,
                 category != null ? category.getName() : null,
-                inquiryContent
+                inquiryContent,
+                ticket.getAgentId(),
+                ticket.getResolution(),
+                ticket.getClosedAt()
         );
     }
 }

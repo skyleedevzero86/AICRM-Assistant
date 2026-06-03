@@ -48,26 +48,43 @@ export const msg = {
   }
 };
 
-const LOGIN_UNAVAILABLE_CODES = new Set([
-  "ACCOUNT_UNAVAILABLE",
-  "ACCOUNT_WITHDRAWN",
-  "ACCOUNT_SUSPENDED",
-  "AGENT_APPROVAL_REQUIRED"
-]);
+export function resolveLoginError(code?: string, message?: string): string {
+  if (code === "AUTH_FAILED") {
+    return msg.error("AUTH_FAILED");
+  }
+  if (code === "AGENT_APPROVAL_REQUIRED") {
+    return msg.ui("auth.loginAgentPending");
+  }
+  if (code === "ACCOUNT_SUSPENDED") {
+    return msg.ui("auth.loginSuspended");
+  }
+  if (code === "ACCOUNT_WITHDRAWN") {
+    return msg.ui("auth.loginWithdrawn");
+  }
+  if (code === "ACCOUNT_UNAVAILABLE") {
+    return msg.ui("auth.loginAccountUnavailable");
+  }
+  if (message) {
+    return message;
+  }
+  if (code) {
+    const mapped = msg.error(code);
+    if (mapped !== `errors.${code}`) {
+      return mapped;
+    }
+  }
+  return msg.ui("auth.loginFailed");
+}
 
 export function resolvePublicAuthError(code?: string, message?: string): string {
-  return resolveApiErrorPayload(code, message, "auth.loginFailed", "auth.loginAccountUnavailable");
+  return resolveLoginError(code, message);
 }
 
 function resolveApiErrorPayload(
   code: string | undefined,
   message: string | undefined,
-  fallbackUiKey: string,
-  blockedUiKey = "auth.loginAccountUnavailable"
+  fallbackUiKey: string
 ): string {
-  if (code && LOGIN_UNAVAILABLE_CODES.has(code)) {
-    return msg.ui(blockedUiKey);
-  }
   if (code === "AUTH_FAILED") {
     return msg.error("AUTH_FAILED");
   }
@@ -87,14 +104,17 @@ function resolveApiErrorPayload(
   return msg.ui(fallbackUiKey);
 }
 
+function readErrorCode(error: unknown): string | undefined {
+  if (typeof error !== "object" || error === null || !("code" in error)) {
+    return undefined;
+  }
+  const value = (error as { code?: unknown }).code;
+  return typeof value === "string" && value.length > 0 ? value : undefined;
+}
+
 export function resolveApiError(error: unknown, fallbackUiKey: string): string {
-  if (error instanceof Error && "code" in error) {
-    const apiError = error as Error & { code?: string; message: string };
-    const blockedUiKey =
-      apiError.code && LOGIN_UNAVAILABLE_CODES.has(apiError.code)
-        ? "auth.loginAccountUnavailable"
-        : fallbackUiKey;
-    return resolveApiErrorPayload(apiError.code, apiError.message, fallbackUiKey, blockedUiKey);
+  if (error instanceof Error) {
+    return resolveApiErrorPayload(readErrorCode(error), error.message, fallbackUiKey);
   }
   return msg.ui(fallbackUiKey);
 }

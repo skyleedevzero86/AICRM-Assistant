@@ -41,13 +41,18 @@ public class JpaTicketRepository implements TicketRepository {
     }
 
     @Override
-    public List<Ticket> findAllByCustomerUserIdOrderByCreatedAtDesc(Long userId) {
-        return springDataJpaRepository.findAllByCustomerUserIdOrderByCreatedAtDesc(userId);
+    public List<Ticket> findAllByCustomerIdOrderByCreatedAtDesc(Long customerId) {
+        return springDataJpaRepository.findAllByCustomerIdOrderByCreatedAtDesc(customerId);
     }
 
     @Override
-    public Ticket getByIdAndCustomerUserId(Long ticketId, Long userId) {
-        return springDataJpaRepository.findByIdAndCustomerUserId(ticketId, userId)
+    public List<Ticket> findAllByAgentIdOrderByCreatedAtDesc(Long agentId) {
+        return springDataJpaRepository.findAllByAgentIdOrderByCreatedAtDesc(agentId);
+    }
+
+    @Override
+    public Ticket getByIdAndCustomerId(Long ticketId, Long customerId) {
+        return springDataJpaRepository.findByIdAndCustomerId(ticketId, customerId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.TICKET_NOT_FOUND, "TICKET_NOT_FOUND", ticketId));
     }
 

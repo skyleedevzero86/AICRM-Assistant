@@ -13,7 +13,7 @@ import { ErrorMessage } from "@/components/ErrorMessage";
 import { LoadingView } from "@/components/LoadingView";
 import { Screen } from "@/components/Screen";
 import { TicketStatusBadge } from "@/components/TicketStatusBadge";
-import { syncTicketsFromApi } from "@/utils/ticket-sync";
+import { loadCustomerTickets } from "@/utils/ticket-sync";
 import { formatDateTime, formatSenderType } from "@/utils/format";
 
 export function TicketDetailScreen({ ticketId }: { ticketId: number }) {
@@ -85,7 +85,7 @@ export function TicketDetailScreen({ ticketId }: { ticketId: number }) {
       });
       setTicket(updated);
       setEditing(false);
-      await syncTicketsFromApi();
+      await loadCustomerTickets();
       await loadDetail();
     } catch (error) {
       setSaveError(error instanceof ApiError ? error.message : "문의 수정에 실패했습니다.");

@@ -1,11 +1,12 @@
 package com.aicrm.app;
 
+import static com.aicrm.app.IntegrationTestAuth.bearer;
+import static com.aicrm.app.IntegrationTestAuth.login;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import com.aicrm.core.agent.infrastructure.RequestHeaderAgentContext;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.nio.charset.StandardCharsets;
@@ -32,6 +33,10 @@ class AgentTicketApiIntegrationTest {
     @Test
     void agentTicketAcceptFlow() throws Exception {
         // given
+        String customerToken = login(mockMvc, objectMapper, "customer@example.com", "password");
+        String agentToken = login(mockMvc, objectMapper, "agent1@aicrm.local", "password");
+        String agent2Token = login(mockMvc, objectMapper, "agent2@aicrm.local", "password");
+
         MvcResult treeResult = mockMvc.perform(get("/api/categories/consultation/tree"))
                 .andExpect(status().isOk())
                 .andReturn();
@@ -40,6 +45,7 @@ class AgentTicketApiIntegrationTest {
         long leafCategoryId = findNodeByCode(rootNodes, "DELIVERY_DELAY").path("id").asLong();
 
         MvcResult inquiryResult = mockMvc.perform(post("/api/customer/inquiries")
+                        .header("Authorization", bearer(customerToken))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                                 {
@@ -60,29 +66,27 @@ class AgentTicketApiIntegrationTest {
                 .asLong();
 
         // when & then
-        mockMvc.perform(get("/api/agent/tickets/waiting"))
+        mockMvc.perform(get("/api/agent/tickets/waiting").header("Authorization", bearer(agentToken)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.data[?(@.ticketId == " + ticketId + ")]").exists());
 
-        mockMvc.perform(get("/api/agent/tickets/{ticketId}", ticketId))
+        mockMvc.perform(get("/api/agent/tickets/{ticketId}", ticketId).header("Authorization", bearer(agentToken)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.ticketId").value(ticketId))
                 .andExpect(jsonPath("$.data.status").value("WAITING"))
                 .andExpect(jsonPath("$.data.inquiryContent").value("주문한 상품이 아직 도착하지 않았습니다."));
 
-        mockMvc.perform(post("/api/agent/tickets/{ticketId}/accept", ticketId)
-                        .header(RequestHeaderAgentContext.AGENT_ID_HEADER, "1"))
+        mockMvc.perform(post("/api/agent/tickets/{ticketId}/accept", ticketId).header("Authorization", bearer(agentToken)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.status").value("IN_PROGRESS"))
                 .andExpect(jsonPath("$.data.agentId").value(1));
 
-        mockMvc.perform(post("/api/agent/tickets/{ticketId}/accept", ticketId)
-                        .header(RequestHeaderAgentContext.AGENT_ID_HEADER, "2"))
+        mockMvc.perform(post("/api/agent/tickets/{ticketId}/accept", ticketId).header("Authorization", bearer(agent2Token)))
                 .andExpect(status().isConflict())
                 .andExpect(jsonPath("$.error.code").value("TICKET_ALREADY_ASSIGNED"));
 
-        mockMvc.perform(get("/api/agent/tickets/waiting"))
+        mockMvc.perform(get("/api/agent/tickets/waiting").header("Authorization", bearer(agentToken)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data[?(@.ticketId == " + ticketId + ")]").doesNotExist());
     }

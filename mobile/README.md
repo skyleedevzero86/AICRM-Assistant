@@ -69,7 +69,7 @@ Expo Go 실기기 테스트 시 `localhost`는 사용할 수 없습니다. PC와
 | 상담원 회원가입 | `/auth/signup-agent` | 가입 후 승인 대기 |
 | 홈 | `/(tabs)/` | 최근 접수 문의 |
 | 문의 | `/(tabs)/inquiry` | 상담 구분 선택 후 문의 접수 |
-| 내 문의 | `/(tabs)/tickets` | AsyncStorage + API 동기화 목록 |
+| 내 문의 | `/(tabs)/tickets` | 로그인 계정 기준 API 조회 (AsyncStorage는 조회 후 캐시) |
 | 상세 | `/tickets/[ticketId]` | 티켓 상세·메시지 이력 |
 
 접수한 티켓은 `@react-native-async-storage/async-storage`에 저장되며, 앱을 다시 실행해도 이 기기에서 조회할 수 있습니다.

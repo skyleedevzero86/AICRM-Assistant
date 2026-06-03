@@ -6,9 +6,10 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { AlertBanner } from "@/components/alert-banner";
 import { PageShell } from "@/components/page-shell";
+import { ApiError } from "@/lib/api/client";
 import { login } from "@/lib/api/auth";
 import { clearAccessToken, setAccessToken } from "@/lib/auth-storage";
-import { msg, resolveApiError } from "@/lib/messages";
+import { msg, resolveLoginError } from "@/lib/messages";
 
 function resolveReturnPath(returnUrl: string | null): Route | null {
   if (!returnUrl || !returnUrl.startsWith("/") || returnUrl.startsWith("//")) {
@@ -54,7 +55,11 @@ export default function LoginPage() {
         router.push("/customer/inquiry" as Route);
       }
     } catch (error) {
-      setErrorMessage(resolveApiError(error, "auth.loginFailed"));
+      if (error instanceof ApiError) {
+        setErrorMessage(resolveLoginError(error.code, error.message));
+      } else {
+        setErrorMessage(msg.ui("auth.loginFailed"));
+      }
     } finally {
       setPending(false);
     }
@@ -63,7 +68,12 @@ export default function LoginPage() {
   return (
     <PageShell title={msg.ui("auth.loginTitle")} description={msg.ui("auth.loginDescription")}>
       <div className="max-w-lg space-y-4">
-        {errorMessage ? <AlertBanner message={errorMessage} variant="error" /> : null}
+        {errorMessage ? (
+          <AlertBanner
+            message={errorMessage}
+            variant="error"
+          />
+        ) : null}
 
         <form className="space-y-4 rounded-lg border border-zinc-200 bg-white p-6" onSubmit={handleSubmit}>
           <div className="space-y-1">

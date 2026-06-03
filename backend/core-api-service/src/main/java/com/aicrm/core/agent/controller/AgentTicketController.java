@@ -3,9 +3,11 @@ package com.aicrm.core.agent.controller;
 import com.aicrm.core.agent.application.AcceptTicketService;
 import com.aicrm.core.agent.application.CloseTicketService;
 import com.aicrm.core.agent.application.GetAgentTicketDetailService;
+import com.aicrm.core.agent.application.GetAgentTicketsService;
 import com.aicrm.core.agent.application.GetWaitingTicketsService;
 import com.aicrm.core.agent.dto.AcceptTicketResponse;
 import com.aicrm.core.agent.dto.AgentTicketDetailResponse;
+import com.aicrm.core.agent.dto.AgentTicketSummaryResponse;
 import com.aicrm.core.agent.dto.CloseTicketRequest;
 import com.aicrm.core.agent.dto.CloseTicketResponse;
 import com.aicrm.core.agent.dto.WaitingTicketResponse;
@@ -24,17 +26,20 @@ import org.springframework.web.bind.annotation.RestController;
 public class AgentTicketController {
 
     private final GetWaitingTicketsService getWaitingTicketsService;
+    private final GetAgentTicketsService getAgentTicketsService;
     private final GetAgentTicketDetailService getAgentTicketDetailService;
     private final AcceptTicketService acceptTicketService;
     private final CloseTicketService closeTicketService;
 
     public AgentTicketController(
             GetWaitingTicketsService getWaitingTicketsService,
+            GetAgentTicketsService getAgentTicketsService,
             GetAgentTicketDetailService getAgentTicketDetailService,
             AcceptTicketService acceptTicketService,
             CloseTicketService closeTicketService
     ) {
         this.getWaitingTicketsService = getWaitingTicketsService;
+        this.getAgentTicketsService = getAgentTicketsService;
         this.getAgentTicketDetailService = getAgentTicketDetailService;
         this.acceptTicketService = acceptTicketService;
         this.closeTicketService = closeTicketService;
@@ -43,6 +48,11 @@ public class AgentTicketController {
     @GetMapping("/waiting")
     public ApiResponse<List<WaitingTicketResponse>> getWaitingTickets() {
         return ApiResponse.ok(getWaitingTicketsService.getWaitingTickets());
+    }
+
+    @GetMapping
+    public ApiResponse<List<AgentTicketSummaryResponse>> getMyTickets() {
+        return ApiResponse.ok(getAgentTicketsService.getMyTickets());
     }
 
     @GetMapping("/{ticketId}")

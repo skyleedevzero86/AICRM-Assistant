@@ -1,5 +1,5 @@
 import { Pressable, StyleSheet, Text, View } from "react-native";
-import type { StoredTicket } from "@/storage/ticketStorage";
+import type { CustomerTicketSummary } from "@/api/types";
 import { TicketStatusBadge } from "@/components/TicketStatusBadge";
 import { formatDateTime } from "@/utils/format";
 
@@ -7,7 +7,7 @@ export function TicketCard({
   ticket,
   onPress
 }: {
-  ticket: StoredTicket;
+  ticket: CustomerTicketSummary;
   onPress?: () => void;
 }) {
   return (
@@ -16,7 +16,7 @@ export function TicketCard({
         <View style={styles.titleBlock}>
           <Text style={styles.ticketNo}>{ticket.ticketNo}</Text>
           <Text numberOfLines={1} style={styles.title}>
-            {ticket.title}
+            {ticket.subject}
           </Text>
         </View>
         <TicketStatusBadge status={ticket.status} />

@@ -9,6 +9,7 @@ import static org.mockito.Mockito.when;
 import com.aicrm.core.category.domain.ConsultationCategory;
 import com.aicrm.core.conversation.domain.Conversation;
 import com.aicrm.core.conversation.domain.ConversationRepository;
+import com.aicrm.core.customer.application.CurrentCustomerService;
 import com.aicrm.core.customer.domain.Customer;
 import com.aicrm.core.global.exception.BusinessException;
 import com.aicrm.core.global.exception.ErrorCode;
@@ -40,6 +41,9 @@ class SaveCustomerTicketMessageServiceTest {
     @Mock
     private MessageRepository messageRepository;
 
+    @Mock
+    private CurrentCustomerService currentCustomerService;
+
     @InjectMocks
     private SaveCustomerTicketMessageService saveCustomerTicketMessageService;
 
@@ -50,7 +54,8 @@ class SaveCustomerTicketMessageServiceTest {
         Conversation conversation = conversationWithId(ticket, 20L);
         SaveMessageRequest request = new SaveMessageRequest("추가 문의 내용입니다.", null);
 
-        when(ticketRepository.getById(10L)).thenReturn(ticket);
+        when(currentCustomerService.requireCustomerId()).thenReturn(1L);
+        when(ticketRepository.getByIdAndCustomerId(10L, 1L)).thenReturn(ticket);
         when(conversationRepository.getByTicketId(10L)).thenReturn(conversation);
         when(messageRepository.save(any(Message.class))).thenAnswer(invocation -> {
             Message message = invocation.getArgument(0);
@@ -73,10 +78,28 @@ class SaveCustomerTicketMessageServiceTest {
     }
 
     @Test
+    void saveRejectsOtherCustomerTicket() {
+        // given
+        when(currentCustomerService.requireCustomerId()).thenReturn(1L);
+        when(ticketRepository.getByIdAndCustomerId(10L, 1L))
+                .thenThrow(new BusinessException(ErrorCode.TICKET_NOT_FOUND, "TICKET_NOT_FOUND", 10L));
+
+        // when & then
+        assertThatThrownBy(() -> saveCustomerTicketMessageService.save(
+                10L,
+                new SaveMessageRequest("추가 문의", null)
+        ))
+                .isInstanceOf(BusinessException.class)
+                .extracting("errorCode")
+                .isEqualTo(ErrorCode.TICKET_NOT_FOUND);
+    }
+
+    @Test
     void saveRejectsClosedTicket() {
         // given
         Ticket ticket = closedTicketWithId(10L);
-        when(ticketRepository.getById(10L)).thenReturn(ticket);
+        when(currentCustomerService.requireCustomerId()).thenReturn(1L);
+        when(ticketRepository.getByIdAndCustomerId(10L, 1L)).thenReturn(ticket);
 
         // when & then
         assertThatThrownBy(() -> saveCustomerTicketMessageService.save(

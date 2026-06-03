@@ -1,7 +1,6 @@
 import { fetchCustomerTickets } from "@/api/customer";
 import type { CustomerTicketSummary } from "@/api/types";
-import type { StoredTicket } from "@/storage/ticketStorage";
-import { loadStoredTickets, replaceStoredTickets } from "@/storage/ticketStorage";
+import { clearStoredTickets, replaceStoredTickets, type StoredTicket } from "@/storage/ticketStorage";
 
 export function toStoredTicket(ticket: CustomerTicketSummary): StoredTicket {
   return {
@@ -14,17 +13,8 @@ export function toStoredTicket(ticket: CustomerTicketSummary): StoredTicket {
   };
 }
 
-export async function syncTicketsFromApi(): Promise<StoredTicket[]> {
-  const remote = await fetchCustomerTickets();
-  const tickets = remote.map(toStoredTicket);
-  await replaceStoredTickets(tickets);
+export async function loadCustomerTickets(): Promise<CustomerTicketSummary[]> {
+  const tickets = await fetchCustomerTickets();
+  await replaceStoredTickets(tickets.map(toStoredTicket));
   return tickets;
-}
-
-export async function loadTicketsWithFallback(): Promise<StoredTicket[]> {
-  try {
-    return await syncTicketsFromApi();
-  } catch {
-    return loadStoredTickets();
-  }
 }

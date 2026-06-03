@@ -2,6 +2,7 @@ import { apiRequest } from "./client";
 import type {
   AcceptTicketResponse,
   AgentTicketDetail,
+  AgentTicketSummary,
   CloseTicketRequest,
   CloseTicketResponse,
   SaveMessageRequest,
@@ -12,6 +13,10 @@ import type { Message } from "./types";
 
 export function fetchWaitingTickets(): Promise<WaitingTicket[]> {
   return apiRequest<WaitingTicket[]>("/api/agent/tickets/waiting");
+}
+
+export function fetchAgentTickets(): Promise<AgentTicketSummary[]> {
+  return apiRequest<AgentTicketSummary[]>("/api/agent/tickets");
 }
 
 export function fetchAgentTicketDetail(ticketId: number): Promise<AgentTicketDetail> {

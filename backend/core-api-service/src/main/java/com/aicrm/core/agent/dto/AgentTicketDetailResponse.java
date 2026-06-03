@@ -16,6 +16,9 @@ public record AgentTicketDetailResponse(
         String customerEmail,
         Long categoryId,
         String categoryName,
-        String inquiryContent
+        String inquiryContent,
+        Long agentId,
+        String resolution,
+        Instant closedAt
 ) {
 }
