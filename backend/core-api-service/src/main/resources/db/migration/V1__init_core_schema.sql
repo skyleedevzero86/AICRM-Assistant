@@ -1,19 +1,61 @@
-CREATE EXTENSION IF NOT EXISTS vector;
+CREATE TYPE ticket_status AS ENUM (
+    'WAITING',
+    'ASSIGNED',
+    'IN_PROGRESS',
+    'RESOLVED',
+    'CLOSED',
+    'ESCALATED'
+);
+
+CREATE TYPE sender_type AS ENUM (
+    'CUSTOMER',
+    'AGENT',
+    'AI',
+    'SYSTEM'
+);
+
+CREATE TYPE channel_type AS ENUM (
+    'WEB_INQUIRY',
+    'WEB_CHAT',
+    'PHONE',
+    'EMAIL'
+);
+
+CREATE TABLE users (
+    id BIGSERIAL PRIMARY KEY,
+    email VARCHAR(255) NOT NULL UNIQUE,
+    password_hash VARCHAR(255) NOT NULL,
+    name VARCHAR(100) NOT NULL,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
 
 CREATE TABLE customers (
     id BIGSERIAL PRIMARY KEY,
+    user_id BIGINT REFERENCES users(id),
     name VARCHAR(100) NOT NULL,
     phone VARCHAR(30),
     email VARCHAR(255),
-    segment VARCHAR(50) NOT NULL DEFAULT 'GENERAL',
-    created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
 CREATE TABLE agents (
     id BIGSERIAL PRIMARY KEY,
+    user_id BIGINT NOT NULL UNIQUE REFERENCES users(id),
     name VARCHAR(100) NOT NULL,
-    email VARCHAR(255) NOT NULL UNIQUE,
-    role VARCHAR(50) NOT NULL DEFAULT 'AGENT',
+    status VARCHAR(40) NOT NULL DEFAULT 'ACTIVE',
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE TABLE consultation_categories (
+    id BIGSERIAL PRIMARY KEY,
+    code VARCHAR(80) NOT NULL UNIQUE,
+    name VARCHAR(100) NOT NULL,
+    description TEXT,
+    active BOOLEAN NOT NULL DEFAULT true,
+    sort_order INTEGER NOT NULL DEFAULT 0,
     created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
@@ -21,86 +63,38 @@ CREATE TABLE tickets (
     id BIGSERIAL PRIMARY KEY,
     customer_id BIGINT NOT NULL REFERENCES customers(id),
     agent_id BIGINT REFERENCES agents(id),
-    category VARCHAR(80),
-    status VARCHAR(40) NOT NULL DEFAULT 'OPEN',
-    priority VARCHAR(40) NOT NULL DEFAULT 'NORMAL',
-    sentiment VARCHAR(40),
-    summary TEXT,
-    resolution TEXT,
+    category_id BIGINT REFERENCES consultation_categories(id),
+    status ticket_status NOT NULL DEFAULT 'WAITING',
+    channel channel_type NOT NULL DEFAULT 'WEB_INQUIRY',
+    subject VARCHAR(255),
     created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    assigned_at TIMESTAMPTZ,
+    resolved_at TIMESTAMPTZ,
     closed_at TIMESTAMPTZ
 );
 
 CREATE TABLE conversations (
     id BIGSERIAL PRIMARY KEY,
     ticket_id BIGINT NOT NULL REFERENCES tickets(id),
-    channel VARCHAR(40) NOT NULL DEFAULT 'CHAT',
+    channel channel_type NOT NULL DEFAULT 'WEB_CHAT',
     created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
 CREATE TABLE messages (
     id BIGSERIAL PRIMARY KEY,
     conversation_id BIGINT NOT NULL REFERENCES conversations(id),
-    sender_type VARCHAR(40) NOT NULL,
+    sender_type sender_type NOT NULL,
+    sender_id BIGINT,
     content TEXT NOT NULL,
-    internal_note BOOLEAN NOT NULL DEFAULT false,
     created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
-CREATE TABLE knowledge_documents (
-    id BIGSERIAL PRIMARY KEY,
-    title VARCHAR(255) NOT NULL,
-    source_uri TEXT,
-    content_type VARCHAR(100),
-    status VARCHAR(40) NOT NULL DEFAULT 'UPLOADED',
-    created_at TIMESTAMPTZ NOT NULL DEFAULT now()
-);
-
-CREATE TABLE document_chunks (
-    id BIGSERIAL PRIMARY KEY,
-    document_id BIGINT NOT NULL REFERENCES knowledge_documents(id),
-    chunk_index INTEGER NOT NULL,
-    content TEXT NOT NULL,
-    metadata JSONB NOT NULL DEFAULT '{}'::jsonb,
-    embedding vector(1536),
-    created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
-    UNIQUE (document_id, chunk_index)
-);
-
-CREATE TABLE ai_runs (
-    id BIGSERIAL PRIMARY KEY,
-    ticket_id BIGINT REFERENCES tickets(id),
-    run_type VARCHAR(80) NOT NULL,
-    input TEXT NOT NULL,
-    output TEXT,
-    model_name VARCHAR(120),
-    prompt_version VARCHAR(80),
-    latency_ms INTEGER,
-    token_usage JSONB,
-    success BOOLEAN NOT NULL DEFAULT true,
-    created_at TIMESTAMPTZ NOT NULL DEFAULT now()
-);
-
-CREATE TABLE crm_actions (
-    id BIGSERIAL PRIMARY KEY,
-    ticket_id BIGINT REFERENCES tickets(id),
-    customer_id BIGINT NOT NULL REFERENCES customers(id),
-    action_type VARCHAR(80) NOT NULL,
-    status VARCHAR(40) NOT NULL DEFAULT 'PENDING',
-    payload JSONB NOT NULL DEFAULT '{}'::jsonb,
-    created_at TIMESTAMPTZ NOT NULL DEFAULT now()
-);
-
-CREATE TABLE audit_logs (
-    id BIGSERIAL PRIMARY KEY,
-    actor_id BIGINT,
-    action VARCHAR(120) NOT NULL,
-    target_type VARCHAR(80) NOT NULL,
-    target_id VARCHAR(120) NOT NULL,
-    detail JSONB NOT NULL DEFAULT '{}'::jsonb,
-    created_at TIMESTAMPTZ NOT NULL DEFAULT now()
-);
-
+CREATE INDEX idx_customers_user_id ON customers(user_id);
+CREATE INDEX idx_agents_user_id ON agents(user_id);
 CREATE INDEX idx_tickets_customer_id ON tickets(customer_id);
+CREATE INDEX idx_tickets_agent_id ON tickets(agent_id);
+CREATE INDEX idx_tickets_status ON tickets(status);
+CREATE INDEX idx_tickets_category_id ON tickets(category_id);
+CREATE INDEX idx_conversations_ticket_id ON conversations(ticket_id);
 CREATE INDEX idx_messages_conversation_id ON messages(conversation_id);
-CREATE INDEX idx_document_chunks_embedding ON document_chunks USING hnsw (embedding vector_cosine_ops);

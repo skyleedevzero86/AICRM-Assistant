@@ -1,0 +1,32 @@
+{
+  "expo": {
+    "name": "AICRM 고객센터",
+    "slug": "aicrm-assistant-mobile",
+    "version": "0.1.1",
+    "scheme": "aicrm",
+    "orientation": "portrait",
+    "userInterfaceStyle": "light",
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "ios": {
+      "supportsTablet": false
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#0f766e"
+      },
+      "usesCleartextTraffic": true
+    },
+    "plugins": [
+      "expo-router",
+      "expo-font"
+    ],
+    "extra": {
+      "apiBaseUrl": "",
+      "router": {
+        "origin": false
+      }
+    }
+  }
+}

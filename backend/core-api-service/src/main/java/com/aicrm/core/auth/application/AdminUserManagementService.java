@@ -1,0 +1,217 @@
+package com.aicrm.core.auth.application;
+
+import com.aicrm.core.auth.domain.AgentAccount;
+import com.aicrm.core.auth.domain.AgentAccountStatus;
+import com.aicrm.core.auth.domain.AgentGrade;
+import com.aicrm.core.auth.domain.UserAccount;
+import com.aicrm.core.auth.domain.UserRole;
+import com.aicrm.core.auth.dto.AdminAgentUserResponse;
+import com.aicrm.core.auth.dto.AdminCustomerUserResponse;
+import com.aicrm.core.auth.dto.AdminUpdateAgentRequest;
+import com.aicrm.core.auth.dto.AdminUpdateCustomerRequest;
+import com.aicrm.core.auth.infrastructure.AgentAccountRepository;
+import com.aicrm.core.auth.infrastructure.UserAccountRepository;
+import com.aicrm.core.customer.domain.Customer;
+import com.aicrm.core.customer.domain.CustomerRepository;
+import com.aicrm.core.global.exception.BusinessException;
+import com.aicrm.core.global.exception.ErrorCode;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+@Service
+public class AdminUserManagementService {
+
+    private final UserAccountRepository userAccountRepository;
+    private final AgentAccountRepository agentAccountRepository;
+    private final CustomerRepository customerRepository;
+
+    public AdminUserManagementService(
+            UserAccountRepository userAccountRepository,
+            AgentAccountRepository agentAccountRepository,
+            CustomerRepository customerRepository) {
+        this.userAccountRepository = userAccountRepository;
+        this.agentAccountRepository = agentAccountRepository;
+        this.customerRepository = customerRepository;
+    }
+
+    @Transactional(readOnly = true)
+    public List<AdminCustomerUserResponse> getCustomerUsers(String keyword) {
+        String normalized = normalize(keyword);
+        Map<Long, Customer> customerByUserId = customerRepository.findAllRegisteredUsers().stream()
+                .filter(customer -> customer.getUserId() != null)
+                .collect(Collectors.toMap(Customer::getUserId, customer -> customer));
+
+        return userAccountRepository.findAllByRole(UserRole.CUSTOMER).stream()
+                .filter(byKeyword(normalized))
+                .map(user -> {
+                    Customer customer = customerByUserId.get(user.getId());
+                    return new AdminCustomerUserResponse(
+                            user.getId(),
+                            user.getName(),
+                            user.getEmail(),
+                            customer != null ? customer.getPhone() : "",
+                            user.getWithdrawnYn(),
+                            user.getSuspendedYn());
+                })
+                .toList();
+    }
+
+    @Transactional(readOnly = true)
+    public List<AdminAgentUserResponse> getAgentUsers(
+            String keyword,
+            AgentAccountStatus approvalStatus,
+            AgentGrade grade) {
+        String normalized = normalize(keyword);
+        Map<Long, AgentAccount> agentByUserId = agentAccountRepository.findAll().stream()
+                .collect(Collectors.toMap(AgentAccount::getUserId, agent -> agent));
+
+        return userAccountRepository.findAllByRole(UserRole.AGENT).stream()
+                .filter(user -> matchesAgentKeyword(user, agentByUserId.get(user.getId()), normalized))
+                .map(user -> {
+                    AgentAccount agent = agentByUserId.get(user.getId());
+                    if (agent == null) {
+                        return null;
+                    }
+                    return new AdminAgentUserResponse(
+                            user.getId(),
+                            agent.getId(),
+                            agent.getEmployeeNo(),
+                            user.getName(),
+                            user.getEmail(),
+                            agent.getStatus(),
+                            agent.getGrade(),
+                            user.getWithdrawnYn(),
+                            user.getSuspendedYn());
+                })
+                .filter(response -> response != null)
+                .filter(response -> approvalStatus == null || response.approvalStatus() == approvalStatus)
+                .filter(response -> grade == null || response.grade() == grade)
+                .toList();
+    }
+
+    @Transactional
+    public void updateSuspendedYn(Long userId, String value) {
+        UserAccount user = userAccountRepository.findById(userId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.NOT_FOUND, "USER_NOT_FOUND", userId));
+        user.setSuspendedYn(value);
+        userAccountRepository.save(user);
+    }
+
+    @Transactional
+    public void updateWithdrawnYn(Long userId, String value) {
+        UserAccount user = userAccountRepository.findById(userId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.NOT_FOUND, "USER_NOT_FOUND", userId));
+        user.setWithdrawnYn(value);
+        userAccountRepository.save(user);
+    }
+
+    @Transactional
+    public AdminCustomerUserResponse updateCustomerUser(Long userId, AdminUpdateCustomerRequest request) {
+        UserAccount user = userAccountRepository.findById(userId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.NOT_FOUND, "USER_NOT_FOUND", userId));
+        if (user.getRole() != UserRole.CUSTOMER) {
+            throw new BusinessException(ErrorCode.INVALID_REQUEST);
+        }
+        String email = request.email().trim().toLowerCase();
+        String name = request.name().trim();
+        ensureEmailAvailableForUpdate(email, userId);
+        user.updateName(name);
+        user.updateEmail(email);
+        userAccountRepository.save(user);
+
+        Customer customer = customerRepository.findByUserId(userId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.NOT_FOUND, "CUSTOMER_NOT_FOUND", userId));
+        String phone = request.phone() == null ? "" : request.phone().trim();
+        customer.updateAccount(name, phone);
+        customer.updateProfile(name, email);
+        customerRepository.save(customer);
+
+        return toCustomerResponse(user, customer);
+    }
+
+    @Transactional
+    public AdminAgentUserResponse updateAgentUser(Long userId, AdminUpdateAgentRequest request) {
+        UserAccount user = userAccountRepository.findById(userId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.NOT_FOUND, "USER_NOT_FOUND", userId));
+        if (user.getRole() != UserRole.AGENT) {
+            throw new BusinessException(ErrorCode.INVALID_REQUEST);
+        }
+        String email = request.email().trim().toLowerCase();
+        String name = request.name().trim();
+        String employeeNo = AgentEmployeeNoValidator.normalize(request.employeeNo());
+        AgentEmployeeNoValidator.validate(employeeNo);
+        ensureEmailAvailableForUpdate(email, userId);
+
+        AgentAccount agent = agentAccountRepository.findByUserId(userId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.NOT_FOUND, "AGENT_NOT_FOUND", userId));
+        if (agentAccountRepository.existsByEmployeeNoAndIdNot(employeeNo, agent.getId())) {
+            throw new BusinessException(ErrorCode.DUPLICATE_EMPLOYEE_NO);
+        }
+
+        user.updateName(name);
+        user.updateEmail(email);
+        userAccountRepository.save(user);
+        agent.updateName(name);
+        agent.updateEmployeeNo(employeeNo);
+        agentAccountRepository.save(agent);
+
+        return toAgentResponse(user, agent);
+    }
+
+    private AdminCustomerUserResponse toCustomerResponse(UserAccount user, Customer customer) {
+        return new AdminCustomerUserResponse(
+                user.getId(),
+                user.getName(),
+                user.getEmail(),
+                customer.getPhone() == null ? "" : customer.getPhone(),
+                user.getWithdrawnYn(),
+                user.getSuspendedYn());
+    }
+
+    private AdminAgentUserResponse toAgentResponse(UserAccount user, AgentAccount agent) {
+        return new AdminAgentUserResponse(
+                user.getId(),
+                agent.getId(),
+                agent.getEmployeeNo(),
+                user.getName(),
+                user.getEmail(),
+                agent.getStatus(),
+                agent.getGrade(),
+                user.getWithdrawnYn(),
+                user.getSuspendedYn());
+    }
+
+    private void ensureEmailAvailableForUpdate(String email, Long userId) {
+        if (userAccountRepository.existsByEmailAndIdNot(email, userId)) {
+            throw new BusinessException(ErrorCode.DUPLICATE_EMAIL);
+        }
+    }
+
+    private Predicate<UserAccount> byKeyword(String keyword) {
+        if (keyword.isBlank()) {
+            return user -> true;
+        }
+        return user -> user.getName().toLowerCase(Locale.ROOT).contains(keyword)
+                || user.getEmail().toLowerCase(Locale.ROOT).contains(keyword);
+    }
+
+    private String normalize(String keyword) {
+        return keyword == null ? "" : keyword.trim().toLowerCase(Locale.ROOT);
+    }
+
+    private boolean matchesAgentKeyword(UserAccount user, AgentAccount agent, String keyword) {
+        if (keyword.isBlank()) {
+            return true;
+        }
+        if (user.getName().toLowerCase(Locale.ROOT).contains(keyword)
+                || user.getEmail().toLowerCase(Locale.ROOT).contains(keyword)) {
+            return true;
+        }
+        return agent != null && agent.getEmployeeNo().contains(keyword);
+    }
+}
